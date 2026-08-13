@@ -115,7 +115,7 @@ namespace TrailToolsDetail
 	extern DraftPack gDraft;
 	extern bool      gPlaceOnce;
 	extern bool      gFocus;
-	extern int       gTab; /* 0 Pack, 1 Content, 2 Live, 3 Keybinds */
+	extern int       gTab; /* 0 Editor, 1 Pack, 2 Content, 3 Live, 4 Keybinds */
 
 	/* Multiple TrailsN / MarkersN editors (mockup: Trails1+Trails2, Markers1+Markers2). */
 	constexpr int kMaxTrailEditors = 5;
@@ -159,12 +159,18 @@ namespace TrailToolsDetail
 	/* Trails / Markers XML desks as their own windows (hub can stay on Live). */
 	extern bool  gShowTrailsDesk;
 	extern bool  gShowMarkersDesk;
+	extern bool  gShowXmlEdit;
 	extern bool  gPlaceOnceTrailsDesk;
 	extern bool  gFocusTrailsDesk;
 	extern bool  gPlaceOnceMarkersDesk;
 	extern bool  gFocusMarkersDesk;
 	extern float gTrailsDeskX, gTrailsDeskY, gTrailsDeskW, gTrailsDeskH;
 	extern float gMarkersDeskX, gMarkersDeskY, gMarkersDeskW, gMarkersDeskH;
+	extern bool  gPlaceOnceXmlEdit;
+	extern bool  gFocusXmlEdit;
+	extern float gXmlEditX, gXmlEditY, gXmlEditW, gXmlEditH;
+	extern std::string gXmlEdit; /* raw OverlayData text (may include attrs we do not model) */
+	extern bool  gXmlEditDirty;
 	/* Last-focused TrailsN for keybind recording (−1 = gDraft.active). */
 	extern int gTrailRecordSlot;
 	/* Hub: ignore Pop out / New window for one frame after a side-rail tab click. */
@@ -185,6 +191,7 @@ namespace TrailToolsDetail
 	void CloseAllPopouts();
 	void OpenTrailsDesk();
 	void OpenMarkersDesk();
+	void OpenXmlEditor();
 	int  OpenNewTrailEditor(); /* −1 if full; opens next free TrailsN (keeps others open) */
 	int  OpenTrailEditorSlot(int slot); /* open/focus specific TrailsN; −1 if bad */
 	int  OpenMarkerEditor(int poiIndex, bool forceNew = false); /* forceNew skips focus-existing */
@@ -221,6 +228,8 @@ namespace TrailToolsDetail
 	/* Session + import (TrailToolsPersist / TrailToolsImport). */
 	bool SaveDraftSession();
 	bool LoadDraftSession();
+	/* Parse OverlayData text into gDraft (known attrs). Extra XML stays in gXmlEdit until Save. */
+	bool ApplyOverlayXml(const std::string& xml);
 	bool ImportTacoToDraft(const std::wstring& tacoPath, std::string& err);
 
 	/* Shared OverlayData project desk (Trails + Markers hubs). */

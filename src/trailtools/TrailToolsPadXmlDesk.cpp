@@ -141,11 +141,21 @@ namespace TrailToolsDetail
 		TrailToolsXml::CoerceSingleOverlayPath(path);
 		std::snprintf(gDraft.xmlPath, sizeof(gDraft.xmlPath), "%s", WideToUtf8(path).c_str());
 		gDraft.xmlLayout = 0;
-		if (!TrailToolsXml::WriteOverlayFile(path, gDraft))
+		bool ok = false;
+		if (gXmlEditDirty && !gXmlEdit.empty())
+			ok = TrailToolsXml::WriteUtf8File(path, gXmlEdit);
+		else
+			ok = TrailToolsXml::WriteOverlayFile(path, gDraft);
+		if (!ok)
 		{
 			SetStatus("Save XML failed.");
 			return false;
 		}
+		if (gXmlEditDirty && !gXmlEdit.empty())
+			ApplyOverlayXml(gXmlEdit);
+		else
+			gXmlEdit = TrailToolsXml::EmitOverlayData(gDraft);
+		gXmlEditDirty = false;
 		gDraft.xmlDirty = false;
 		SetStatus("Saved project XML.");
 		Settings::SetDirty();
@@ -166,17 +176,10 @@ namespace TrailToolsDetail
 			SetStatus("Could not read XML.");
 			return false;
 		}
-		/* Reuse draft-session parse by writing temp then LoadDraftSession is awkward —
-		   call the same loader via a short path: write to session then load. */
-		EnsureWorkspace();
-		const std::wstring session = PackDir() + L"\\_draft_session.xml";
-		if (!TrailToolsXml::WriteUtf8File(session, xml))
-		{
-			SetStatus("Failed to stage XML for load.");
+		if (!ApplyOverlayXml(xml))
 			return false;
-		}
-		if (!LoadDraftSession())
-			return false;
+		gXmlEdit = xml;
+		gXmlEditDirty = false;
 		TrailToolsXml::CoerceSingleOverlayPath(path);
 		gDraft.xmlLayout = 0;
 		std::snprintf(gDraft.xmlPath, sizeof(gDraft.xmlPath), "%s", WideToUtf8(path).c_str());
@@ -207,7 +210,10 @@ namespace TrailToolsDetail
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Save"));
 		if (PadNav::PrimaryButton("Save###gw2tt_tt_xmlsave"))
 			SaveProjectXml(false);
-		ImGui::TextDisabled("One OverlayData file (categories, trails, and markers).");
+		PadNav::WrapSameLine(PadNav::ButtonWidth("XML editor"));
+		if (ImGui::Button("XML editor###gw2tt_tt_xmledit") && !gHubSkipOpenClicks)
+			OpenXmlEditor();
+		ImGui::TextDisabled("One OverlayData file. Use the editor for custom TacO/Blish attrs.");
 		PadNav::EndSection();
 	}
 }

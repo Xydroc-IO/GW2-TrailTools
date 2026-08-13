@@ -175,7 +175,7 @@ void TrailToolsDetail::DrawTrailDesk(bool asPopout)
 	}
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Copy XML"));
 	{
-		const std::string line = TrailToolsXml::EmitTrailElement(gDraft.active);
+		const std::string line = TrailToolsXml::EmitTrailElementBasic(gDraft.active);
 		if (!line.empty() && ImGui::Button("Copy XML###gw2tt_tt_copytrxml2"))
 		{
 			CopyClipboard(line.c_str());

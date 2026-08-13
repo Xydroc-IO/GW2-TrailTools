@@ -17,6 +17,8 @@ namespace TrailToolsDetail
 	void DrawMarkerRawEditor(); /* uses gDraft.selectedPoi */
 	void DrawMarkerRawEditorForSlot(int slot); /* MarkersN bound to slot.poiIndex */
 	void DrawXmlProjectDesk(); /* Pack tab only — New/Load/Save OverlayData */
+	void DrawXmlEditorBody();
+	bool RenderXmlEditorPad(); /* pop-out OverlayData text editor */
 	void DrawPackTab();
 	void DrawKeybindsTab();
 	void DrawPoiScriptAttrs(DraftPoi& p);

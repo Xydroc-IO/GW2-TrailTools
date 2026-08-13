@@ -3,6 +3,7 @@
 
 #include "HelperTheme.h"
 #include "PadNav.h"
+#include "TrailToolsXml.h"
 
 #include "imgui/imgui.h"
 
@@ -105,6 +106,15 @@ void TrailToolsDetail::DrawContentTab()
 	ImGui::EndChild();
 	if (ImGui::Button("New trail window###gw2tt_tt_open_trn") && !gHubSkipOpenClicks)
 		OpenNewTrailEditor();
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Copy XML"));
+	{
+		const std::string line = TrailToolsXml::EmitTrailElementBasic(gDraft.active);
+		if (!line.empty() && ImGui::Button("Copy XML###gw2tt_tt_copytrxml"))
+		{
+			CopyClipboard(line.c_str());
+			SetStatus("Copied %s", line.c_str());
+		}
+	}
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Add to project"));
 	if (PadNav::PrimaryButton("Add to project###gw2tt_tt_ins_trxml"))
 		UpsertActiveTrailInPack();

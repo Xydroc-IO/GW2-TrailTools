@@ -101,18 +101,34 @@ namespace
 			tr.mapId = mapId;
 		if (tr.mapId != mapId)
 			return;
-		const float kMinDist = (std::isfinite(gBinds.trailSampleSpacing) &&
+
+		/* Do not append while standing still — compare to last real vertex, not a stale sample. */
+		float lx = x, ly = y, lz = z;
+		bool haveLast = false;
+		for (int i = static_cast<int>(tr.points.size()) - 1; i >= 0; --i)
+		{
+			const auto& p = tr.points[static_cast<size_t>(i)];
+			if (p.x == 0.f && p.y == 0.f && p.z == 0.f)
+				continue;
+			lx = p.x;
+			ly = p.y;
+			lz = p.z;
+			haveLast = true;
+			break;
+		}
+		const float spacing = (std::isfinite(gBinds.trailSampleSpacing) &&
 			gBinds.trailSampleSpacing > 0.05f)
 			? gBinds.trailSampleSpacing
 			: 0.3f;
-		if (gHaveSample)
+		/* Floor so Mumble idle jitter (~cm) cannot spam duplicates if spacing is tiny. */
+		const float minMove = spacing > 0.05f ? spacing : 0.05f;
+		if (haveLast)
 		{
-			const float dx = x - gLastSampleX;
-			const float dy = y - gLastSampleY;
-			const float dz = z - gLastSampleZ;
-			if (dx * dx + dy * dy + dz * dz < kMinDist * kMinDist)
+			const float dx = x - lx, dy = y - ly, dz = z - lz;
+			if (dx * dx + dy * dy + dz * dz < minMove * minMove)
 				return;
 		}
+
 		tr.points.push_back({ x, y, z });
 		sel = static_cast<int>(tr.points.size()) - 1;
 		dirty = true;

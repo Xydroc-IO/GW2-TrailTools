@@ -1,5 +1,6 @@
 #include "TrailToolsShared.h"
 #include "TrailToolsBinds.h"
+#include "TrailToolsXml.h"
 
 #include "Globals.h"
 
@@ -23,7 +24,7 @@ namespace TrailToolsDetail
 
 	bool AnyAuthoringPadOpen()
 	{
-		if (G::ShowTrailTools || gShowTrailsDesk || gShowMarkersDesk)
+		if (G::ShowTrailTools || gShowTrailsDesk || gShowMarkersDesk || gShowXmlEdit)
 			return true;
 		for (int i = 0; i < kMaxTrailEditors; ++i)
 		{
@@ -42,6 +43,7 @@ namespace TrailToolsDetail
 	{
 		gShowTrailsDesk = false;
 		gShowMarkersDesk = false;
+		gShowXmlEdit = false;
 		gPopoutTrails = false;
 		gPopoutMarkers = false;
 		gTrailRecordSlot = -1;
@@ -67,6 +69,16 @@ namespace TrailToolsDetail
 		gShowMarkersDesk = true;
 		gFocusMarkersDesk = true;
 		gPopoutMarkers = true;
+	}
+
+	void OpenXmlEditor()
+	{
+		if (!gShowXmlEdit)
+			gPlaceOnceXmlEdit = true;
+		gShowXmlEdit = true;
+		gFocusXmlEdit = true;
+		if (!gXmlEditDirty)
+			gXmlEdit = TrailToolsXml::EmitOverlayData(gDraft);
 	}
 
 	void PushTrailEditorToActive(int slot)

@@ -238,6 +238,16 @@ std::string TrailToolsXml::EmitTrailElement(const TrailToolsDetail::DraftTrail& 
 	return s;
 }
 
+std::string TrailToolsXml::EmitTrailElementBasic(const TrailToolsDetail::DraftTrail& trail)
+{
+	if (trail.fileRel.empty() || trail.type.empty())
+		return {};
+	std::ostringstream os;
+	os << "<Trail type=\"" << EscAttr(trail.type)
+		<< "\" trailData=\"" << EscAttr(trail.fileRel) << "\"/>";
+	return os.str();
+}
+
 std::string TrailToolsXml::EmitPoiElement(const TrailToolsDetail::DraftPoi& poi)
 {
 	std::ostringstream os;

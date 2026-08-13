@@ -325,19 +325,10 @@ void TrailToolsDetail::DrawPackTab()
 	ImGui::TextDisabled("%zu trails · %zu markers", gDraft.trails.size() +
 		(gDraft.active.points.size() >= 2 ? 1u : 0u), gDraft.pois.size());
 
-	if (ImGui::CollapsingHeader("XML preview###gw2tt_tt_xmlprev"))
-	{
-		static std::string sXml;
-		sXml = TrailToolsXml::EmitOverlayData(gDraft);
-		ImGui::BeginChild("###gw2tt_tt_xmlscroll", ImVec2(0.f, 140.f), true);
-		ImGui::TextUnformatted(sXml.c_str());
-		ImGui::EndChild();
-		if (ImGui::Button("Copy XML###gw2tt_tt_copyxml"))
-		{
-			CopyClipboard(sXml.c_str());
-			SetStatus("Copied XML.");
-		}
-	}
+	if (ImGui::Button("XML editor###gw2tt_tt_xmlprevopen") && !gHubSkipOpenClicks)
+		OpenXmlEditor();
+	ImGui::SameLine();
+	ImGui::TextDisabled("Raw OverlayData (custom attrs, different TacO layouts).");
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);

@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -67,6 +68,42 @@ namespace
 		for (char c : rel)
 			p.push_back(c == '/' ? L'\\' : static_cast<wchar_t>(static_cast<unsigned char>(c)));
 		return p;
+	}
+
+	/* Next `<Name .../>` or `<Name ...>...</Name>` (skips `<Names>`). */
+	bool NextElem(const std::string& xml, const char* name, size_t& pos, std::string& tag)
+	{
+		const size_t nlen = std::strlen(name);
+		while (true)
+		{
+			const size_t at = xml.find(name[0] == '<' ? std::string(name) : (std::string("<") + name), pos);
+			if (at == std::string::npos)
+				return false;
+			const size_t after = at + 1 + nlen;
+			if (after < xml.size())
+			{
+				const char c = xml[after];
+				if (!(c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '/' || c == '>'))
+				{
+					pos = after;
+					continue;
+				}
+			}
+			const size_t gt = xml.find('>', at);
+			if (gt == std::string::npos)
+				return false;
+			tag = xml.substr(at, gt - at);
+			const bool self = gt > 0 && xml[gt - 1] == '/';
+			if (self)
+			{
+				pos = gt + 1;
+				return true;
+			}
+			const std::string close = std::string("</") + name + ">";
+			const size_t end = xml.find(close, gt);
+			pos = (end == std::string::npos) ? gt + 1 : end + close.size();
+			return true;
+		}
 	}
 
 	using TrailToolsDetail::CategoryNode;
@@ -302,45 +339,46 @@ bool TrailToolsDetail::LoadDraftSession()
 		SetStatus("No draft session on disk.");
 		return false;
 	}
+	return ApplyOverlayXml(xml);
+}
 
-	/* Categories: first root MarkerCategory after OverlayData. */
+bool TrailToolsDetail::ApplyOverlayXml(const std::string& xmlIn)
+{
+	std::string xml = xmlIn;
+	if (xml.size() >= 3 &&
+		static_cast<unsigned char>(xml[0]) == 0xEF &&
+		static_cast<unsigned char>(xml[1]) == 0xBB &&
+		static_cast<unsigned char>(xml[2]) == 0xBF)
+		xml.erase(0, 3);
+
+	size_t pos = xml.find("<OverlayData");
+	if (pos != std::string::npos)
 	{
-		size_t pos = xml.find("<OverlayData");
+		pos = xml.find('>', pos);
 		if (pos != std::string::npos)
 		{
-			pos = xml.find('>', pos);
-			if (pos != std::string::npos)
-			{
-				++pos;
-				CategoryNode root;
-				size_t catPos = pos;
-				if (ParseCategoryTree(xml, catPos, root) && !root.name.empty())
-					gDraft.root = std::move(root);
-			}
+			++pos;
+			CategoryNode root;
+			size_t catPos = pos;
+			if (ParseCategoryTree(xml, catPos, root) && !root.name.empty())
+				gDraft.root = std::move(root);
 		}
 	}
 
 	gDraft.pois.clear();
-	size_t pos = 0;
-	while ((pos = xml.find("<POI ", pos)) != std::string::npos)
+	pos = 0;
+	std::string tag;
+	while (NextElem(xml, "POI", pos, tag))
 	{
-		const size_t end = xml.find("/>", pos);
-		if (end == std::string::npos)
-			break;
-		DraftPoi p = ParsePoiTag(xml.substr(pos, end - pos));
+		DraftPoi p = ParsePoiTag(tag);
 		if (p.mapId && !p.type.empty())
 			gDraft.pois.push_back(std::move(p));
-		pos = end + 2;
 	}
 
 	gDraft.trails.clear();
 	pos = 0;
-	while ((pos = xml.find("<Trail ", pos)) != std::string::npos)
+	while (NextElem(xml, "Trail", pos, tag))
 	{
-		const size_t end = xml.find("/>", pos);
-		if (end == std::string::npos)
-			break;
-		const std::string tag = xml.substr(pos, end - pos);
 		DraftTrail t;
 		t.type = Attr(tag, "type");
 		t.fileRel = Attr(tag, "trailData");
@@ -358,25 +396,23 @@ bool TrailToolsDetail::LoadDraftSession()
 			}
 			gDraft.trails.push_back(std::move(t));
 		}
-		pos = end + 2;
 	}
 
-	/* Active trail + type fields from sidecar comment. */
 	const size_t act = xml.find("<!-- ACTIVE ");
 	if (act != std::string::npos)
 	{
 		const size_t end = xml.find("-->", act);
-		const std::string tag = end == std::string::npos
+		const std::string atag = end == std::string::npos
 			? xml.substr(act)
 			: xml.substr(act, end - act);
 		gDraft.active = {};
-		gDraft.active.mapId = static_cast<uint32_t>(std::atoi(Attr(tag, "map").c_str()));
-		gDraft.active.fileRel = Attr(tag, "file");
-		gDraft.active.type = Attr(tag, "type");
-		const std::string mt = Attr(tag, "markerType");
+		gDraft.active.mapId = static_cast<uint32_t>(std::atoi(Attr(atag, "map").c_str()));
+		gDraft.active.fileRel = Attr(atag, "file");
+		gDraft.active.type = Attr(atag, "type");
+		const std::string mt = Attr(atag, "markerType");
 		if (!mt.empty())
 			std::snprintf(gDraft.markerType, sizeof(gDraft.markerType), "%s", mt.c_str());
-		const std::string tt = Attr(tag, "trailType");
+		const std::string tt = Attr(atag, "trailType");
 		if (!tt.empty())
 			std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s", tt.c_str());
 		if (!gDraft.active.fileRel.empty())
@@ -390,7 +426,6 @@ bool TrailToolsDetail::LoadDraftSession()
 			}
 			else
 			{
-				/* Fall back to matching trails list entry. */
 				for (const auto& t : gDraft.trails)
 				{
 					if (t.fileRel == gDraft.active.fileRel)

@@ -9,6 +9,7 @@ namespace TrailToolsXml
 	/* One OverlayData file (categories + trails + markers). */
 	std::string EmitOverlayData(const TrailToolsDetail::DraftPack& pack);
 	std::string EmitTrailElement(const TrailToolsDetail::DraftTrail& trail);
+	std::string EmitTrailElementBasic(const TrailToolsDetail::DraftTrail& trail);
 	std::string EmitPoiElement(const TrailToolsDetail::DraftPoi& poi);
 
 	bool WriteUtf8File(const std::wstring& path, const std::string& utf8);

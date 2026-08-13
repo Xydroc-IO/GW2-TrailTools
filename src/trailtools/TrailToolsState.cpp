@@ -12,12 +12,18 @@ namespace TrailToolsDetail
 	MarkerEditorSlot gMarkerEditors[kMaxMarkerEditors]{};
 	bool  gShowTrailsDesk = false;
 	bool  gShowMarkersDesk = false;
+	bool  gShowXmlEdit = false;
 	bool  gPlaceOnceTrailsDesk = false;
 	bool  gFocusTrailsDesk = false;
 	bool  gPlaceOnceMarkersDesk = false;
 	bool  gFocusMarkersDesk = false;
+	bool  gPlaceOnceXmlEdit = false;
+	bool  gFocusXmlEdit = false;
 	float gTrailsDeskX = -1.f, gTrailsDeskY = -1.f, gTrailsDeskW = 0.f, gTrailsDeskH = 0.f;
 	float gMarkersDeskX = -1.f, gMarkersDeskY = -1.f, gMarkersDeskW = 0.f, gMarkersDeskH = 0.f;
+	float gXmlEditX = -1.f, gXmlEditY = -1.f, gXmlEditW = 0.f, gXmlEditH = 0.f;
+	std::string gXmlEdit;
+	bool  gXmlEditDirty = false;
 	int   gTrailRecordSlot = -1;
 	bool  gHubSkipOpenClicks = false;
 	bool  gTrailEditorDrawActive = false;
