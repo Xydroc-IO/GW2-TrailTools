@@ -83,6 +83,10 @@ See `COMPLIANCE.md` and `ARCHITECTURE.md`.
 
 ---
 
+## Acknowledgments
+
+**Lady Elyssa** — UI feedback and Windows testing.
+
 ## Build from source
 
 ```bash

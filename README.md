@@ -52,6 +52,8 @@ cmake --build build -j"$(nproc)"
 
 Runtime data: `<GW2>/addons/GW2-TrailTools/` (`settings.ini`, `pathing/authoring/`, built `.taco`).
 
+Crash dumps: `<GW2>/addons/GW2-TrailTools/Crash-Logs/` (`crash-trail.txt`, `crash.log`, timestamped snapshot folders).
+
 ## Branding
 
 | Asset | Path | Use |
@@ -83,6 +85,10 @@ Shipping revision is **1.0.0** (`src/app/AddonVersion.h` / CMake `VERSION 1.0.0`
 | **Trail Tools** | `src/trailtools/` |
 
 See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Acknowledgments
+
+Huge thanks to **Lady Elyssa** for helping sort the UI and for extensive Windows testing.
 
 ## License
 

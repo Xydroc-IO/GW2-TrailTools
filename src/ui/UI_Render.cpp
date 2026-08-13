@@ -73,5 +73,8 @@ void UI_DrawSettingsControls()
 		TrailToolsPad::Open();
 	if (ImGui::Button("Reload packs"))
 		PathingTrails::ReloadPacks();
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::TextDisabled("Thanks to Lady Elyssa for UI help and Windows testing.");
 	Settings::SetDirty();
 }
