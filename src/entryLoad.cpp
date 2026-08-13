@@ -9,6 +9,7 @@
 #include "TrailToolsPad.h"
 #include "TrailToolsQuickAccess.h"
 #include "UI.h"
+#include "WorldClick.h"
 
 namespace
 {
@@ -43,6 +44,7 @@ void EntryDetail::AddonLoad(AddonAPI_t* api)
 
 	api->GUI_Register(RT_Render, UI_Render);
 	api->GUI_Register(RT_OptionsRender, UI_Options);
+	api->WndProc_Register(WorldClick::WndProc);
 	api->InputBinds_RegisterWithString(KB_TOGGLE, OnTogglePad, "ALT+SHIFT+T");
 	TrailToolsQuickAccess::Init();
 

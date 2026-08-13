@@ -5,6 +5,7 @@
 #include "TrailToolsShared.h"
 #include "TrailToolsTrailGeom.h"
 #include "TrailToolsWorldPick.h"
+#include "WorldClick.h"
 #include "WorldGpsMath.h"
 
 #include "imgui/imgui.h"
@@ -408,7 +409,9 @@ bool TrailToolsUberTool::Tick()
 	}
 	if (io.WantCaptureMouse)
 		return false;
-	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	float wmx = 0.f, wmy = 0.f;
+	const bool worldClick = WorldClick::TakeLeftDown(wmx, wmy);
+	if (!ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !worldClick)
 		return false;
 	TrySelectOrInsert();
 	return true; /* consume so Live world-click does not also fire */

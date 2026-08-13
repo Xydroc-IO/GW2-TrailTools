@@ -7,6 +7,7 @@
 #include "TrailToolsQuickAccess.h"
 #include "TrailToolsShared.h"
 #include "UI.h"
+#include "WorldClick.h"
 
 void EntryDetail::AddonUnload()
 {
@@ -23,6 +24,7 @@ void EntryDetail::AddonUnload()
 
 	G::API->GUI_Deregister(UI_Render);
 	G::API->GUI_Deregister(UI_Options);
+	G::API->WndProc_Deregister(WorldClick::WndProc);
 	G::API->InputBinds_Deregister("KB_TRLS_TOGGLE");
 
 	CrashTrail::Shutdown();
