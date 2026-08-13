@@ -1,0 +1,77 @@
+# Build outputs
+build/
+out/
+dist/
+cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+.cache/
+__cmake_systeminformation/
+
+# Compiled / linked artifacts
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.so
+*.dylib
+*.pdb
+*.ilk
+*.exp
+*.map
+*.res
+*.iobj
+*.ipdb
+
+# Pack / runtime artifacts (never commit built packs or GW2 addon data)
+*.taco
+*.trl
+/addons/
+/pathing/
+/authoring/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.user
+*.user.*
+*.suo
+*.sdf
+*.opensdf
+*.code-workspace
+.vs/
+.cursor/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+
+# Editor swap / backup
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Local / runtime clutter
+*.log
+settings.ini
+*.ini.bak
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Wine / cross-compile leftovers
+*.exe.so
+*.dll.so
