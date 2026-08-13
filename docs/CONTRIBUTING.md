@@ -40,6 +40,8 @@ make install   # optional
 | Pad chrome / QuickAccess | `src/ui/` |
 | `.taco` / `.trl` parse | `src/pathing/packs/` |
 | Authoring pad | `src/trailtools/` |
+| OverlayData XML | `TrailToolsXml.cpp` (TacO indent / `trailData`) |
+| 3D UberTool | `TrailToolsUberTool.cpp` + `TrailToolsWorldPick.cpp` |
 
 ## License
 

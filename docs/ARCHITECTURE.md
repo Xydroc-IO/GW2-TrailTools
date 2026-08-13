@@ -19,7 +19,7 @@ Nexus loads `GW2-TrailTools.dll`; ImGui Trail Tools pad authors TacO/Blish packs
 Guild Wars 2.exe
  └─ Nexus loads GW2-TrailTools.dll
       ├─ QuickAccess (baked trailtools-icon.png) → KB_TRLS_TOGGLE
-      ├─ RT_Render → TrailToolsPad + optional draft preview
+      ├─ RT_Render → TrailToolsPad + UberTool tick + optional draft preview / gizmo
       └─ RT_OptionsRender → settings
 ```
 
@@ -44,6 +44,10 @@ Prefer **≤500 lines** per `.cpp`. Split pad vs state vs binds vs parse. Genera
 ## Authoring model
 
 Hub tabs: Pack (project XML) → Content (trail/marker lists) → Live → Keybinds. TrailsN/MarkersN pop-outs own `.trl` / POI edits. Pack save/build writes **one** OverlayData XML (`<PackName>.xml`); leftover `_Menu.xml` / `_Data.xml` are deleted.
+
+XML shape follows TacO: nested `<MarkerCategory>`, `<POIs>` with `<Trail trailData="Data/{stem}.trl"/>` and `<POI>`, textures/icons under `Data/Images/`. Default seed is root + leaves `example` / `circle` / `heart` / `square` / `triangle`.
+
+Live **UberTool** (`TrailToolsUberTool.cpp`) click-selects draft verts/markers in the world and moves them with an RGB gizmo. Picking uses Mumble camera × plane math (`TrailToolsWorldPick`) — no terrain mesh, no game memory.
 
 ## Branding
 

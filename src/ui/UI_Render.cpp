@@ -9,6 +9,7 @@
 #include "TrailToolsPad.h"
 #include "TrailToolsPreview.h"
 #include "TrailToolsShared.h"
+#include "TrailToolsUberTool.h"
 #include "TrailToolsWorldPick.h"
 #include "UiScale.h"
 
@@ -35,11 +36,15 @@ void UI_Render()
 	CrashTrail::SetPhase("pad");
 	TrailToolsPad::Render();
 	CrashTrail::HeartbeatIfHot();
-	TrailToolsWorldPick::Tick();
-	if (TrailToolsPad::AnyOpen() && TrailToolsDetail::HasDraftPreview())
+	const bool uberAte = TrailToolsUberTool::Tick();
+	if (!uberAte)
+		TrailToolsWorldPick::Tick();
+	if (TrailToolsPad::AnyOpen() &&
+		(TrailToolsDetail::HasDraftPreview() || TrailToolsDetail::gUberToolEnabled))
 	{
 		CrashTrail::SetPhase("preview");
 		TrailToolsPreview::RenderWorld();
+		TrailToolsUberTool::Render();
 	}
 
 	static int sFrames = 0;

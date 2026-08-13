@@ -140,6 +140,7 @@ namespace TrailToolsDetail
 	/* World click place/select (Live tab). Plane = feet Y via Mumble camera. */
 	extern bool gWorldPickEnabled;
 	extern int  gWorldPickMode; /* 0 place marker, 1 add trail pt, 2 select nearest */
+	extern bool gUberToolEnabled; /* 3D gizmo: click-select + drag like TacO UberTool */
 
 	struct MarkerEditorSlot
 	{

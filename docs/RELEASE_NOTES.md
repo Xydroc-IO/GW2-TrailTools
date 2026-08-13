@@ -20,7 +20,8 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Import installed `.taco` into the draft
 - **Build .taco** → `addons/GW2-TrailTools/pathing/`, enable root category, reload Pathing index
 - Looks presets, asset browser, category tree editor
-- Single OverlayData XML preview (categories, `<Trail>`, and `<POI>` together)
+- Single OverlayData XML in TacO form (3-space indent, nested MarkerCategory, `<Trail type trailData="Data/….trl"/>`, assets in `Data/Images/`)
+- Pack → Reseed for Lady Elyssa–style leaves (`example` / `circle` / `heart` / `square` / `triangle`)
 
 ### Trails
 - Default trail category on Content; up to **five** TrailsN windows
@@ -30,7 +31,7 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Per-`<Trail>` attrs (texture, trailScale, fade, alpha, animSpeed)
 - Geometry: reverse / densify / smooth / multi-select (Ctrl/Shift)
 - Snapshot undo (Ctrl+Z) on TrailsN
-- Live draft preview (world GPS + compass)
+- Live draft preview (world GPS + compass) follows the focused TrailsN trail
 
 ### Markers
 - Default marker category on Content; MarkersN pop-outs for focused POIs
@@ -42,7 +43,8 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Copy markers from currently loaded Pathing packs
 
 ### Live
-- World click place/select via Mumble camera × feet-height plane (no terrain mesh)
+- **3D UberTool** (on by default while a pad is open): click a draft marker or trail vertex, drag RGB axes to move, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Selected markers with `triggerRange` show a range ring. Mumble camera only — no terrain snap.
+- World click place/select via Mumble camera × feet-height plane (no terrain mesh). Disabled for that click when UberTool consumes it.
 
 ### Keybinds
 - Trail record / pause / section / delete-segment chords

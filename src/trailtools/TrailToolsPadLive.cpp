@@ -55,6 +55,13 @@ void TrailToolsDetail::DrawLiveTab()
 		PadNav::EndSection();
 	}
 
+	PadNav::SectionTitle("3D UberTool");
+	PadNav::BeginSection("live_uber");
+	ImGui::Checkbox("Enable UberTool (click + RGB gizmo)###gw2tt_tt_uber", &gUberToolEnabled);
+	ImGui::TextDisabled("Select a marker or trail vertex in the world. Drag an axis to move.");
+	ImGui::TextDisabled("Ctrl+click a trail to insert a point. Right-click while dragging cancels.");
+	PadNav::EndSection();
+
 	PadNav::SectionTitle("World click");
 	PadNav::BeginSection("live_pick");
 	ImGui::Checkbox("Enable click place/select###gw2tt_tt_wpick", &gWorldPickEnabled);
