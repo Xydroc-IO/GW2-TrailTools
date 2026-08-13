@@ -1,5 +1,6 @@
 #include "entryInternal.h"
 
+#include "CrashTrail.h"
 #include "Globals.h"
 #include "PathingTrails.h"
 #include "Settings.h"
@@ -23,6 +24,8 @@ void EntryDetail::AddonUnload()
 	G::API->GUI_Deregister(UI_Render);
 	G::API->GUI_Deregister(UI_Options);
 	G::API->InputBinds_Deregister("KB_TRLS_TOGGLE");
+
+	CrashTrail::Shutdown();
 
 	G::API = nullptr;
 	G::NexusLink = nullptr;

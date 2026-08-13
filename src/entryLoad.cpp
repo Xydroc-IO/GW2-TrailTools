@@ -2,6 +2,7 @@
 
 #include "imgui/imgui.h"
 
+#include "CrashTrail.h"
 #include "Globals.h"
 #include "PathingTrails.h"
 #include "Settings.h"
@@ -36,6 +37,7 @@ void EntryDetail::AddonLoad(AddonAPI_t* api)
 	G::NexusLink = static_cast<NexusLinkData_t*>(api->DataLink_Get(DL_NEXUS_LINK));
 	G::Mumble = static_cast<MumbleLinkedMem*>(api->DataLink_Get(DL_MUMBLE_LINK));
 
+	CrashTrail::Install();
 	Settings::Load();
 	PathingTrails::Init();
 

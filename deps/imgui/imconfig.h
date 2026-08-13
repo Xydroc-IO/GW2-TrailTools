@@ -15,9 +15,10 @@
 #pragma once
 
 //---- Define assertion handler. Defaults to calling assert().
-// If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
-//#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
-//#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
+// Soft-fail into CrashTrail instead of CRT assert dialogs (those showed up as
+// execute-into-.rdata AVs after Ignore/Abort on Windows).
+extern "C" void Gw2TtImAssert(const char* expr);
+#define IM_ASSERT(_EXPR) do { if (!(_EXPR)) Gw2TtImAssert(#_EXPR); } while (0)
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows
 // Using dear imgui via a shared library is not recommended, because of function call overhead and because we don't guarantee backward nor forward ABI compatibility.

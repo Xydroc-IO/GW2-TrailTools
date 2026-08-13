@@ -1,5 +1,6 @@
 #include "UI.h"
 
+#include "CrashTrail.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
 #include "PathingTrails.h"
@@ -14,6 +15,8 @@
 
 void UI_Render()
 {
+	CrashTrail::SetPhase("RT_Render");
+	CrashTrail::Tick();
 	UiScale::TickAuto();
 	Gw2Ui::WarmCommon();
 
@@ -28,9 +31,14 @@ void UI_Render()
 	PathingTrails::BeginFrame();
 
 	TrailToolsBinds::Poll();
+	CrashTrail::SetPhase("pad");
 	TrailToolsPad::Render();
+	CrashTrail::HeartbeatIfHot();
 	if (TrailToolsPad::AnyOpen() && TrailToolsDetail::HasDraftPreview())
+	{
+		CrashTrail::SetPhase("preview");
 		TrailToolsPreview::RenderWorld();
+	}
 
 	static int sFrames = 0;
 	if (++sFrames >= 600)
@@ -38,6 +46,7 @@ void UI_Render()
 		sFrames = 0;
 		Settings::Save();
 	}
+	CrashTrail::SetPhase("idle");
 }
 
 void UI_Options()

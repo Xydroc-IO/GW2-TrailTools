@@ -1,12 +1,12 @@
 # Cross-compile GW2-TrailTools.dll for Windows / Wine with MinGW-w64
 CXX      = x86_64-w64-mingw32-g++
 CC       = x86_64-w64-mingw32-gcc
-CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
+CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -MMD -MP
 CXXFLAGS += -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS
 CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/trailtools -Isrc/pathing \
 	-Isrc/pathing/packs -Isrc/pathing/world \
 	-Ideps -Ideps/imgui -Ideps/miniz
-CFLAGS   = -std=c11 -O2 -Wall -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz
+CFLAGS   = -std=c11 -O2 -Wall -MMD -MP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz
 LDFLAGS  = -shared -static -static-libgcc -static-libstdc++ -Wl,--image-base,0x180000000
 LIBS     = -ldxgi -ld3d11 -ld3dcompiler -lgdi32 -luser32 -lole32 -luuid -lshell32 -lcomdlg32 -ladvapi32 -lwinhttp -lcrypt32
 
@@ -16,6 +16,10 @@ SRC_CPP = \
 	src/entryUnload.cpp \
 	src/app/AddonPaths.cpp \
 	src/app/AspectLayout.cpp \
+	src/app/CrashTrail.cpp \
+	src/app/CrashTrailFiles.cpp \
+	src/app/CrashTrailSnapshot.cpp \
+	src/app/CrashTrailStack.cpp \
 	src/app/Settings.cpp \
 	src/ui/Gw2Ui.cpp \
 	src/ui/UI_Render.cpp \
@@ -70,6 +74,7 @@ SRC_C = \
 	deps/miniz/miniz_zip.c
 
 OBJ = $(patsubst %.cpp,build/%.o,$(SRC_CPP)) $(patsubst %.c,build/%.o,$(SRC_C))
+DEP = $(OBJ:.o=.d)
 OUT = build/bin/GW2-TrailTools.dll
 
 GW2_ADDONS ?= $(HOME)/.local/share/Steam/steamapps/common/Guild Wars 2/addons
@@ -91,6 +96,8 @@ build/%.o: %.cpp
 build/%.o: %.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+-include $(DEP)
 
 check-lines:
 	@python3 tools/check_lines.py
