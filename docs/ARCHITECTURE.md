@@ -41,6 +41,10 @@ assets/               Brand PNGs (icon / hover / logo) — bake with tools/bake_
 
 Prefer **≤500 lines** per `.cpp`. Split pad vs state vs binds vs parse. Generated / blob headers (`TrailToolsIcon.h`) exempt. Enforce with `make check-lines`.
 
+## Authoring model
+
+Hub tabs: Pack (project XML) → Content (trail/marker lists) → Live → Keybinds. TrailsN/MarkersN pop-outs own `.trl` / POI edits. Pack save/build writes **one** OverlayData XML (`<PackName>.xml`); leftover `_Menu.xml` / `_Data.xml` are deleted.
+
 ## Branding
 
 - QuickAccess: `Textures_GetOrCreateFromMemory` from baked `assets/trailtools-icon*.png` (transparent alpha)

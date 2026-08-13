@@ -12,8 +12,8 @@ Official Nexus APIs + MumbleLink (read-only). **No** game memory R/W, **no** Pre
 
 ## Features
 
-- Pack / Trails / Markers / Live / Keybinds authoring hub
-- OverlayData project + up to four TrailsN / MarkersN editors
+- Pack / Content / Live / Keybinds authoring hub
+- One OverlayData XML (categories, trails, and markers) + up to five TrailsN / four MarkersN editors
 - Import existing `.taco`, build new packs under `addons/GW2-TrailTools/pathing/`
 - Addon-polled trail/marker chords (works while pad closed)
 - Nexus QuickAccess icon (custom Trail Tools brand art)

@@ -9,9 +9,10 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 ## Highlights
 
 ### Authoring hub
-- Side-rail tabs: **Pack → Trails → Markers → Live → Keybinds**
-- Pack tab owns the OverlayData project (New / Load / Save, Combined vs Split layout)
-- Trails / Markers stay in-hub; optional **Pop out** desks and TrailsN / MarkersN editors
+- Side-rail tabs: **Pack → Content → Live → Keybinds**
+- Pack tab owns the OverlayData project (New / Load / Save) — **one XML file**
+- **Content** lists trails and markers in that project and opens TrailsN / MarkersN editors
+- TrailsN / MarkersN pop-outs own their own `.trl` / marker data until **Add to project**
 - Cartographer UI theme (slate + teal), custom brand QuickAccess icon
 
 ### Pack workflow
@@ -19,17 +20,29 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Import installed `.taco` into the draft
 - **Build .taco** → `addons/GW2-TrailTools/pathing/`, enable root category, reload Pathing index
 - Looks presets, asset browser, category tree editor
-- Optional XML preview (combined or menu+data)
+- Single OverlayData XML preview (categories, `<Trail>`, and `<POI>` together)
 
 ### Trails
-- Category picker, trail list, record / segment / edit points
-- `.trl` New / Load / Save / Save As
-- Insert into project XML; live draft preview (world GPS + compass)
+- Default trail category on Content; up to **five** TrailsN windows
+- Compact TrailsN: New / Load / Save / Save As · New Segment / Insert Vector / Select Nearest / Move to Feet / Delete Nearest / Undo
+- Recording rail: Start/Stop, Pause/Resume, vector spacing; raw point list
+- `.trl` stays with the pop-out until **Add to project** inserts it into OverlayData
+- Per-`<Trail>` attrs (texture, trailScale, fade, alpha, animSpeed)
+- Geometry: reverse / densify / smooth / multi-select (Ctrl/Shift)
+- Snapshot undo (Ctrl+Z) on TrailsN
+- Live draft preview (world GPS + compass)
 
 ### Markers
+- Default marker category on Content; MarkersN pop-outs for focused POIs
+- Insert / Select Nearest / Delete / Move to Feet / Undo
 - Drop / delete at feet, this-map filter, marker attribute editors
+- Named behavior combo + Display (mapDisplaySize / minSize / maxSize) + Filters (achievement, festival, profession/race/mount, toggleCategory)
 - Blish-style `script-*` attributes on POIs (stored in OverlayData)
+- Snapshot undo (Ctrl+Z) on MarkersN
 - Copy markers from currently loaded Pathing packs
+
+### Live
+- World click place/select via Mumble camera × feet-height plane (no terrain mesh)
 
 ### Keybinds
 - Trail record / pause / section / delete-segment chords
