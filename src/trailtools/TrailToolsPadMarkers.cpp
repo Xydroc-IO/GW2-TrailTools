@@ -3,6 +3,7 @@
 #include "TrailToolsShared.h"
 #include "TrailToolsXml.h"
 #include "TrailToolsBinds.h"
+#include "TrailToolsEditUndo.h"
 
 #include "HelperTheme.h"
 #include "PadNav.h"
@@ -50,16 +51,7 @@ namespace
 		PadNav::WrapSameLine(PadNav::ButtonWidth("-Y"));
 		if (ImGui::SmallButton("-Y")) p.y -= 0.25f;
 
-		PadNav::PrepLabeled("behavior###gw2tt_tt_pbeh", 80.f, true);
-		ImGui::InputInt("behavior###gw2tt_tt_pbeh", &p.behavior);
-		PadNav::WrapSameLine(PadNav::CheckboxWidth("autoTrigger###gw2tt_tt_patr"));
-		ImGui::Checkbox("autoTrigger###gw2tt_tt_patr", &p.autoTrigger);
-		PadNav::PrepLabeled("triggerRange###gw2tt_tt_ptr", 100.f, true);
-		ImGui::DragFloat("triggerRange###gw2tt_tt_ptr", &p.triggerRange, 0.1f, 0.f, 50.f);
-		PadNav::PrepLabeled("fadeNear###gw2tt_tt_pfn", 100.f);
-		ImGui::DragFloat("fadeNear###gw2tt_tt_pfn", &p.fadeNear, 10.f, -1.f, 20000.f);
-		PadNav::PrepLabeled("fadeFar###gw2tt_tt_pff", 100.f);
-		ImGui::DragFloat("fadeFar###gw2tt_tt_pff", &p.fadeFar, 10.f, -1.f, 20000.f);
+		DrawPoiBehaviorAndFilters(p);
 
 		char tip[96]{}, tipd[384]{}, info[384]{}, copy[256]{}, cmsg[128]{};
 		char sched[96]{}, icon[256]{};
@@ -135,6 +127,7 @@ namespace
 				std::snprintf(lab, sizeof(lab), "%s", m.label);
 				if (ImGui::Selectable(lab))
 				{
+					TrailToolsEditUndo::PushPois();
 					DraftPoi p;
 					p.mapId = m.mapId;
 					p.x = m.world.x;
@@ -164,6 +157,9 @@ namespace
 					p.alpha = m.alpha;
 					p.iconSize = m.iconSize;
 					p.heightOffset = m.heightOffset;
+					p.mapDisplaySize = m.mapDisplaySize;
+					p.minSize = m.minSize;
+					p.maxSize = m.maxSize;
 					gDraft.pois.push_back(std::move(p));
 					gDraft.selectedPoi = static_cast<int>(gDraft.pois.size()) - 1;
 					SetStatus("Cloned marker into draft.");
@@ -240,12 +236,12 @@ void TrailToolsDetail::DrawMarkersDesk(bool asPopout)
 	}
 	ImGui::EndChild();
 
-	if (ImGui::Button("New marker window###gw2tt_tt_open_mkn"))
+	if (ImGui::Button("New marker window###gw2tt_tt_open_mkn") && !gHubSkipOpenClicks)
 		OpenNewMarkerEditor();
 	if (!asPopout)
 	{
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Pop out"));
-		if (ImGui::Button("Pop out###gw2tt_tt_open_mkdesk"))
+		if (ImGui::Button("Pop out###gw2tt_tt_open_mkdesk") && !gHubSkipOpenClicks)
 			TrailToolsPad::OpenMarkersDesk();
 	}
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Add to project"));
@@ -261,7 +257,7 @@ void TrailToolsDetail::DrawMarkersDesk(bool asPopout)
 			gMarkerEditors[i].open ? "*" : "", i + 1, i);
 		if (i > 0)
 			PadNav::WrapSameLine(PadNav::ButtonWidth(lab));
-		if (ImGui::SmallButton(lab))
+		if (ImGui::SmallButton(lab) && !gHubSkipOpenClicks)
 		{
 			if (gMarkerEditors[i].open)
 				gMarkerEditors[i].focus = true;
@@ -281,16 +277,23 @@ void TrailToolsDetail::DrawMarkersDesk(bool asPopout)
 
 void TrailToolsDetail::DrawMarkerRawEditor()
 {
+	const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+	TrailToolsEditUndo::PollPoisHotkey(focused);
+
 	if (gDraft.selectedPoi < 0 || gDraft.selectedPoi >= static_cast<int>(gDraft.pois.size()))
 	{
 		ImGui::TextDisabled("Select a marker, or Drop here.");
 		if (ImGui::Button("Drop here###gw2tt_tt_drop_raw"))
 			TrailToolsBinds::ActionPlaceMarker(-1);
+		if (ImGui::Button("Undo###gw2tt_tt_mk_undo0"))
+			TrailToolsEditUndo::UndoPois();
 		return;
 	}
 
 	DraftPoi& p = gDraft.pois[static_cast<size_t>(gDraft.selectedPoi)];
 	ImGui::Text("Marker %d", gDraft.selectedPoi);
+	if (ImGui::Button("Undo###gw2tt_tt_mk_undo1"))
+		TrailToolsEditUndo::UndoPois();
 	DrawSelectedPoiEditor(p);
 	if (ImGui::Button("Add to project###gw2tt_tt_mk_raw_ins"))
 		UpsertSelectedPoiInPack();
@@ -301,30 +304,59 @@ void TrailToolsDetail::DrawMarkerRawEditor()
 
 void TrailToolsDetail::DrawMarkerRawEditorForSlot(int slot)
 {
+	const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+	TrailToolsEditUndo::PollPoisHotkey(focused);
+
 	if (slot < 0 || slot >= kMaxMarkerEditors || !gMarkerEditors[slot].open)
 	{
 		ImGui::TextDisabled("Editor closed.");
 		return;
 	}
 	MarkerEditorSlot& ed = gMarkerEditors[slot];
+
+	if (ImGui::SmallButton("Insert Marker###gw2tt_tt_mk_ins"))
+	{
+		TrailToolsBinds::ActionPlaceMarker(-1);
+		ed.poiIndex = gDraft.selectedPoi;
+	}
+	ImGui::SameLine(0.f, 4.f);
+	if (ImGui::SmallButton("Select Nearest###gw2tt_tt_mk_near"))
+	{
+		TrailToolsBinds::ActionMarkerSelectNearest();
+		if (gDraft.selectedPoi >= 0)
+			ed.poiIndex = gDraft.selectedPoi;
+	}
+	ImGui::SameLine(0.f, 4.f);
+	if (ImGui::SmallButton("Delete Marker###gw2tt_tt_mk_del"))
+	{
+		if (ed.poiIndex >= 0)
+			gDraft.selectedPoi = ed.poiIndex;
+		TrailToolsBinds::ActionDeleteMarker();
+		ed.poiIndex = gDraft.selectedPoi;
+	}
+	ImGui::SameLine(0.f, 4.f);
+	if (ImGui::SmallButton("Move to Feet###gw2tt_tt_mk_feet"))
+	{
+		if (ed.poiIndex >= 0)
+			gDraft.selectedPoi = ed.poiIndex;
+		TrailToolsBinds::ActionMarkerMoveToFeet();
+	}
+	ImGui::SameLine(0.f, 4.f);
+	if (ImGui::SmallButton("Undo###gw2tt_tt_mk_undo2"))
+		TrailToolsEditUndo::UndoPois();
+
 	if (ed.poiIndex < 0 || ed.poiIndex >= static_cast<int>(gDraft.pois.size()))
 	{
-		ImGui::TextDisabled("POI %d is gone - close this window or pick another on the desk.",
-			ed.poiIndex);
-		if (ImGui::Button("Drop marker here###gw2tt_tt_drop_slot"))
-			TrailToolsBinds::ActionPlaceMarker(-1);
+		ImGui::TextDisabled("No marker bound — Insert Marker or pick one on Content.");
 		return;
 	}
 
 	gDraft.selectedPoi = ed.poiIndex;
 	DraftPoi& p = gDraft.pois[static_cast<size_t>(ed.poiIndex)];
-	ImGui::Text("Markers%d — project POI %d", slot + 1, ed.poiIndex);
-	DrawSelectedPoiEditor(p);
-	char insLab[64]{};
-	std::snprintf(insLab, sizeof(insLab), "Insert %s###gw2tt_tt_mk_slot_ins",
-		p.tipName.empty() ? (p.type.empty() ? "marker" : p.type.c_str()) : p.tipName.c_str());
-	if (ImGui::Button(insLab))
-		UpsertSelectedPoiInPack();
+	ImGui::TextDisabled("Markers%d — POI %d", slot + 1, ed.poiIndex);
+	if (ImGui::BeginChild("###gw2tt_tt_mk_raw", ImVec2(0.f, 0.f), true))
+		DrawSelectedPoiEditor(p);
+	ImGui::EndChild();
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);

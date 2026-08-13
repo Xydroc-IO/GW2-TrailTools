@@ -4,6 +4,7 @@
 #include "Globals.h"
 
 #include <cstdio>
+#include <utility>
 
 namespace TrailToolsDetail
 {
@@ -75,31 +76,34 @@ namespace TrailToolsDetail
 		if (gTrailActiveBackup.valid)
 			return;
 		TrailEditorSlot& s = gTrailEditors[slot];
-		gTrailActiveBackup.trail = gDraft.active;
+		/* O(1) swaps — deep-copying point vectors every frame froze the game. */
+		std::swap(gTrailActiveBackup.trail, gDraft.active);
 		std::snprintf(gTrailActiveBackup.stem, sizeof(gTrailActiveBackup.stem), "%s",
 			gDraft.trailFileStem);
 		gTrailActiveBackup.dirty = gDraft.trailDirty;
 		gTrailActiveBackup.selectedPoint = gDraft.selectedPoint;
 		gTrailActiveBackup.valid = true;
-		gDraft.active = s.trail;
+		std::swap(gDraft.active, s.trail);
 		std::snprintf(gDraft.trailFileStem, sizeof(gDraft.trailFileStem), "%s", s.stem);
 		gDraft.trailDirty = s.dirty;
 		gDraft.selectedPoint = s.selectedPoint;
+		gTrailEditorDrawActive = true;
 	}
 
 	void PopTrailEditorFromActive(int slot)
 	{
 		if (!gTrailActiveBackup.valid)
 			return;
+		gTrailEditorDrawActive = false;
 		if (slot >= 0 && slot < kMaxTrailEditors && gTrailEditors[slot].open)
 		{
 			TrailEditorSlot& s = gTrailEditors[slot];
-			s.trail = gDraft.active;
+			std::swap(gDraft.active, s.trail);
 			std::snprintf(s.stem, sizeof(s.stem), "%s", gDraft.trailFileStem);
 			s.dirty = gDraft.trailDirty;
 			s.selectedPoint = gDraft.selectedPoint;
 		}
-		gDraft.active = gTrailActiveBackup.trail;
+		std::swap(gDraft.active, gTrailActiveBackup.trail);
 		std::snprintf(gDraft.trailFileStem, sizeof(gDraft.trailFileStem), "%s",
 			gTrailActiveBackup.stem);
 		gDraft.trailDirty = gTrailActiveBackup.dirty;
@@ -142,14 +146,6 @@ namespace TrailToolsDetail
 			return slot;
 		}
 		InitTrailEditorSlot(s, slot);
-		/* Only seed slot 0 from hub active when first opening it. */
-		if (slot == 0 && gDraft.active.points.size() >= 2)
-		{
-			s.trail = gDraft.active;
-			if (gDraft.trailFileStem[0])
-				std::snprintf(s.stem, sizeof(s.stem), "%s", gDraft.trailFileStem);
-			s.dirty = gDraft.trailDirty;
-		}
 		gTrailRecordSlot = slot;
 		SetStatus("Opened Trails%d (others stay open).", slot + 1);
 		return slot;

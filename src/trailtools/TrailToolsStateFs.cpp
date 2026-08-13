@@ -4,6 +4,7 @@
 #include "Globals.h"
 
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 
 #include <windows.h>
@@ -34,6 +35,10 @@ namespace TrailToolsDetail
 		const std::wstring pack = PackDir();
 		if (pack.empty())
 			return false;
+		/* Once per pack name — called from TrailsN draw every frame. */
+		static char sDonePack[sizeof(gDraft.packName)]{};
+		if (sDonePack[0] && std::strcmp(sDonePack, gDraft.packName) == 0)
+			return true;
 		AddonPaths::EnsureUnder(pack, L"Data");
 		{
 			std::wstring dataRel = L"Data\\";
@@ -48,6 +53,7 @@ namespace TrailToolsDetail
 			AddonPaths::EnsureUnder(pack, dataRel.c_str());
 		}
 		WriteDefaultAssets();
+		std::snprintf(sDonePack, sizeof(sDonePack), "%s", gDraft.packName);
 		return true;
 	}
 

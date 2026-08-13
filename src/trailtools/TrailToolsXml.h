@@ -6,19 +6,15 @@
 
 namespace TrailToolsXml
 {
-	/* Combined: MarkerCategory tree + <POIs> (trails + markers) in one OverlayData. */
+	/* One OverlayData file (categories + trails + markers). */
 	std::string EmitOverlayData(const TrailToolsDetail::DraftPack& pack);
-	/* Menu file: categories only (what appears in the Pathing menu). */
-	std::string EmitMenuOverlay(const TrailToolsDetail::DraftPack& pack);
-	/* Data file: <POIs> with Trail + POI elements only. */
-	std::string EmitDataOverlay(const TrailToolsDetail::DraftPack& pack);
-
 	std::string EmitTrailElement(const TrailToolsDetail::DraftTrail& trail);
 	std::string EmitPoiElement(const TrailToolsDetail::DraftPoi& poi);
 
 	bool WriteUtf8File(const std::wstring& path, const std::string& utf8);
 	bool WriteOverlayFile(const std::wstring& path, const TrailToolsDetail::DraftPack& pack);
-	/* Respects pack.xmlLayout: combined Pack.xml, or Pack_Menu.xml + Pack_Data.xml.
-	   Removes the unused layout's files so Pathing does not double-index. */
+	/* Writes Pack.xml and removes leftover Pack_Menu.xml / Pack_Data.xml. */
 	bool WritePackXmlLayout(const TrailToolsDetail::DraftPack& pack);
+	/* If path is *_Menu.xml or *_Data.xml, rewrite to Pack.xml. */
+	void CoerceSingleOverlayPath(std::wstring& path);
 }

@@ -309,6 +309,26 @@ bool TrailToolsDetail::ImportTacoToDraft(const std::wstring& tacoPath, std::stri
 			p.resetLength = ip.style.resetLength;
 		if (ip.style.hasInvertBehavior)
 			p.invertBehavior = ip.style.invertBehavior;
+		if (ip.style.hasMapDisplaySize)
+			p.mapDisplaySize = ip.style.mapDisplaySize;
+		if (ip.style.hasMinSize)
+			p.minSize = ip.style.minSize;
+		if (ip.style.hasMaxSize)
+			p.maxSize = ip.style.maxSize;
+		if (ip.style.hasFadeNear)
+			p.fadeNear = ip.style.fadeNear;
+		if (ip.style.hasFadeFar)
+			p.fadeFar = ip.style.fadeFar;
+		if (ip.style.hasIconSize)
+			p.iconSize = ip.style.iconSize;
+		if (ip.style.hasHeightOffset)
+			p.heightOffset = ip.style.heightOffset;
+		if (ip.style.hasAlpha)
+			p.alpha = ip.style.alpha;
+		if (ip.style.hasMinimapVisible)
+			p.minimapVisible = ip.style.minimapVisible;
+		if (ip.style.hasInGameVisible)
+			p.inGameVisible = ip.style.inGameVisible;
 		gDraft.pois.push_back(std::move(p));
 	}
 
@@ -322,6 +342,16 @@ bool TrailToolsDetail::ImportTacoToDraft(const std::wstring& tacoPath, std::stri
 		dt.fileRel = it.entryName;
 		dt.type = it.type;
 		dt.mapId = it.mapId;
+		if (it.style.hasTexture)
+			dt.texture = it.style.texture;
+		if (it.style.hasAlpha)
+			dt.alpha = it.style.alpha;
+		if (it.style.hasFadeNear)
+			dt.fadeNear = it.style.fadeNear;
+		if (it.style.hasFadeFar)
+			dt.fadeFar = it.style.fadeFar;
+		if (it.style.hasTrailScale)
+			dt.trailScale = it.style.trailScale;
 		std::wstring trlPath = PackDir();
 		trlPath.push_back(L'\\');
 		for (char c : it.entryName)

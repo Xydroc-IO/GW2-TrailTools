@@ -4,6 +4,8 @@
 #include "PathingIndex.h"
 #include "TrailToolsShared.h"
 
+#include <cmath>
+#include <cstdio>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -191,10 +193,16 @@ PathingTrails::WorldSnippet TrailToolsDraftStyle::BuildActiveSnippet()
 		return snip;
 	const Resolved sty = ResolveTrail();
 	snip.color = sty.color ? sty.color : 0xFFFFFFFFu;
-	snip.alpha = sty.alpha > 0.f ? sty.alpha : 1.f;
-	snip.trailScale = sty.trailScale > 0.f ? sty.trailScale : 1.f;
-	snip.fadeNear = sty.fadeNear;
-	snip.fadeFar = sty.fadeFar;
+	/* Per-trail overrides win over category Looks. */
+	snip.alpha = (gDraft.active.alpha > 0.f && gDraft.active.alpha < 0.999f)
+		? gDraft.active.alpha
+		: (sty.alpha > 0.f ? sty.alpha : 1.f);
+	snip.trailScale = (gDraft.active.trailScale > 0.f &&
+		std::fabs(gDraft.active.trailScale - 1.f) > 0.001f)
+		? gDraft.active.trailScale
+		: (sty.trailScale > 0.f ? sty.trailScale : 1.f);
+	snip.fadeNear = gDraft.active.fadeNear >= 0.f ? gDraft.active.fadeNear : sty.fadeNear;
+	snip.fadeFar = gDraft.active.fadeFar >= 0.f ? gDraft.active.fadeFar : sty.fadeFar;
 	if (sty.textureId[0])
 		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", sty.textureId);
 	std::snprintf(snip.label, sizeof(snip.label), "draft:%s",
@@ -214,10 +222,19 @@ PathingTrails::Marker TrailToolsDraftStyle::BuildDraftMarker(
 	std::snprintf(m.guid, sizeof(m.guid), "%s", poi.guid.c_str());
 	const Resolved sty = ResolveMarkerType(poi.type);
 	m.color = sty.color ? sty.color : 0xFFFFC828u;
-	m.alpha = sty.alpha > 0.f ? sty.alpha : 1.f;
-	m.iconSize = sty.iconSize > 0.f ? sty.iconSize : 1.f;
-	m.mapDisplaySize = 20.f;
-	m.heightOffset = 1.5f;
+	m.alpha = poi.alpha > 0.f && poi.alpha < 0.999f ? poi.alpha
+		: (sty.alpha > 0.f ? sty.alpha : 1.f);
+	m.iconSize = poi.iconSize > 0.f && std::fabs(poi.iconSize - 1.f) > 0.001f
+		? poi.iconSize : (sty.iconSize > 0.f ? sty.iconSize : 1.f);
+	m.mapDisplaySize = poi.mapDisplaySize > 0.f ? poi.mapDisplaySize : 20.f;
+	m.minSize = poi.minSize > 0.f ? poi.minSize : 5.f;
+	m.maxSize = poi.maxSize > 0.f ? poi.maxSize : 2048.f;
+	m.heightOffset = poi.heightOffset;
+	m.fadeNear = poi.fadeNear >= 0.f ? poi.fadeNear : sty.fadeNear;
+	m.fadeFar = poi.fadeFar >= 0.f ? poi.fadeFar : sty.fadeFar;
+	m.minimapVisible = poi.minimapVisible;
+	m.inGameVisible = poi.inGameVisible;
+	m.behavior = poi.behavior;
 	if (sty.iconId[0])
 		std::snprintf(m.iconId, sizeof(m.iconId), "%s", sty.iconId);
 	return m;

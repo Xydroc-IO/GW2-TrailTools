@@ -36,6 +36,7 @@ namespace TrailToolsBinds
 		PlaceSlot place[kPlaceSlots]{};
 		bool      trailRecording = false;
 		bool      trailPaused = false;
+		float     trailSampleSpacing = 0.3f; /* meters between auto samples while recording */
 		int       captureTarget = -1; /* UI: which row is listening; -1 = none */
 	};
 
@@ -46,11 +47,18 @@ namespace TrailToolsBinds
 
 	/* Actions (also used by Trails / Markers tabs). */
 	void ActionTrailStart();
+	void ActionTrailStop();
 	void ActionTrailPause();
 	void ActionTrailSection();
 	void ActionTrailDeleteSeg();
+	void ActionTrailInsertVector();
+	void ActionTrailSelectNearest();
+	void ActionTrailMoveToFeet();
+	void ActionTrailDeleteNearest();
 	void ActionPlaceMarker(int slotIndex); /* -1 = default markerType */
 	void ActionDeleteMarker();
+	void ActionMarkerSelectNearest();
+	void ActionMarkerMoveToFeet();
 
 	std::string FormatChord(const Chord& c);
 	bool ParseChord(const char* s, Chord& out);

@@ -98,6 +98,13 @@ namespace
 		if (entry.size() >= 18 &&
 			entry.compare(entry.size() - 18, 18, "/_draft_session.xml") == 0)
 			return true;
+		auto ends = [&](const char* suf) -> bool {
+			const size_t n = std::strlen(suf);
+			return entry.size() >= n && entry.compare(entry.size() - n, n, suf) == 0;
+		};
+		if (ends("_Menu.xml") || ends("_Data.xml") ||
+			ends("/_Menu.xml") || ends("/_Data.xml"))
+			return true;
 		return false;
 	}
 

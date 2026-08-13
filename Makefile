@@ -40,17 +40,23 @@ SRC_CPP = \
 	src/trailtools/TrailToolsBinds.cpp \
 	src/trailtools/TrailToolsBindsActions.cpp \
 	src/trailtools/TrailToolsBindsChord.cpp \
+	src/trailtools/TrailToolsBindsTrailEdit.cpp \
 	src/trailtools/TrailToolsBuild.cpp \
 	src/trailtools/TrailToolsDraftStyle.cpp \
+	src/trailtools/TrailToolsEditUndo.cpp \
 	src/trailtools/TrailToolsImport.cpp \
 	src/trailtools/TrailToolsPad.cpp \
+	src/trailtools/TrailToolsPadContent.cpp \
 	src/trailtools/TrailToolsPadKeybinds.cpp \
 	src/trailtools/TrailToolsPadLive.cpp \
 	src/trailtools/TrailToolsPadLua.cpp \
 	src/trailtools/TrailToolsPadMarkers.cpp \
+	src/trailtools/TrailToolsPadMarkersFilters.cpp \
 	src/trailtools/TrailToolsPadMarkersScript.cpp \
 	src/trailtools/TrailToolsPadPack.cpp \
+	src/trailtools/TrailToolsPadTrailAttrs.cpp \
 	src/trailtools/TrailToolsPadTrailDesk.cpp \
+	src/trailtools/TrailToolsPadTrailGeom.cpp \
 	src/trailtools/TrailToolsPadTrailHelpers.cpp \
 	src/trailtools/TrailToolsPadTrailRaw.cpp \
 	src/trailtools/TrailToolsPadXmlDesk.cpp \
@@ -61,7 +67,9 @@ SRC_CPP = \
 	src/trailtools/TrailToolsStateCategories.cpp \
 	src/trailtools/TrailToolsStateEditors.cpp \
 	src/trailtools/TrailToolsStateFs.cpp \
+	src/trailtools/TrailToolsTrailGeom.cpp \
 	src/trailtools/TrailToolsTrl.cpp \
+	src/trailtools/TrailToolsWorldPick.cpp \
 	src/trailtools/TrailToolsXml.cpp \
 	deps/imgui/imgui.cpp \
 	deps/imgui/imgui_draw.cpp \

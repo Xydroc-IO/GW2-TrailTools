@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "Settings.h"
+#include "TrailToolsEditUndo.h"
 #include "TrailToolsShared.h"
 
 #include "imgui/imgui.h"
@@ -54,6 +55,9 @@ namespace
 	void AppendPointAtFeet(bool requireMapMatch)
 	{
 		using namespace TrailToolsDetail;
+		DraftTrail& tr = RecordingTrail();
+		int& sel = RecordingSelectedPoint();
+		bool& dirty = RecordingTrailDirty();
 		uint32_t mapId = 0;
 		float x = 0.f, y = 0.f, z = 0.f;
 		if (!ReadMumblePose(mapId, x, y, z))
@@ -61,18 +65,19 @@ namespace
 			SetStatus("No Mumble pose.");
 			return;
 		}
-		if (gDraft.active.mapId == 0)
-			gDraft.active.mapId = mapId;
-		else if (requireMapMatch && gDraft.active.mapId != mapId)
+		if (tr.mapId == 0)
+			tr.mapId = mapId;
+		else if (requireMapMatch && tr.mapId != mapId)
 		{
-			SetStatus("Map mismatch - trail %u, you %u.", gDraft.active.mapId, mapId);
+			SetStatus("Map mismatch - trail %u, you %u.", tr.mapId, mapId);
 			return;
 		}
-		if (gDraft.active.type.empty() && gDraft.trailType[0])
-			gDraft.active.type = gDraft.trailType;
-		gDraft.active.points.push_back({ x, y, z });
-		gDraft.selectedPoint = static_cast<int>(gDraft.active.points.size()) - 1;
-		gDraft.trailDirty = true;
+		if (tr.type.empty() && gDraft.trailType[0])
+			tr.type = gDraft.trailType;
+		TrailToolsEditUndo::PushTrail();
+		tr.points.push_back({ x, y, z });
+		sel = static_cast<int>(tr.points.size()) - 1;
+		dirty = true;
 		gLastSampleX = x;
 		gLastSampleY = y;
 		gLastSampleZ = z;
@@ -85,15 +90,21 @@ namespace
 		auto& gBinds = TrailToolsBinds::Get();
 		if (!gBinds.trailRecording || gBinds.trailPaused)
 			return;
+		DraftTrail& tr = RecordingTrail();
+		int& sel = RecordingSelectedPoint();
+		bool& dirty = RecordingTrailDirty();
 		uint32_t mapId = 0;
 		float x = 0.f, y = 0.f, z = 0.f;
 		if (!ReadMumblePose(mapId, x, y, z))
 			return;
-		if (gDraft.active.mapId == 0)
-			gDraft.active.mapId = mapId;
-		if (gDraft.active.mapId != mapId)
+		if (tr.mapId == 0)
+			tr.mapId = mapId;
+		if (tr.mapId != mapId)
 			return;
-		constexpr float kMinDist = 1.25f; /* meters between auto samples */
+		const float kMinDist = (std::isfinite(gBinds.trailSampleSpacing) &&
+			gBinds.trailSampleSpacing > 0.05f)
+			? gBinds.trailSampleSpacing
+			: 0.3f;
 		if (gHaveSample)
 		{
 			const float dx = x - gLastSampleX;
@@ -102,9 +113,9 @@ namespace
 			if (dx * dx + dy * dy + dz * dz < kMinDist * kMinDist)
 				return;
 		}
-		gDraft.active.points.push_back({ x, y, z });
-		gDraft.selectedPoint = static_cast<int>(gDraft.active.points.size()) - 1;
-		gDraft.trailDirty = true;
+		tr.points.push_back({ x, y, z });
+		sel = static_cast<int>(tr.points.size()) - 1;
+		dirty = true;
 		gLastSampleX = x;
 		gLastSampleY = y;
 		gLastSampleZ = z;
@@ -117,15 +128,16 @@ void TrailToolsBinds::ActionTrailStart()
 	using namespace TrailToolsDetail;
 	auto& gBinds = Get();
 	EnsureWorkspace();
+	DraftTrail& tr = RecordingTrail();
 	if (!gBinds.trailRecording)
 	{
 		gBinds.trailRecording = true;
 		gBinds.trailPaused = false;
 		gHaveSample = false;
-		if (gDraft.active.type.empty() && gDraft.trailType[0])
-			gDraft.active.type = gDraft.trailType;
+		if (tr.type.empty() && gDraft.trailType[0])
+			tr.type = gDraft.trailType;
 		AppendPointAtFeet(false);
-		SetStatus("Recording trail... (%zu pts).", gDraft.active.points.size());
+		SetStatus("Recording trail... (%zu pts).", tr.points.size());
 		return;
 	}
 	if (gBinds.trailPaused)
@@ -135,7 +147,7 @@ void TrailToolsBinds::ActionTrailStart()
 		return;
 	}
 	AppendPointAtFeet(true);
-	SetStatus("Keyframe #%zu.", gDraft.active.points.size());
+	SetStatus("Keyframe #%zu.", tr.points.size());
 }
 
 void TrailToolsBinds::ActionTrailPause()
@@ -154,9 +166,12 @@ void TrailToolsBinds::ActionTrailPause()
 void TrailToolsBinds::ActionTrailSection()
 {
 	using namespace TrailToolsDetail;
-	gDraft.active.points.push_back({ 0.f, 0.f, 0.f });
-	gDraft.selectedPoint = static_cast<int>(gDraft.active.points.size()) - 1;
-	gDraft.trailDirty = true;
+	DraftTrail& tr = RecordingTrail();
+	int& sel = RecordingSelectedPoint();
+	TrailToolsEditUndo::PushTrail();
+	tr.points.push_back({ 0.f, 0.f, 0.f });
+	sel = static_cast<int>(tr.points.size()) - 1;
+	RecordingTrailDirty() = true;
 	gHaveSample = false;
 	SetStatus("Section break added.");
 }
@@ -164,23 +179,25 @@ void TrailToolsBinds::ActionTrailSection()
 void TrailToolsBinds::ActionTrailDeleteSeg()
 {
 	using namespace TrailToolsDetail;
-	if (gDraft.active.points.empty())
+	DraftTrail& tr = RecordingTrail();
+	int& sel = RecordingSelectedPoint();
+	if (tr.points.empty())
 	{
 		SetStatus("No trail points.");
 		return;
 	}
-	int& sel = gDraft.selectedPoint;
-	if (sel >= 0 && sel < static_cast<int>(gDraft.active.points.size()))
-		gDraft.active.points.erase(gDraft.active.points.begin() + sel);
+	TrailToolsEditUndo::PushTrail();
+	if (sel >= 0 && sel < static_cast<int>(tr.points.size()))
+		tr.points.erase(tr.points.begin() + sel);
 	else
 	{
-		gDraft.active.points.pop_back();
-		sel = static_cast<int>(gDraft.active.points.size()) - 1;
+		tr.points.pop_back();
+		sel = static_cast<int>(tr.points.size()) - 1;
 	}
-	if (sel >= static_cast<int>(gDraft.active.points.size()))
-		sel = static_cast<int>(gDraft.active.points.size()) - 1;
-	gDraft.trailDirty = true;
-	SetStatus("Deleted trail segment (%zu left).", gDraft.active.points.size());
+	if (sel >= static_cast<int>(tr.points.size()))
+		sel = static_cast<int>(tr.points.size()) - 1;
+	RecordingTrailDirty() = true;
+	SetStatus("Deleted trail segment (%zu left).", tr.points.size());
 }
 
 void TrailToolsBinds::ActionPlaceMarker(int slotIndex)
@@ -203,6 +220,7 @@ void TrailToolsBinds::ActionPlaceMarker(int slotIndex)
 		SetStatus("Set a marker type for this slot (Keybinds tab).");
 		return;
 	}
+	TrailToolsEditUndo::PushPois();
 	DraftPoi p;
 	p.mapId = mapId;
 	p.x = x;
@@ -226,6 +244,7 @@ void TrailToolsBinds::ActionDeleteMarker()
 		SetStatus("No markers.");
 		return;
 	}
+	TrailToolsEditUndo::PushPois();
 	int& sel = gDraft.selectedPoi;
 	if (sel < 0 || sel >= static_cast<int>(gDraft.pois.size()))
 		sel = static_cast<int>(gDraft.pois.size()) - 1;
@@ -239,14 +258,6 @@ void TrailToolsBinds::Poll()
 {
 	using namespace TrailToolsDetail;
 	auto& gBinds = Get();
-	const int recordSlot = gTrailRecordSlot;
-	if (recordSlot >= 0)
-		PushTrailEditorToActive(recordSlot);
-
-	auto finish = [&]() {
-		if (recordSlot >= 0)
-			PopTrailEditorFromActive(recordSlot);
-	};
 
 	/* Capture mode: next non-modifier key with current mods becomes the bind. */
 	if (gBinds.captureTarget >= 0)
@@ -281,22 +292,17 @@ void TrailToolsBinds::Poll()
 			Settings::SetDirty();
 			/* swallow until release - clear held so we don't fire immediately */
 			std::memset(gHeld, 0, sizeof(gHeld));
-			finish();
 			return;
 		}
 		if (KeyDown(VK_ESCAPE))
 			gBinds.captureTarget = -1;
-		finish();
 		return;
 	}
 
 	SampleWhileRecording();
 
 	if (TypingBlocked())
-	{
-		finish();
 		return;
-	}
 
 	if (Edge(0, ChordDown(gBinds.trailStart)))
 		ActionTrailStart();
@@ -313,5 +319,4 @@ void TrailToolsBinds::Poll()
 		if (Edge(10 + i, ChordDown(gBinds.place[i].chord)))
 			ActionPlaceMarker(i);
 	}
-	finish();
 }

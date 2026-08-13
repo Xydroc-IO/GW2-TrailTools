@@ -25,7 +25,7 @@ namespace
 		p.push_back(L'\\');
 		for (const char* c = gDraft.packName; *c; ++c)
 			p.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*c)));
-		p += (gDraft.xmlLayout == 1) ? L"_Data.xml" : L".xml";
+		p += L".xml";
 		return p;
 	}
 
@@ -116,6 +116,7 @@ namespace TrailToolsDetail
 		EnsureWorkspace();
 		const std::wstring def = DefaultXmlPath();
 		std::snprintf(gDraft.xmlPath, sizeof(gDraft.xmlPath), "%s", WideToUtf8(def).c_str());
+		gDraft.xmlLayout = 0;
 		gDraft.xmlDirty = true;
 		SetStatus("New project path set - Save XML to write OverlayData.");
 		Settings::SetDirty();
@@ -137,15 +138,10 @@ namespace TrailToolsDetail
 		else
 			path = Utf8ToWide(gDraft.xmlPath);
 
-		if (gDraft.xmlLayout == 1 && !saveAs)
-		{
-			if (!TrailToolsXml::WritePackXmlLayout(gDraft))
-			{
-				SetStatus("Save XML (split layout) failed.");
-				return false;
-			}
-		}
-		else if (!TrailToolsXml::WriteOverlayFile(path, gDraft))
+		TrailToolsXml::CoerceSingleOverlayPath(path);
+		std::snprintf(gDraft.xmlPath, sizeof(gDraft.xmlPath), "%s", WideToUtf8(path).c_str());
+		gDraft.xmlLayout = 0;
+		if (!TrailToolsXml::WriteOverlayFile(path, gDraft))
 		{
 			SetStatus("Save XML failed.");
 			return false;
@@ -181,6 +177,8 @@ namespace TrailToolsDetail
 		}
 		if (!LoadDraftSession())
 			return false;
+		TrailToolsXml::CoerceSingleOverlayPath(path);
+		gDraft.xmlLayout = 0;
 		std::snprintf(gDraft.xmlPath, sizeof(gDraft.xmlPath), "%s", WideToUtf8(path).c_str());
 		gDraft.xmlDirty = false;
 		SetStatus("Loaded project XML (%zu trails, %zu markers).",
@@ -209,20 +207,7 @@ namespace TrailToolsDetail
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Save"));
 		if (PadNav::PrimaryButton("Save###gw2tt_tt_xmlsave"))
 			SaveProjectXml(false);
-
-		ImGui::Spacing();
-		ImGui::TextColored(HelperTheme::Muted, "Layout");
-		if (ImGui::RadioButton("Combined (one file)###gw2tt_tt_xml_comb", gDraft.xmlLayout == 0))
-		{
-			gDraft.xmlLayout = 0;
-			Settings::SetDirty();
-		}
-		PadNav::WrapSameLine(PadNav::ButtonWidth("Split (menu + data)"));
-		if (ImGui::RadioButton("Split (menu + data)###gw2tt_tt_xml_split", gDraft.xmlLayout == 1))
-		{
-			gDraft.xmlLayout = 1;
-			Settings::SetDirty();
-		}
+		ImGui::TextDisabled("One OverlayData file (categories, trails, and markers).");
 		PadNav::EndSection();
 	}
 }

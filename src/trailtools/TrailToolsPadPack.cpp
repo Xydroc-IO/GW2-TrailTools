@@ -329,42 +329,15 @@ void TrailToolsDetail::DrawPackTab()
 
 	if (ImGui::CollapsingHeader("XML preview###gw2tt_tt_xmlprev"))
 	{
-		if (gDraft.xmlLayout == 1)
+		static std::string sXml;
+		sXml = TrailToolsXml::EmitOverlayData(gDraft);
+		ImGui::BeginChild("###gw2tt_tt_xmlscroll", ImVec2(0.f, 140.f), true);
+		ImGui::TextUnformatted(sXml.c_str());
+		ImGui::EndChild();
+		if (ImGui::Button("Copy XML###gw2tt_tt_copyxml"))
 		{
-			static std::string sMenu, sData;
-			sMenu = TrailToolsXml::EmitMenuOverlay(gDraft);
-			sData = TrailToolsXml::EmitDataOverlay(gDraft);
-			ImGui::TextUnformatted("Menu");
-			ImGui::BeginChild("###gw2tt_tt_xmlmenu", ImVec2(0.f, 90.f), true);
-			ImGui::TextUnformatted(sMenu.c_str());
-			ImGui::EndChild();
-			if (ImGui::Button("Copy menu XML###gw2tt_tt_copymenu"))
-			{
-				CopyClipboard(sMenu.c_str());
-				SetStatus("Copied menu XML.");
-			}
-			ImGui::TextUnformatted("Data");
-			ImGui::BeginChild("###gw2tt_tt_xmldata", ImVec2(0.f, 90.f), true);
-			ImGui::TextUnformatted(sData.c_str());
-			ImGui::EndChild();
-			if (ImGui::Button("Copy data XML###gw2tt_tt_copydata"))
-			{
-				CopyClipboard(sData.c_str());
-				SetStatus("Copied data XML.");
-			}
-		}
-		else
-		{
-			static std::string sXml;
-			sXml = TrailToolsXml::EmitOverlayData(gDraft);
-			ImGui::BeginChild("###gw2tt_tt_xmlscroll", ImVec2(0.f, 140.f), true);
-			ImGui::TextUnformatted(sXml.c_str());
-			ImGui::EndChild();
-			if (ImGui::Button("Copy XML###gw2tt_tt_copyxml"))
-			{
-				CopyClipboard(sXml.c_str());
-				SetStatus("Copied XML.");
-			}
+			CopyClipboard(sXml.c_str());
+			SetStatus("Copied XML.");
 		}
 	}
 

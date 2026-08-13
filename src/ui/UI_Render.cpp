@@ -9,6 +9,7 @@
 #include "TrailToolsPad.h"
 #include "TrailToolsPreview.h"
 #include "TrailToolsShared.h"
+#include "TrailToolsWorldPick.h"
 #include "UiScale.h"
 
 #include "imgui/imgui.h"
@@ -34,6 +35,7 @@ void UI_Render()
 	CrashTrail::SetPhase("pad");
 	TrailToolsPad::Render();
 	CrashTrail::HeartbeatIfHot();
+	TrailToolsWorldPick::Tick();
 	if (TrailToolsPad::AnyOpen() && TrailToolsDetail::HasDraftPreview())
 	{
 		CrashTrail::SetPhase("preview");

@@ -126,6 +126,7 @@ void TrailToolsBinds::SetDefaults()
 {
 	State& gBinds = Get();
 	gBinds = {};
+	gBinds.trailSampleSpacing = 0.3f;
 	ParseChord("CTRL+NUMPAD*", gBinds.trailStart);
 	ParseChord("CTRL+NUMPAD/", gBinds.trailPause);
 	ParseChord("CTRL+NUMPAD+", gBinds.trailSection);

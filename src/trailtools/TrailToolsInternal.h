@@ -8,6 +8,7 @@
 namespace TrailToolsDetail
 {
 	void DrawLiveTab();
+	void DrawContentTab(); /* combined Trails + Markers project lists */
 	void DrawTrailTab(); /* full tab when docked: desk + raw (legacy entry) */
 	void DrawTrailDesk(bool asPopout = false); /* category + list + TrailsN (no XML chrome) */
 	void DrawTrailRawEditor(); /* uses gDraft.active (after PushTrailEditorToActive) */
@@ -19,7 +20,10 @@ namespace TrailToolsDetail
 	void DrawPackTab();
 	void DrawKeybindsTab();
 	void DrawPoiScriptAttrs(DraftPoi& p);
+	void DrawPoiBehaviorAndFilters(DraftPoi& p);
 	void DrawLuaFilesUi();
+	void DrawTrailAttrsSection();
+	void DrawTrailGeomSection();
 
 	/* Shared by TrailToolsPadTrailDesk / Raw / Helpers. */
 	void SyncActiveType();

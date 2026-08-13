@@ -37,7 +37,7 @@ namespace
 					SetStatus("Editing trail %s", t.fileRel.c_str());
 				}
 				ImGui::SameLine();
-				if (ImGui::SmallButton("Win"))
+				if (ImGui::SmallButton("Win") && !gHubSkipOpenClicks)
 				{
 					const int slot = OpenNewTrailEditor();
 					if (slot >= 0)
@@ -165,12 +165,12 @@ void TrailToolsDetail::DrawTrailDesk(bool asPopout)
 	PadNav::BeginSection("trails_list");
 	DrawTrailList();
 	ImGui::Dummy(ImVec2(0.f, 6.f));
-	if (ImGui::Button("New trail window###gw2tt_tt_open_trn"))
+	if (ImGui::Button("New trail window###gw2tt_tt_open_trn") && !gHubSkipOpenClicks)
 		OpenNewTrailEditor();
 	if (!asPopout)
 	{
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Pop out"));
-		if (ImGui::Button("Pop out###gw2tt_tt_open_trdesk"))
+		if (ImGui::Button("Pop out###gw2tt_tt_open_trdesk") && !gHubSkipOpenClicks)
 			TrailToolsPad::OpenTrailsDesk();
 	}
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Copy XML"));
@@ -203,7 +203,7 @@ void TrailToolsDetail::DrawTrailDesk(bool asPopout)
 			gTrailEditors[i].open ? "*" : "", i + 1, i);
 		if (i > 0)
 			PadNav::WrapSameLine(PadNav::ButtonWidth(lab));
-		if (ImGui::SmallButton(lab))
+		if (ImGui::SmallButton(lab) && !gHubSkipOpenClicks)
 			OpenTrailEditorSlot(i);
 	}
 	PadNav::EndSection();

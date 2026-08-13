@@ -45,8 +45,17 @@ namespace TrailToolsDetail
 		float       iconSize = 1.f;
 		float       heightOffset = 1.5f;
 		float       mapDisplaySize = 20.f;
+		float       minSize = 5.f;
+		float       maxSize = 2048.f;
 		bool        minimapVisible = true;
 		bool        inGameVisible = true;
+		int         achievementId = -1; /* −1 = omit */
+		int         achievementBit = -1;
+		std::string festival;
+		int         profession = 0; /* 0 = omit / any */
+		int         race = 0;
+		int         mount = 0;
+		std::string toggleCategory;
 		std::string tipName;
 		std::string tipDescription;
 		std::string info;
@@ -69,6 +78,13 @@ namespace TrailToolsDetail
 		std::string fileRel; /* e.g. Data/Pack/Trails/Trail.trl */
 		std::string type;    /* category path e.g. pack.t.extrail */
 		uint32_t    mapId = 0;
+		/* Optional per-<Trail> overrides (category Looks used when unset / default). */
+		std::string texture;
+		float       animSpeed = 1.f;
+		float       alpha = 1.f;
+		float       fadeNear = -1.f;
+		float       fadeFar = -1.f;
+		float       trailScale = 1.f;
 		/* World meters X Y Z (Y up). (0,0,0) = section break. */
 		std::vector<PathingTrails::WorldPoint> points;
 	};
@@ -90,8 +106,7 @@ namespace TrailToolsDetail
 		char          status[384] = {};
 		bool          previewEnabled = true;
 		bool          trailDirty = false;
-		/* 0 = one OverlayData (categories + POIs); 1 = Menu XML + Data XML. */
-		int           xmlLayout = 0;
+		int           xmlLayout = 0; /* unused: always one OverlayData file */
 		int           selectedPoi = -1;
 		int           selectedTrail = -1;
 		int           selectedPoint = -1; /* index in active.points */
@@ -100,10 +115,10 @@ namespace TrailToolsDetail
 	extern DraftPack gDraft;
 	extern bool      gPlaceOnce;
 	extern bool      gFocus;
-	extern int       gTab; /* 0 Pack, 1 Trails, 2 Markers, 3 Live, 4 Keybinds */
+	extern int       gTab; /* 0 Pack, 1 Content, 2 Live, 3 Keybinds */
 
 	/* Multiple TrailsN / MarkersN editors (mockup: Trails1+Trails2, Markers1+Markers2). */
-	constexpr int kMaxTrailEditors = 4;
+	constexpr int kMaxTrailEditors = 5;
 	constexpr int kMaxMarkerEditors = 4;
 
 	struct TrailEditorSlot
@@ -113,6 +128,7 @@ namespace TrailToolsDetail
 		bool      focus = false;
 		bool      dirty = false;
 		int       selectedPoint = -1;
+		std::vector<int> selectedPoints; /* multi-select (Ctrl/Shift in TrailsN) */
 		DraftTrail trail{};
 		char      stem[64] = "Trail";
 		float     geomX = -1.f;
@@ -120,6 +136,10 @@ namespace TrailToolsDetail
 		float     geomW = 0.f;
 		float     geomH = 0.f;
 	};
+
+	/* World click place/select (Live tab). Plane = feet Y via Mumble camera. */
+	extern bool gWorldPickEnabled;
+	extern int  gWorldPickMode; /* 0 place marker, 1 add trail pt, 2 select nearest */
 
 	struct MarkerEditorSlot
 	{
@@ -146,6 +166,14 @@ namespace TrailToolsDetail
 	extern float gMarkersDeskX, gMarkersDeskY, gMarkersDeskW, gMarkersDeskH;
 	/* Last-focused TrailsN for keybind recording (−1 = gDraft.active). */
 	extern int gTrailRecordSlot;
+	/* Hub: ignore Pop out / New window for one frame after a side-rail tab click. */
+	extern bool gHubSkipOpenClicks;
+	/* True while PushTrailEditorToActive holds a TrailsN trail in gDraft.active. */
+	extern bool gTrailEditorDrawActive;
+
+	DraftTrail& RecordingTrail(); /* editor slot if focused, else gDraft.active */
+	int& RecordingSelectedPoint();
+	bool& RecordingTrailDirty();
 
 	/* Legacy single-flag aliases used by unload; prefer desks + editor slots. */
 	extern bool gPopoutTrails;

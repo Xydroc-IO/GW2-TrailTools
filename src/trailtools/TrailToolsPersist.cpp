@@ -178,7 +178,93 @@ namespace
 		p.scriptFocus = Attr(tag, "script-focus");
 		p.hide = Attr(tag, "hide");
 		p.show = Attr(tag, "show");
+		{
+			const std::string v = Attr(tag, "fadeNear");
+			if (!v.empty()) p.fadeNear = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "fadeFar");
+			if (!v.empty()) p.fadeFar = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "alpha");
+			if (!v.empty()) p.alpha = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "iconSize");
+			if (!v.empty()) p.iconSize = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "heightOffset");
+			if (!v.empty()) p.heightOffset = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "mapDisplaySize");
+			if (!v.empty()) p.mapDisplaySize = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "minSize");
+			if (!v.empty()) p.minSize = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "maxSize");
+			if (!v.empty()) p.maxSize = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "resetLength");
+			if (!v.empty()) p.resetLength = static_cast<float>(std::atof(v.c_str()));
+		}
+		p.invertBehavior = Attr(tag, "invertBehavior") == "1" || Attr(tag, "invertBehavior") == "true";
+		p.minimapVisible = !(Attr(tag, "miniMapVisibility") == "0");
+		p.inGameVisible = !(Attr(tag, "inGameVisibility") == "0");
+		{
+			const std::string v = Attr(tag, "achievementId");
+			if (!v.empty()) p.achievementId = std::atoi(v.c_str());
+		}
+		{
+			const std::string v = Attr(tag, "achievementBit");
+			if (!v.empty()) p.achievementBit = std::atoi(v.c_str());
+		}
+		p.festival = Attr(tag, "festival");
+		{
+			const std::string v = Attr(tag, "profession");
+			if (!v.empty()) p.profession = std::atoi(v.c_str());
+		}
+		{
+			const std::string v = Attr(tag, "race");
+			if (!v.empty()) p.race = std::atoi(v.c_str());
+		}
+		{
+			const std::string v = Attr(tag, "mount");
+			if (!v.empty()) p.mount = std::atoi(v.c_str());
+		}
+		p.toggleCategory = Attr(tag, "toggleCategory");
 		return p;
+	}
+
+	void ApplyTrailTagAttrs(const std::string& tag, DraftTrail& t)
+	{
+		t.texture = Attr(tag, "texture");
+		{
+			const std::string v = Attr(tag, "animSpeed");
+			if (!v.empty()) t.animSpeed = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "alpha");
+			if (!v.empty()) t.alpha = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "fadeNear");
+			if (!v.empty()) t.fadeNear = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "fadeFar");
+			if (!v.empty()) t.fadeFar = static_cast<float>(std::atof(v.c_str()));
+		}
+		{
+			const std::string v = Attr(tag, "trailScale");
+			if (!v.empty()) t.trailScale = static_cast<float>(std::atof(v.c_str()));
+		}
 	}
 }
 
@@ -260,6 +346,7 @@ bool TrailToolsDetail::LoadDraftSession()
 		t.fileRel = Attr(tag, "trailData");
 		if (t.fileRel.empty())
 			t.fileRel = Attr(tag, "trailFile");
+		ApplyTrailTagAttrs(tag, t);
 		if (!t.type.empty() && !t.fileRel.empty())
 		{
 			uint32_t mid = 0;

@@ -23,8 +23,9 @@ namespace
 	constexpr float kHubH = PadDock::kWorkbenchH;
 	constexpr float kDeskW = PadDock::kWorkbenchW;
 	constexpr float kDeskH = PadDock::kWorkbenchH;
-	constexpr float kEditW = PadDock::kCompactW;
+	constexpr float kEditW = PadDock::kWorkbenchW;
 	constexpr float kEditH = PadDock::kWorkbenchH - 80.f;
+	constexpr float kEditMinW = 520.f;
 
 	G::PadGeom GeomFrom(float x, float y, float w, float h)
 	{
@@ -54,13 +55,18 @@ namespace
 		float defH,
 		ImVec2 fallbackPos,
 		const std::function<void()>& body,
-		bool* outFocused = nullptr)
+		bool* outFocused = nullptr,
+		float minW = 320.f,
+		bool bodyAlwaysScroll = true)
 	{
 		if (!showFlag)
 			return false;
 
+		if (geom.w > 1.f && geom.w < minW)
+			geom.w = minW;
+
 		const float maxH = PadDock::MaxH(320.f);
-		PadDock::SetSizeConstraints(title, 320.f, 120.f, PadDock::MaxW(780.f), maxH);
+		PadDock::SetSizeConstraints(title, minW, 160.f, PadDock::MaxW(900.f), maxH);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(geom, placeOnce, defW, defH, fallbackPos);
 		PadDock::ApplyCollapsedSize(title, geom.w >= 80.f ? geom.w : defW);
@@ -116,8 +122,10 @@ namespace
 
 		HelperTheme::ScopedFontScale fontScale(defW, defH);
 		const float bodyH = -HelperTheme::ResizeGripClearance();
-		ImGui::BeginChild("###gw2tt_pad_body", ImVec2(0.f, bodyH), false,
-			ImGuiWindowFlags_AlwaysVerticalScrollbar);
+		ImGuiWindowFlags bodyFlags = bodyAlwaysScroll
+			? ImGuiWindowFlags_AlwaysVerticalScrollbar
+			: ImGuiWindowFlags_None;
+		ImGui::BeginChild("###gw2tt_pad_body", ImVec2(0.f, bodyH), false, bodyFlags);
 		body();
 		ImGui::EndChild();
 
@@ -205,18 +213,16 @@ void TrailToolsPad::OpenMarkersDesk()
 void TrailToolsPad::OpenTrailsWindow()
 {
 	using namespace TrailToolsDetail;
-	OpenTrailsDesk();
-	OpenNewTrailEditor(); /* keep any already-open TrailsN */
-	gTab = 1; /* Trails */
+	OpenNewTrailEditor();
+	gTab = 1; /* Content */
 	Settings::SetDirty();
 }
 
 void TrailToolsPad::OpenMarkersWindow()
 {
 	using namespace TrailToolsDetail;
-	OpenMarkersDesk();
-	OpenNewMarkerEditor(); /* always a new MarkersN; keep others open */
-	gTab = 2;
+	OpenNewMarkerEditor();
+	gTab = 1; /* Content */
 	Settings::SetDirty();
 }
 
@@ -294,16 +300,26 @@ bool TrailToolsPad::Render()
 					ImGui::SetWindowSize(ImVec2(kHubW, sz.y < 280.f ? kHubH : sz.y));
 			}
 
-			static const char* kTabs[] = { "Pack", "Trails", "Markers", "Live", "Keybinds" };
+			static const char* kTabs[] = { "Pack", "Content", "Live", "Keybinds" };
 			static const int kTabIcons[] = {
 				static_cast<int>(Gw2Ui::Icon::Bag),
 				static_cast<int>(Gw2Ui::Icon::Inventory),
-				static_cast<int>(Gw2Ui::Icon::Alert),
 				static_cast<int>(Gw2Ui::Icon::Map),
 				static_cast<int>(Gw2Ui::Icon::Options),
 			};
 			CrashTrail::SetPhase("pad.rail");
-			gTab = PadNav::DrawSideRail("###gw2tt_tt_nav", kTabs, 5, gTab < 0 || gTab > 4 ? 0 : gTab, 0.f, kTabIcons);
+			/* After a rail tab change, ignore Pop out / New window for this frame
+			   (Windows can deliver the same click onto the newly shown body). */
+			static int sPrevRailTab = -1;
+			gHubSkipOpenClicks = false;
+			if (gTab < 0 || gTab > 3)
+				gTab = 0;
+			const int railTab = PadNav::DrawSideRail(
+				"###gw2tt_tt_nav", kTabs, 4, gTab, 0.f, kTabIcons);
+			if (sPrevRailTab >= 0 && railTab != sPrevRailTab)
+				gHubSkipOpenClicks = true;
+			sPrevRailTab = railTab;
+			gTab = railTab;
 
 			const float bodyH = -HelperTheme::ResizeGripClearance();
 			CrashTrail::SetPhase("pad.body");
@@ -317,15 +333,10 @@ bool TrailToolsPad::Render()
 			}
 			else if (gTab == 1)
 			{
-				CrashTrail::SetPhase("pad.tab.trails");
-				DrawTrailDesk(false);
+				CrashTrail::SetPhase("pad.tab.content");
+				DrawContentTab();
 			}
 			else if (gTab == 2)
-			{
-				CrashTrail::SetPhase("pad.tab.markers");
-				DrawMarkersDesk(false);
-			}
-			else if (gTab == 3)
 			{
 				CrashTrail::SetPhase("pad.tab.live");
 				DrawLiveTab();
@@ -404,8 +415,18 @@ bool TrailToolsPad::Render()
 			geom = G::PadTrailEditor;
 
 		char title[280]{};
-		std::snprintf(title, sizeof(title), "Trails%d - %s.trl%s###GW2TrailToolsTrailEd%d",
-			i + 1, slot.stem[0] ? slot.stem : "Trail", slot.dirty ? " *" : "", i);
+		{
+			const char* rel = slot.trail.fileRel.empty()
+				? (slot.stem[0] ? slot.stem : "Trail")
+				: slot.trail.fileRel.c_str();
+			if (slot.trail.fileRel.empty())
+				std::snprintf(title, sizeof(title),
+					"Trails%d - Data/%s/Trails/%s.trl%s###GW2TrailToolsTrailEd%d",
+					i + 1, gDraft.packName, rel, slot.dirty ? " *" : "", i);
+			else
+				std::snprintf(title, sizeof(title), "Trails%d - %s%s###GW2TrailToolsTrailEd%d",
+					i + 1, rel, slot.dirty ? " *" : "", i);
+		}
 
 		bool focused = false;
 		hover = RenderCollapsiblePad(
@@ -422,7 +443,9 @@ bool TrailToolsPad::Render()
 				DrawTrailRawEditor();
 				PopTrailEditorFromActive(i);
 			},
-			&focused) || hover;
+			&focused,
+			kEditMinW,
+			false) || hover;
 
 		GeomTo(geom, slot.geomX, slot.geomY, slot.geomW, slot.geomH);
 		if (i == 0)

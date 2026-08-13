@@ -76,7 +76,7 @@ namespace
 				sizeof(TrailToolsDetail::gDraft.lastTrlDir), "%s", val);
 		}
 		else if (std::strcmp(key, "TrailToolsXmlLayout") == 0)
-			TrailToolsDetail::gDraft.xmlLayout = std::atoi(val) != 0 ? 1 : 0;
+			TrailToolsDetail::gDraft.xmlLayout = 0;
 		else if (std::strcmp(key, "TrailToolsBinds") == 0)
 			TrailToolsBinds::Deserialize(val);
 		else if (std::strcmp(key, "PathingEnabled") == 0)
@@ -143,8 +143,7 @@ void Settings::Save(bool force)
 	std::fprintf(f, "CompassMarkerScale=%.2f\n", G::CompassMarkerScale);
 	std::fprintf(f, "ShowTrailTools=%d\n", G::ShowTrailTools ? 1 : 0);
 	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
-	std::fprintf(f, "TrailToolsXmlLayout=%d\n",
-		TrailToolsDetail::gDraft.xmlLayout != 0 ? 1 : 0);
+	std::fprintf(f, "TrailToolsXmlLayout=0\n");
 	std::fprintf(f, "TrailToolsBinds=%s\n", TrailToolsBinds::Serialize().c_str());
 	std::fprintf(f, "PathingEnabled=%s\n", G::PathingEnabled);
 	PadDock::WriteGeom(f, "PadTrailTools", G::PadTrailTools);
