@@ -18,6 +18,7 @@ file(GLOB_RECURSE TRAILTOOLS_SRC CONFIGURE_DEPENDS
 	src/pathing/packs/*.cpp
 	src/pathing/world/*.cpp
 	src/trailtools/*.cpp
+	src/packedit/*.cpp
 )
 
 add_library(GW2-TrailTools SHARED
@@ -37,6 +38,7 @@ target_include_directories(GW2-TrailTools PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/src/app
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ui
 	${CMAKE_CURRENT_SOURCE_DIR}/src/trailtools
+	${CMAKE_CURRENT_SOURCE_DIR}/src/packedit
 	${CMAKE_CURRENT_SOURCE_DIR}/src/pathing
 	${CMAKE_CURRENT_SOURCE_DIR}/src/pathing/packs
 	${CMAKE_CURRENT_SOURCE_DIR}/src/pathing/world

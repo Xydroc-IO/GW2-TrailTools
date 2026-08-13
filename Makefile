@@ -3,7 +3,7 @@ CXX      = x86_64-w64-mingw32-g++
 CC       = x86_64-w64-mingw32-gcc
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -MMD -MP
 CXXFLAGS += -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS
-CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/trailtools -Isrc/pathing \
+CXXFLAGS += -Isrc -Isrc/app -Isrc/ui -Isrc/trailtools -Isrc/packedit -Isrc/pathing \
 	-Isrc/pathing/packs -Isrc/pathing/world \
 	-Ideps -Ideps/imgui -Ideps/miniz
 CFLAGS   = -std=c11 -O2 -Wall -MMD -MP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -Ideps/miniz
@@ -25,6 +25,7 @@ SRC_CPP = \
 	src/ui/Gw2UiPadScroll.cpp \
 	src/ui/UI_Render.cpp \
 	src/ui/TrailToolsQuickAccess.cpp \
+	src/ui/WorldClick.cpp \
 	src/pathing/PathingTrails.cpp \
 	src/pathing/packs/PathingParse.cpp \
 	src/pathing/packs/PathingParseXml.cpp \
@@ -36,6 +37,21 @@ SRC_CPP = \
 	src/pathing/world/WorldGpsD3dDevice.cpp \
 	src/pathing/world/WorldGpsD3dDraw.cpp \
 	src/pathing/world/WorldGpsImgui.cpp \
+	src/packedit/PackEditAttrs.cpp \
+	src/packedit/PackEditDetails.cpp \
+	src/packedit/PackEditLoad.cpp \
+	src/packedit/PackEditLoadFinish.cpp \
+	src/packedit/PackEditLoadFolder.cpp \
+	src/packedit/PackEditPad.cpp \
+	src/packedit/PackEditResources.cpp \
+	src/packedit/PackEditSave.cpp \
+	src/packedit/PackEditState.cpp \
+	src/packedit/PackEditStyle.cpp \
+	src/packedit/PackEditTick.cpp \
+	src/packedit/PackEditTree.cpp \
+	src/packedit/PackEditUndo.cpp \
+	src/packedit/PackEditWindows.cpp \
+	src/packedit/PackEditWorld.cpp \
 	src/trailtools/TrailToolsAssets.cpp \
 	src/trailtools/TrailToolsBinds.cpp \
 	src/trailtools/TrailToolsBindsActions.cpp \
@@ -60,6 +76,7 @@ SRC_CPP = \
 	src/trailtools/TrailToolsPadTrailHelpers.cpp \
 	src/trailtools/TrailToolsPadTrailRaw.cpp \
 	src/trailtools/TrailToolsPadXmlDesk.cpp \
+	src/trailtools/TrailToolsPadXmlEdit.cpp \
 	src/trailtools/TrailToolsPersist.cpp \
 	src/trailtools/TrailToolsPreview.cpp \
 	src/trailtools/TrailToolsPreviewCompass.cpp \

@@ -19,7 +19,8 @@ Nexus loads `GW2-TrailTools.dll`; ImGui Trail Tools pad authors TacO/Blish packs
 Guild Wars 2.exe
  └─ Nexus loads GW2-TrailTools.dll
       ├─ QuickAccess (baked trailtools-icon.png) → KB_TRLS_TOGGLE
-      ├─ RT_Render → TrailToolsPad + UberTool tick + optional draft preview / gizmo
+      ├─ RT_Render → TrailToolsPad + PackEdit + UberTool + optional world preview
+      ├─ WndProc → WorldClick (empty-world LBUTTONDOWN; ImGui never sees it)
       └─ RT_OptionsRender → settings
 ```
 
@@ -29,11 +30,12 @@ Guild Wars 2.exe
 src/
   entry*.cpp          Nexus GetAddonDef / load / unload
   app/                Globals, Settings, AddonPaths, AspectLayout, UiScale, EiRuntime, AddonVersion
-  ui/                 Gw2Ui, PadNav, PadDock, HelperTheme, UI_Render, QuickAccess + TrailToolsIcon.h
+  ui/                 Gw2Ui, PadNav, PadDock, HelperTheme, UI_Render, QuickAccess, WorldClick
   pathing/            PathingTrails runtime index
     packs/            PathingParse (.taco / XML / .trl)
     world/            WorldGpsMath + D3D/ImGui preview
-  trailtools/         Authoring pad
+  packedit/           In-place .taco document (tree / details / zip save / world gizmo)
+  trailtools/         Authoring pad (Pack / Content / Live / Keybinds + TrailsN / MarkersN)
 assets/               Brand PNGs (icon / hover / logo) — bake with tools/bake_icons.py
 ```
 
@@ -43,11 +45,17 @@ Prefer **≤500 lines** per `.cpp`. Split pad vs state vs binds vs parse. Genera
 
 ## Authoring model
 
-Hub tabs: Pack (project XML) → Content (trail/marker lists) → Live → Keybinds. TrailsN/MarkersN pop-outs own `.trl` / POI edits. Pack save/build writes **one** OverlayData XML (`<PackName>.xml`); leftover `_Menu.xml` / `_Data.xml` are deleted.
+Hub tabs: **Editor** → Pack → Content → Live → Keybinds.
 
-XML shape follows TacO: nested `<MarkerCategory>`, `<POIs>` with `<Trail trailData="Data/{stem}.trl"/>` and `<POI>`, textures/icons under `Data/Images/`. Default seed is root + leaves `example` / `circle` / `heart` / `square` / `triangle`.
+**Editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder, edit the tree / details / resources, draw and pick in the world (Nexus `WndProc` + gizmo), then Save / Save As a zip. **Close pack** drops the session without deleting files. Save reformats to one `OverlayData.xml` (comments and split XML files are not preserved) — backup packs first.
 
-Live **UberTool** (`TrailToolsUberTool.cpp`) click-selects draft verts/markers in the world and moves them with an RGB gizmo. Picking uses Mumble camera × plane math (`TrailToolsWorldPick`) — no terrain mesh, no game memory.
+TrailsN/MarkersN remain the authoring workbench for new OverlayData.
+
+XML shape follows TacO: nested `<MarkerCategory>`, `<POIs>` with `<Trail trailData="Data/{stem}.trl"/>` and `<POI>`, textures/icons under `Data/Images/`. Default seed is root + leaves `example` / `circle` / `heart` / `square` / `triangle`. TrailsN can copy a **basic** `<Trail type trailData>` tag (TacO TrailsN style).
+
+Live **UberTool** (`TrailToolsUberTool.cpp`) click-selects draft verts/markers in the world and moves them with an RGB gizmo. Picking uses Mumble camera × plane math (`TrailToolsWorldPick`) — no terrain mesh, no game memory. Recording does not append points while standing still (spacing vs last vertex).
+
+**XML editor** (`TrailToolsPadXmlEdit.cpp`) is a pop-out OverlayData text buffer. Save writes that text as-is so pack-specific attributes survive; **Apply to editors** parses known TacO/Blish fields into the draft.
 
 ## Branding
 

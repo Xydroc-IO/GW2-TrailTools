@@ -9,7 +9,8 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 ## Highlights
 
 ### Authoring hub
-- Side-rail tabs: **Pack → Content → Live → Keybinds**
+- Side-rail tabs: **Editor → Pack → Content → Live → Keybinds**
+- **Editor** tab: in-place `.taco` document (open zip or folder, tree, details, resources, world gizmo). **Close pack** clears the session. Save writes a zip — **backup first** (lossy vs original XML split/comments)
 - Pack tab owns the OverlayData project (New / Load / Save) — **one XML file**
 - **Content** lists trails and markers in that project and opens TrailsN / MarkersN editors
 - TrailsN / MarkersN pop-outs own their own `.trl` / marker data until **Add to project**
@@ -22,11 +23,13 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Looks presets, asset browser, category tree editor
 - Single OverlayData XML in TacO form (3-space indent, nested MarkerCategory, `<Trail type trailData="Data/….trl"/>`, assets in `Data/Images/`)
 - Pack → Reseed for Lady Elyssa–style leaves (`example` / `circle` / `heart` / `square` / `triangle`)
+- OverlayData **XML editor** pop-out: edit raw text (custom attrs/layout); Apply fills TrailsN/MarkersN; Save writes the buffer as-is
 
 ### Trails
 - Default trail category on Content; up to **five** TrailsN windows
 - Compact TrailsN: New / Load / Save / Save As · New Segment / Insert Vector / Select Nearest / Move to Feet / Delete Nearest / Undo
-- Recording rail: Start/Stop, Pause/Resume, vector spacing; raw point list
+- Recording rail: Start/Pause, vector spacing; raw XYZ list; TacO-basic `<Trail type trailData>` copy
+- Recording skips samples while standing still (last vertex vs spacing)
 - `.trl` stays with the pop-out until **Add to project** inserts it into OverlayData
 - Per-`<Trail>` attrs (texture, trailScale, fade, alpha, animSpeed)
 - Geometry: reverse / densify / smooth / multi-select (Ctrl/Shift)
@@ -45,6 +48,7 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 ### Live
 - **3D UberTool** (on by default while a pad is open): click a draft marker or trail vertex, drag RGB axes to move, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Selected markers with `triggerRange` show a range ring. Mumble camera only — no terrain snap.
 - World click place/select via Mumble camera × feet-height plane (no terrain mesh). Disabled for that click when UberTool consumes it.
+- Empty-world `LBUTTONDOWN` is seen through Nexus `WndProc` (`WorldClick`) because ImGui does not get clicks on empty game view.
 
 ### Keybinds
 - Trail record / pause / section / delete-segment chords

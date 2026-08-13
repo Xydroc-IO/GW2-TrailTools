@@ -12,8 +12,10 @@ Official Nexus APIs + MumbleLink (read-only). **No** game memory R/W, **no** Pre
 
 ## Features
 
-- Pack / Content / Live / Keybinds authoring hub
+- **Editor** / Pack / Content / Live / Keybinds authoring hub
+- In-place `.taco` Editor (zip in / zip out): tree, details, resources, world gizmo — **backup packs before Save**
 - One OverlayData XML (TacO layout: nested categories, `trailData="Data/….trl"`, `Data/Images/`) + up to five TrailsN / four MarkersN editors
+- Editable OverlayData window for custom TacO/Blish attributes and layouts
 - Live 3D UberTool: click-select + RGB move gizmo on draft markers and trail vertices
 - Import existing `.taco`, build new packs under `addons/GW2-TrailTools/pathing/`
 - Addon-polled trail/marker chords (works while pad closed)
@@ -84,6 +86,7 @@ Shipping revision is **1.0.0** (`src/app/AddonVersion.h` / CMake `VERSION 1.0.0`
 | UI chrome | `src/ui/` |
 | Pack parse types | `src/pathing/` |
 | **Trail Tools** | `src/trailtools/` |
+| Pack Editor | `src/packedit/` |
 
 See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 

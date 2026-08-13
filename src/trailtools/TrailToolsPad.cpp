@@ -1,6 +1,7 @@
 #include "TrailToolsPad.h"
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
+#include "PackEdit.h"
 
 #include "CrashTrail.h"
 #include "EiRuntime.h"
@@ -214,7 +215,7 @@ void TrailToolsPad::OpenTrailsWindow()
 {
 	using namespace TrailToolsDetail;
 	OpenNewTrailEditor();
-	gTab = 1; /* Content */
+	gTab = 2; /* Content */
 	Settings::SetDirty();
 }
 
@@ -222,7 +223,7 @@ void TrailToolsPad::OpenMarkersWindow()
 {
 	using namespace TrailToolsDetail;
 	OpenNewMarkerEditor();
-	gTab = 1; /* Content */
+	gTab = 2; /* Content */
 	Settings::SetDirty();
 }
 
@@ -300,8 +301,9 @@ bool TrailToolsPad::Render()
 					ImGui::SetWindowSize(ImVec2(kHubW, sz.y < 280.f ? kHubH : sz.y));
 			}
 
-			static const char* kTabs[] = { "Pack", "Content", "Live", "Keybinds" };
+			static const char* kTabs[] = { "Editor", "Pack", "Content", "Live", "Keybinds" };
 			static const int kTabIcons[] = {
+				static_cast<int>(Gw2Ui::Icon::TrailAnvil),
 				static_cast<int>(Gw2Ui::Icon::Bag),
 				static_cast<int>(Gw2Ui::Icon::Inventory),
 				static_cast<int>(Gw2Ui::Icon::Map),
@@ -312,10 +314,10 @@ bool TrailToolsPad::Render()
 			   (Windows can deliver the same click onto the newly shown body). */
 			static int sPrevRailTab = -1;
 			gHubSkipOpenClicks = false;
-			if (gTab < 0 || gTab > 3)
+			if (gTab < 0 || gTab > 4)
 				gTab = 0;
 			const int railTab = PadNav::DrawSideRail(
-				"###gw2tt_tt_nav", kTabs, 4, gTab, 0.f, kTabIcons);
+				"###gw2tt_tt_nav", kTabs, 5, gTab, 0.f, kTabIcons);
 			if (sPrevRailTab >= 0 && railTab != sPrevRailTab)
 				gHubSkipOpenClicks = true;
 			sPrevRailTab = railTab;
@@ -328,15 +330,20 @@ bool TrailToolsPad::Render()
 			PadNav::PushWrap();
 			if (gTab == 0)
 			{
+				CrashTrail::SetPhase("pad.tab.editor");
+				PackEdit::DrawTab();
+			}
+			else if (gTab == 1)
+			{
 				CrashTrail::SetPhase("pad.tab.pack");
 				DrawPackTab();
 			}
-			else if (gTab == 1)
+			else if (gTab == 2)
 			{
 				CrashTrail::SetPhase("pad.tab.content");
 				DrawContentTab();
 			}
-			else if (gTab == 2)
+			else if (gTab == 3)
 			{
 				CrashTrail::SetPhase("pad.tab.live");
 				DrawLiveTab();
@@ -403,6 +410,8 @@ bool TrailToolsPad::Render()
 		else
 			gPopoutMarkers = true;
 	}
+
+	hover = RenderXmlEditorPad() || hover;
 
 	/* Trails1 … TrailsN */
 	for (int i = 0; i < kMaxTrailEditors; ++i)

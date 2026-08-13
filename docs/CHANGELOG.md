@@ -4,13 +4,17 @@ Full player-facing notes: [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
 
 ## Unreleased
 
-- Hub tabs: **Pack → Content → Live → Keybinds** (Trails and Markers combined on Content)
+- Hub tabs: **Editor → Pack → Content → Live → Keybinds**
+- **Editor** (`src/packedit/`): open `.taco` / folder (recursive), New / Close pack, Save zip with style attrs, tree Hide + Ctrl+click multi-select, details + inherited style, resources, pop-out panes, this-map world draw, WndProc pick + group translate / rotate gizmo, duplicate, tombstone, undo, lint. **Backup packs before Save** (one OverlayData.xml, no comments)
 - Content: trail/marker defaults, project lists, open Trails1–5 / MarkersN; **Add to project** writes the one OverlayData XML
-- TrailsN compact editor: file + trail toolbars, recording rail (Start/Stop, Pause/Resume, vector spacing), raw point list
+- TrailsN compact editor: file + trail toolbars, recording rail (Start/Pause, vector spacing), raw XYZ list, TacO-basic `<Trail type trailData>` copy
+- Recording does not add points while standing still (compares to last trail vertex vs spacing)
 - Five TrailsN windows (not four); opening an editor no longer freezes the game (swap instead of copying point vectors)
 - Pack XML matches TacO OverlayData (Lady Elyssa layout): nested MarkerCategory, 3-space indent, `<Trail type="…" trailData="Data/….trl"/>`, images under `Data/Images/`
 - Seed categories: root + `example` / `circle` / `heart` / `square` / `triangle` (`pack.example`, `pack.circle`, …)
 - Live **3D UberTool** (TacO-style): click-select draft markers/verts, RGB-axis gizmo, Ctrl+click insert trail point, right-click cancel drag, trigger-range ring
+- Empty-world clicks via Nexus `WndProc` (`WorldClick`) so ImGui can pick when the cursor is not over a window
+- Editable OverlayData window (Pack → XML editor): keep custom TacO/Blish attrs; Apply maps known fields into the editors; Save writes the text as-is
 - Draft world preview follows the focused TrailsN recording trail
 - TrailsN: per-trail OverlayData attrs, reverse/densify/smooth, multi-select, Ctrl+Z undo
 - MarkersN: behavior combo, mapDisplaySize/minSize/maxSize, achievement/festival/profession/race/mount/toggleCategory filters, Ctrl+Z undo
