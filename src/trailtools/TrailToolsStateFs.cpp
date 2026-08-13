@@ -40,18 +40,7 @@ namespace TrailToolsDetail
 		if (sDonePack[0] && std::strcmp(sDonePack, gDraft.packName) == 0)
 			return true;
 		AddonPaths::EnsureUnder(pack, L"Data");
-		{
-			std::wstring dataRel = L"Data\\";
-			for (const char* p = gDraft.packName; *p; ++p)
-				dataRel.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*p)));
-			dataRel += L"\\Markers";
-			AddonPaths::EnsureUnder(pack, dataRel.c_str());
-			dataRel = L"Data\\";
-			for (const char* p = gDraft.packName; *p; ++p)
-				dataRel.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*p)));
-			dataRel += L"\\Trails";
-			AddonPaths::EnsureUnder(pack, dataRel.c_str());
-		}
+		AddonPaths::EnsureUnder(pack, L"Data\\Images");
 		WriteDefaultAssets();
 		std::snprintf(sDonePack, sizeof(sDonePack), "%s", gDraft.packName);
 		return true;
@@ -78,10 +67,7 @@ namespace TrailToolsDetail
 
 		std::wstring base = PackDir();
 		base.push_back(L'\\');
-		base += L"Data\\";
-		for (const char* p = gDraft.packName; *p; ++p)
-			base.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*p)));
-		base += L"\\Markers\\";
+		base += L"Data\\Images\\";
 
 		bool ok = true;
 		for (size_t i = 0; i < n; ++i)
@@ -110,6 +96,8 @@ namespace TrailToolsDetail
 	{
 		if (!gDraft.previewEnabled)
 			return false;
+		if (RecordingTrail().points.size() >= 2 && RecordingTrail().mapId != 0)
+			return true;
 		if (gDraft.active.points.size() >= 2 && gDraft.active.mapId != 0)
 			return true;
 		uint32_t mapId = 0;

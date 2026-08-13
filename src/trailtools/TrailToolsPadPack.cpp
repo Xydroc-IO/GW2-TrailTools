@@ -49,9 +49,9 @@ namespace
 
 		/* Fine-tune active leaf categories. */
 		CategoryNode* trailLeaf = FindCategoryByPath(gDraft.root,
-			gDraft.trailType[0] ? std::string(gDraft.trailType) : RootCategoryName() + ".t.extrail");
+			gDraft.trailType[0] ? std::string(gDraft.trailType) : RootCategoryName() + ".example");
 		CategoryNode* markLeaf = FindCategoryByPath(gDraft.root,
-			gDraft.markerType[0] ? std::string(gDraft.markerType) : RootCategoryName() + ".m.exm");
+			gDraft.markerType[0] ? std::string(gDraft.markerType) : RootCategoryName() + ".circle");
 
 		if (trailLeaf)
 		{
@@ -221,11 +221,9 @@ void TrailToolsDetail::DrawPackTab()
 		SanitizePackName(gDraft.packName, sizeof(gDraft.packName));
 		RemapDraftAfterPackRename(oldPack, oldRoot);
 		gDraft.root.name = RootCategoryName();
-		const std::string wantPrefix = std::string("Data/") + gDraft.packName + "/";
-		if (gDraft.active.fileRel.empty() ||
-			gDraft.active.fileRel.compare(0, wantPrefix.size(), wantPrefix) != 0)
+		if (gDraft.active.fileRel.empty())
 		{
-			gDraft.active.fileRel = wantPrefix + "Trails/" +
+			gDraft.active.fileRel = std::string("Data/") +
 				(gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail") + ".trl";
 		}
 		std::snprintf(sPrevPack, sizeof(sPrevPack), "%s", gDraft.packName);
@@ -254,7 +252,7 @@ void TrailToolsDetail::DrawPackTab()
 	if (ImGui::Button("Reseed###gw2tt_tt_reseed"))
 	{
 		SeedDefaultCategories();
-		SetStatus("Reseeded Example Pack categories.");
+		SetStatus("Reseeded TacO-style categories (example / circle / heart / square / triangle).");
 	}
 
 	PadNav::PushWrap();

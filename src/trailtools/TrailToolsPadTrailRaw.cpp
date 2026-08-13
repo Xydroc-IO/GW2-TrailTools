@@ -34,7 +34,7 @@ namespace
 			SyncActiveFileRelFromStem();
 			gDraft.active = {};
 			gDraft.active.type = gDraft.trailType[0] ? gDraft.trailType
-				: (RootCategoryName() + ".t.extrail");
+				: (RootCategoryName() + ".example");
 			SyncActiveFileRelFromStem();
 			gDraft.selectedTrail = -1;
 			gDraft.selectedPoint = -1;

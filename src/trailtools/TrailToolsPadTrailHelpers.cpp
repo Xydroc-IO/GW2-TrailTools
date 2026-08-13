@@ -50,10 +50,7 @@ namespace TrailToolsDetail
 	std::wstring TrailsFolder()
 	{
 		std::wstring p = PackDir();
-		p += L"\\Data\\";
-		for (const char* c = gDraft.packName; *c; ++c)
-			p.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*c)));
-		p += L"\\Trails";
+		p += L"\\Data";
 		return p;
 	}
 

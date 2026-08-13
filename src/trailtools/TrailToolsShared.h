@@ -75,8 +75,8 @@ namespace TrailToolsDetail
 
 	struct DraftTrail
 	{
-		std::string fileRel; /* e.g. Data/Pack/Trails/Trail.trl */
-		std::string type;    /* category path e.g. pack.t.extrail */
+		std::string fileRel; /* e.g. Data/example.trl (TacO trailData) */
+		std::string type;    /* category path e.g. mymarkers.example */
 		uint32_t    mapId = 0;
 		/* Optional per-<Trail> overrides (category Looks used when unset / default). */
 		std::string texture;
@@ -99,7 +99,7 @@ namespace TrailToolsDetail
 		DraftTrail    active; /* currently recording */
 		char          markerType[160] = {};
 		char          trailType[160] = {}; /* default category for new/active trail */
-		char          trailFileStem[64] = "Trail";
+		char          trailFileStem[64] = "example";
 		char          lastTrlDir[260] = {}; /* last Load/Save As folder */
 		char          xmlPath[260] = {}; /* open OverlayData project path (utf-8) */
 		bool          xmlDirty = false;

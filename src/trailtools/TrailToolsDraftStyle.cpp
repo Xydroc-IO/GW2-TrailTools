@@ -164,7 +164,7 @@ TrailToolsDraftStyle::Resolved TrailToolsDraftStyle::ResolveTrail()
 	using namespace TrailToolsDetail;
 	Resolved r;
 	const std::string want = gDraft.trailType[0]
-		? std::string(gDraft.trailType) : (RootCategoryName() + ".t.extrail");
+		? std::string(gDraft.trailType) : (RootCategoryName() + ".example");
 	FillFromNode(FindCategoryByPath(gDraft.root, want), r);
 	if (!r.textureRel.empty())
 		QueueRel(r.textureRel, r.textureId, sizeof(r.textureId));
@@ -178,7 +178,7 @@ TrailToolsDraftStyle::Resolved TrailToolsDraftStyle::ResolveMarkerType(
 	Resolved r;
 	const std::string want = !typePath.empty() ? typePath
 		: (gDraft.markerType[0] ? std::string(gDraft.markerType)
-			: RootCategoryName() + ".m.exm");
+			: RootCategoryName() + ".circle");
 	FillFromNode(FindCategoryByPath(gDraft.root, want), r);
 	if (!r.iconRel.empty())
 		QueueRel(r.iconRel, r.iconId, sizeof(r.iconId));
@@ -189,25 +189,26 @@ PathingTrails::WorldSnippet TrailToolsDraftStyle::BuildActiveSnippet()
 {
 	using namespace TrailToolsDetail;
 	PathingTrails::WorldSnippet snip;
-	if (gDraft.active.points.size() < 2)
+	const DraftTrail& rec = RecordingTrail();
+	if (rec.points.size() < 2)
 		return snip;
 	const Resolved sty = ResolveTrail();
 	snip.color = sty.color ? sty.color : 0xFFFFFFFFu;
 	/* Per-trail overrides win over category Looks. */
-	snip.alpha = (gDraft.active.alpha > 0.f && gDraft.active.alpha < 0.999f)
-		? gDraft.active.alpha
+	snip.alpha = (rec.alpha > 0.f && rec.alpha < 0.999f)
+		? rec.alpha
 		: (sty.alpha > 0.f ? sty.alpha : 1.f);
-	snip.trailScale = (gDraft.active.trailScale > 0.f &&
-		std::fabs(gDraft.active.trailScale - 1.f) > 0.001f)
-		? gDraft.active.trailScale
+	snip.trailScale = (rec.trailScale > 0.f &&
+		std::fabs(rec.trailScale - 1.f) > 0.001f)
+		? rec.trailScale
 		: (sty.trailScale > 0.f ? sty.trailScale : 1.f);
-	snip.fadeNear = gDraft.active.fadeNear >= 0.f ? gDraft.active.fadeNear : sty.fadeNear;
-	snip.fadeFar = gDraft.active.fadeFar >= 0.f ? gDraft.active.fadeFar : sty.fadeFar;
+	snip.fadeNear = rec.fadeNear >= 0.f ? rec.fadeNear : sty.fadeNear;
+	snip.fadeFar = rec.fadeFar >= 0.f ? rec.fadeFar : sty.fadeFar;
 	if (sty.textureId[0])
 		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", sty.textureId);
 	std::snprintf(snip.label, sizeof(snip.label), "draft:%s",
 		gDraft.trailType[0] ? gDraft.trailType : "trail");
-	snip.points = gDraft.active.points;
+	snip.points = rec.points;
 	return snip;
 }
 

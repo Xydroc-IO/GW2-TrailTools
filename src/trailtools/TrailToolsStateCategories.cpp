@@ -46,38 +46,28 @@ namespace TrailToolsDetail
 		gDraft.root = {};
 		gDraft.root.name = rootName;
 		gDraft.root.displayName = gDraft.displayName[0] ? gDraft.displayName : gDraft.packName;
+		gDraft.root.fadeNear = 2500.f;
+		gDraft.root.fadeFar = 5000.f;
 
-		CategoryNode markers;
-		markers.name = "m";
-		markers.displayName = "Markers";
-		markers.fadeFar = 3500.f;
-		CategoryNode exm;
-		exm.name = "exm";
-		exm.displayName = "Example Marker";
-		exm.iconFile = std::string("Data/") + gDraft.packName + "/Markers/Marker_Disc.png";
-		exm.iconSize = 1.f;
-		exm.color = 0xFFFFC828u;
-		markers.children.push_back(exm);
-		gDraft.root.children.push_back(markers);
+		auto addLeaf = [&](const char* name, const char* disp, const char* icon) {
+			CategoryNode n;
+			n.name = name;
+			n.displayName = disp;
+			if (icon && *icon)
+				n.iconFile = std::string("Data/Images/") + icon;
+			gDraft.root.children.push_back(std::move(n));
+		};
+		addLeaf("example", "Example Trail", nullptr);
+		addLeaf("circle", "Toggle Circle", "Marker_Disc.png");
+		addLeaf("heart", "Toggle Heart", "Marker_Disc.png");
+		addLeaf("square", "Toggle Square", "Marker_Disc.png");
+		addLeaf("triangle", "Toggle Triangle", "Marker_Disc.png");
 
-		CategoryNode trails;
-		trails.name = "t";
-		trails.displayName = "Trails";
-		CategoryNode extrail;
-		extrail.name = "extrail";
-		extrail.displayName = "Example Trail";
-		extrail.texture = std::string("Data/") + gDraft.packName + "/Markers/Trail_Chevron.png";
-		extrail.fadeNear = 3000.f;
-		extrail.fadeFar = 3500.f;
-		extrail.trailScale = 1.f;
-		extrail.color = 0xFFFFFFFFu;
-		trails.children.push_back(extrail);
-		gDraft.root.children.push_back(trails);
-
-		std::snprintf(gDraft.markerType, sizeof(gDraft.markerType), "%s.m.exm", rootName.c_str());
-		std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s.t.extrail", rootName.c_str());
+		std::snprintf(gDraft.markerType, sizeof(gDraft.markerType), "%s.circle", rootName.c_str());
+		std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s.example", rootName.c_str());
 		gDraft.active.type = gDraft.trailType;
-		gDraft.active.fileRel = std::string("Data/") + gDraft.packName + "/Trails/Trail.trl";
+		gDraft.active.fileRel = std::string("Data/") +
+			(gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail") + ".trl";
 	}
 
 	std::string CategoryPath(const CategoryNode& node, const std::string& parentPath)
@@ -90,37 +80,12 @@ namespace TrailToolsDetail
 	void CollectLeafPaths(const CategoryNode& node, const std::string& parentPath,
 		std::vector<std::string>& out, bool trailLeaves)
 	{
+		(void)trailLeaves;
 		const std::string path = CategoryPath(node, parentPath);
 		const bool isLeaf = node.children.empty();
 		if (isLeaf)
 		{
-			const bool hasIcon = !node.iconFile.empty();
-			const bool hasTex = !node.texture.empty();
-			const bool underT = parentPath.find(".t") != std::string::npos ||
-				node.name.find("trail") != std::string::npos ||
-				node.name.find("extrail") != std::string::npos;
-			const bool underM = parentPath.find(".m") != std::string::npos ||
-				node.name.find("exm") != std::string::npos;
-			bool looksTrail = false;
-			bool looksMarker = false;
-			if (underT && !underM)
-				looksTrail = true;
-			else if (underM && !underT)
-				looksMarker = true;
-			else if (hasTex && !hasIcon)
-				looksTrail = true;
-			else if (hasIcon && !hasTex)
-				looksMarker = true;
-			else if (hasTex && hasIcon)
-			{
-				/* Both assets: exclusive - trail list vs marker list, never both. */
-				looksTrail = trailLeaves;
-				looksMarker = !trailLeaves;
-			}
-			else
-				looksMarker = !trailLeaves; /* bare leaf -> marker picker */
-			if (trailLeaves ? looksTrail : looksMarker)
-				out.push_back(path);
+			out.push_back(path);
 			return;
 		}
 		for (const CategoryNode& ch : node.children)
@@ -227,14 +192,14 @@ namespace TrailToolsDetail
 	{
 		EnsureWorkspace();
 		const std::string want = gDraft.trailType[0]
-			? std::string(gDraft.trailType) : (RootCategoryName() + ".t.extrail");
+			? std::string(gDraft.trailType) : (RootCategoryName() + ".example");
 		CategoryNode* leaf = FindCategoryByPath(gDraft.root, want);
 		if (!leaf)
 		{
 			SetStatus("No trail category for type %s.", want.c_str());
 			return;
 		}
-		const std::string prefix = std::string("Data/") + gDraft.packName + "/Markers/";
+		const std::string prefix = "Data/Images/";
 		switch (presetIndex)
 		{
 		case 0:
@@ -277,14 +242,14 @@ namespace TrailToolsDetail
 	{
 		EnsureWorkspace();
 		const std::string want = gDraft.markerType[0]
-			? std::string(gDraft.markerType) : (RootCategoryName() + ".m.exm");
+			? std::string(gDraft.markerType) : (RootCategoryName() + ".circle");
 		CategoryNode* leaf = FindCategoryByPath(gDraft.root, want);
 		if (!leaf)
 		{
 			SetStatus("No marker category for type %s.", want.c_str());
 			return;
 		}
-		const std::string prefix = std::string("Data/") + gDraft.packName + "/Markers/";
+		const std::string prefix = "Data/Images/";
 		switch (presetIndex)
 		{
 		case 0:

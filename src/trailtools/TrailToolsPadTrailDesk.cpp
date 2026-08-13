@@ -131,7 +131,7 @@ void TrailToolsDetail::SyncActiveType()
 void TrailToolsDetail::SyncActiveFileRelFromStem()
 {
 	const char* stem = gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail";
-	gDraft.active.fileRel = std::string("Data/") + gDraft.packName + "/Trails/" + stem + ".trl";
+	gDraft.active.fileRel = std::string("Data/") + stem + ".trl";
 }
 
 void TrailToolsDetail::ApplyStemFromFileRel()

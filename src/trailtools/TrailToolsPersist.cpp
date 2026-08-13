@@ -409,10 +409,10 @@ bool TrailToolsDetail::LoadDraftSession()
 	}
 
 	if (!gDraft.markerType[0] && !gDraft.root.name.empty())
-		std::snprintf(gDraft.markerType, sizeof(gDraft.markerType), "%s.m.exm",
+		std::snprintf(gDraft.markerType, sizeof(gDraft.markerType), "%s.circle",
 			gDraft.root.name.c_str());
 	if (!gDraft.trailType[0] && !gDraft.root.name.empty())
-		std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s.t.extrail",
+		std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s.example",
 			gDraft.root.name.c_str());
 
 	SetStatus("Loaded draft (%zu POIs, %zu trails, %zu active pts).",

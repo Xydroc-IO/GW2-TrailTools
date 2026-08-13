@@ -48,7 +48,8 @@ void TrailToolsPreview::RenderWorld()
 	const float thickness = std::clamp(G::WorldTrailWidth, 0.5f, 4.f);
 	const float maxDist = std::max(80.f, G::WorldTrailMaxDist);
 
-	if (gDraft.active.points.size() >= 2 && gDraft.active.mapId == ctx->mapId)
+	const DraftTrail& rec = RecordingTrail();
+	if (rec.points.size() >= 2 && rec.mapId == ctx->mapId)
 	{
 		PathingTrails::WorldSnippet snip = TrailToolsDraftStyle::BuildActiveSnippet();
 		if (snip.points.size() >= 2)

@@ -200,7 +200,7 @@ bool TrailToolsBuild::BuildTaco(std::string& errOut)
 	{
 		if (gDraft.active.fileRel.empty())
 		{
-			gDraft.active.fileRel = std::string("Data/") + gDraft.packName + "/Trails/" +
+			gDraft.active.fileRel = std::string("Data/") +
 				(gDraft.trailFileStem[0] ? gDraft.trailFileStem : "Trail") + ".trl";
 		}
 		if (gDraft.active.type.empty() && gDraft.trailType[0])

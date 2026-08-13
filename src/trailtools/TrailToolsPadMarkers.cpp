@@ -179,7 +179,7 @@ void TrailToolsDetail::DrawMarkersDesk(bool asPopout)
 	std::vector<std::string> leaves;
 	CollectLeafPaths(gDraft.root, "", leaves, false);
 	if (leaves.empty())
-		leaves.push_back(gDraft.markerType[0] ? gDraft.markerType : "examplepack.m.exm");
+		leaves.push_back(gDraft.markerType[0] ? gDraft.markerType : "examplepack.circle");
 	int cur = 0;
 	for (size_t i = 0; i < leaves.size(); ++i)
 	{

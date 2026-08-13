@@ -128,9 +128,8 @@ namespace TrailToolsDetail
 			std::snprintf(s.stem, sizeof(s.stem), "Trail%d", index + 1);
 		s.trail = {};
 		s.trail.type = gDraft.trailType[0] ? gDraft.trailType
-			: (RootCategoryName() + ".t.extrail");
-		s.trail.fileRel = std::string("Data/") + gDraft.packName + "/Trails/" +
-			s.stem + ".trl";
+			: (RootCategoryName() + ".example");
+		s.trail.fileRel = std::string("Data/") + s.stem + ".trl";
 	}
 
 	int OpenTrailEditorSlot(int slot)

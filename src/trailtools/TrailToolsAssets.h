@@ -8,7 +8,7 @@ namespace TrailToolsAssets
 {
 	struct Entry
 	{
-		std::string relPath;   /* pack-relative e.g. Data/Pack/Markers/x.png */
+		std::string relPath;   /* pack-relative e.g. Data/Images/x.png */
 		std::string label;     /* display */
 		bool        fromTaco = false;
 		std::string tacoName;  /* source pack filename when fromTaco */

@@ -415,18 +415,11 @@ bool TrailToolsPad::Render()
 			geom = G::PadTrailEditor;
 
 		char title[280]{};
-		{
-			const char* rel = slot.trail.fileRel.empty()
-				? (slot.stem[0] ? slot.stem : "Trail")
-				: slot.trail.fileRel.c_str();
-			if (slot.trail.fileRel.empty())
-				std::snprintf(title, sizeof(title),
-					"Trails%d - Data/%s/Trails/%s.trl%s###GW2TrailToolsTrailEd%d",
-					i + 1, gDraft.packName, rel, slot.dirty ? " *" : "", i);
-			else
-				std::snprintf(title, sizeof(title), "Trails%d - %s%s###GW2TrailToolsTrailEd%d",
-					i + 1, rel, slot.dirty ? " *" : "", i);
-		}
+		const char* rel = slot.trail.fileRel.empty()
+			? "Data/example.trl"
+			: slot.trail.fileRel.c_str();
+		std::snprintf(title, sizeof(title), "Trails%d - %s%s###GW2TrailToolsTrailEd%d",
+			i + 1, rel, slot.dirty ? " *" : "", i);
 
 		bool focused = false;
 		hover = RenderCollapsiblePad(

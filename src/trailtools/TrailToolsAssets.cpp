@@ -57,10 +57,7 @@ namespace
 	std::wstring MarkersDir()
 	{
 		std::wstring p = TrailToolsDetail::PackDir();
-		p += L"\\Data\\";
-		for (const char* c = TrailToolsDetail::gDraft.packName; *c; ++c)
-			p.push_back(static_cast<wchar_t>(static_cast<unsigned char>(*c)));
-		p += L"\\Markers";
+		p += L"\\Data\\Images";
 		return p;
 	}
 
@@ -93,7 +90,7 @@ void TrailToolsAssets::RefreshAuthoringList(std::vector<Entry>& out)
 	HANDLE h = FindFirstFileW(glob.c_str(), &fd);
 	if (h == INVALID_HANDLE_VALUE)
 		return;
-	const std::string prefix = std::string("Data/") + TrailToolsDetail::gDraft.packName + "/Markers/";
+	const std::string prefix = "Data/Images/";
 	do
 	{
 		if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -188,11 +185,10 @@ bool TrailToolsAssets::ImportFromTaco(const std::wstring& tacoPath,
 	const std::wstring dest = MarkersDir() + L"\\" + Utf8ToWide(fname);
 	if (!WriteBytesW(dest, bytes.data(), bytes.size()))
 	{
-		err = "Failed to write into Markers/.";
+		err = "Failed to write into Data/Images/.";
 		return false;
 	}
-	outRelPath = std::string("Data/") + TrailToolsDetail::gDraft.packName +
-		"/Markers/" + fname;
+	outRelPath = std::string("Data/Images/") + fname;
 	return true;
 }
 
@@ -223,7 +219,7 @@ void TrailToolsAssets::DrawBrowserUi()
 
 	if (ImGui::BeginChild("###gw2tt_tt_texauth", ImVec2(0.f, 110.f), true))
 	{
-		ImGui::TextDisabled("Authoring Markers/ (%zu)", sAuth.size());
+		ImGui::TextDisabled("Authoring Data/Images/ (%zu)", sAuth.size());
 		for (size_t i = 0; i < sAuth.size(); ++i)
 		{
 			ImGui::PushID(static_cast<int>(i));
@@ -231,10 +227,10 @@ void TrailToolsAssets::DrawBrowserUi()
 			{
 				CategoryNode* trail = FindCategoryByPath(gDraft.root,
 					gDraft.trailType[0] ? std::string(gDraft.trailType)
-						: RootCategoryName() + ".t.extrail");
+						: RootCategoryName() + ".example");
 				CategoryNode* mark = FindCategoryByPath(gDraft.root,
 					gDraft.markerType[0] ? std::string(gDraft.markerType)
-						: RootCategoryName() + ".m.exm");
+						: RootCategoryName() + ".circle");
 				if (trail && (sAuth[i].label.find("Trail") != std::string::npos ||
 					sAuth[i].label.find("trail") != std::string::npos))
 					trail->texture = sAuth[i].relPath;
@@ -268,10 +264,10 @@ void TrailToolsAssets::DrawBrowserUi()
 					RefreshAuthoringList(sAuth);
 					CategoryNode* trail = FindCategoryByPath(gDraft.root,
 						gDraft.trailType[0] ? std::string(gDraft.trailType)
-							: RootCategoryName() + ".t.extrail");
+							: RootCategoryName() + ".example");
 					CategoryNode* mark = FindCategoryByPath(gDraft.root,
 						gDraft.markerType[0] ? std::string(gDraft.markerType)
-							: RootCategoryName() + ".m.exm");
+							: RootCategoryName() + ".circle");
 					const std::string low = PathingParse::ToLower(rel);
 					if (trail && low.find("trail") != std::string::npos)
 						trail->texture = rel;
