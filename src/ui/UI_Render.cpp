@@ -89,6 +89,6 @@ void UI_DrawSettingsControls()
 		PathingTrails::ReloadPacks();
 	ImGui::Spacing();
 	ImGui::Separator();
-	ImGui::TextDisabled("Thanks to Lady Elyssa for UI help and Windows testing.");
+	ImGui::TextDisabled("Thanks to Lady Elyssa for UI help, feature selection, and Windows testing.");
 	Settings::SetDirty();
 }

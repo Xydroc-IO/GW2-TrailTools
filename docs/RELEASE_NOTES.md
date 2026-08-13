@@ -104,7 +104,7 @@ See `COMPLIANCE.md` and `ARCHITECTURE.md`.
 
 ## Acknowledgments
 
-**Lady Elyssa** — UI feedback and Windows testing.
+**Lady Elyssa** — UI feedback, feature selection, and Windows testing.
 
 ## Build from source
 

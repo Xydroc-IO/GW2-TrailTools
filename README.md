@@ -92,7 +92,7 @@ See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`docs/ARCHITECTURE.md`](
 
 ## Acknowledgments
 
-Huge thanks to **Lady Elyssa** for helping sort the UI and for extensive Windows testing.
+Huge thanks to **Lady Elyssa** for helping sort the UI, feature selection, and extensive Windows testing.
 
 ## License
 
