@@ -204,7 +204,9 @@ void TrailToolsDetail::DrawPackTab()
 
 	PadNav::SectionTitle("2 · Pack");
 	PadNav::BeginSection("pack_id");
+	PadNav::PushWrap();
 	ImGui::TextDisabled("pathing/authoring/%s/", gDraft.packName);
+	PadNav::PopWrap();
 
 	static char sPrevPack[64] = {};
 	if (!sPrevPack[0])
@@ -255,11 +257,13 @@ void TrailToolsDetail::DrawPackTab()
 		SetStatus("Reseeded Example Pack categories.");
 	}
 
+	PadNav::PushWrap();
 	ImGui::TextDisabled("Active trail · %s%s · map %u · %zu pts",
 		gDraft.active.fileRel.empty() ? "(none)" : gDraft.active.fileRel.c_str(),
 		gDraft.trailDirty ? " *" : "",
 		gDraft.active.mapId,
 		gDraft.active.points.size());
+	PadNav::PopWrap();
 	PadNav::EndSection();
 
 	PadNav::SectionTitle("3 · Import / build");

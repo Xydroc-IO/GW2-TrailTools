@@ -2,6 +2,7 @@
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
 
+#include "CrashTrail.h"
 #include "EiRuntime.h"
 #include "Globals.h"
 #include "Gw2Ui.h"
@@ -62,6 +63,7 @@ namespace
 		PadDock::SetSizeConstraints(title, 320.f, 120.f, PadDock::MaxW(780.f), maxH);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(geom, placeOnce, defW, defH, fallbackPos);
+		PadDock::ApplyCollapsedSize(title, geom.w >= 80.f ? geom.w : defW);
 		if (!placeOnce && geom.w < 80.f)
 			ImGui::SetNextWindowSize(ImVec2(defW, defH), ImGuiCond_FirstUseEver);
 		if (focus)
@@ -74,7 +76,13 @@ namespace
 
 		bool open = showFlag;
 		HelperTheme::ScopedWindow theme(G::Opacity);
-		const bool padBody = ImGui::Begin(title, &open, HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs));
+		/* Scroll lives in a body child (same as hub) — keeps the root chrome
+		   flush and stops a root scrollbar from fighting the title controls. */
+		ImGuiWindowFlags padFlags = HelperTheme::PadFlags(
+			ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoScrollbar);
+		if (PadDock::IsCustomCollapsed(title))
+			padFlags |= ImGuiWindowFlags_NoResize;
+		const bool padBody = ImGui::Begin(title, &open, padFlags);
 		if (!theme.AfterBegin(title, &open) || !padBody)
 		{
 			const ImVec2 p = ImGui::GetWindowPos();
@@ -107,7 +115,11 @@ namespace
 			Settings::SetDirty();
 
 		HelperTheme::ScopedFontScale fontScale(defW, defH);
+		const float bodyH = -HelperTheme::ResizeGripClearance();
+		ImGui::BeginChild("###gw2tt_pad_body", ImVec2(0.f, bodyH), false,
+			ImGuiWindowFlags_AlwaysVerticalScrollbar);
 		body();
+		ImGui::EndChild();
 
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
@@ -223,6 +235,8 @@ bool TrailToolsPad::Render()
 		PadDock::SetSizeConstraints(title, 440.f, 280.f, PadDock::MaxW(820.f), maxH);
 		ImGui::SetNextWindowCollapsed(false, ImGuiCond_Appearing);
 		PadDock::Place(G::PadTrailTools, gPlaceOnce, kHubW, kHubH, PadDock::BesideHelper(kHubW));
+		PadDock::ApplyCollapsedSize(title,
+			G::PadTrailTools.w >= 80.f ? G::PadTrailTools.w : kHubW);
 		if (!gPlaceOnce && G::PadTrailTools.w < 80.f)
 			ImGui::SetNextWindowSize(ImVec2(kHubW, kHubH), ImGuiCond_FirstUseEver);
 		if (gFocus)
@@ -234,7 +248,12 @@ bool TrailToolsPad::Render()
 
 		bool open = G::ShowTrailTools;
 		HelperTheme::ScopedWindow theme(G::Opacity);
-		const bool padBody = ImGui::Begin(title, &open, HelperTheme::PadFlags(ImGuiWindowFlags_NoNavInputs));
+		/* Body child owns scrolling — root scrollbar leaves a gutter stub when minimized. */
+		ImGuiWindowFlags padFlags = HelperTheme::PadFlags(
+			ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoScrollbar);
+		if (PadDock::IsCustomCollapsed(title))
+			padFlags |= ImGuiWindowFlags_NoResize;
+		const bool padBody = ImGui::Begin(title, &open, padFlags);
 		if (!theme.AfterBegin(title, &open) || !padBody)
 		{
 			const ImVec2 p = ImGui::GetWindowPos();
@@ -268,6 +287,13 @@ bool TrailToolsPad::Render()
 
 			HelperTheme::ScopedFontScale fontScale(kHubW, kHubH);
 
+			/* Recover from a saved/narrow geom that clips the body. */
+			{
+				const ImVec2 sz = ImGui::GetWindowSize();
+				if (sz.x < 440.f)
+					ImGui::SetWindowSize(ImVec2(kHubW, sz.y < 280.f ? kHubH : sz.y));
+			}
+
 			static const char* kTabs[] = { "Pack", "Trails", "Markers", "Live", "Keybinds" };
 			static const int kTabIcons[] = {
 				static_cast<int>(Gw2Ui::Icon::Bag),
@@ -276,25 +302,47 @@ bool TrailToolsPad::Render()
 				static_cast<int>(Gw2Ui::Icon::Map),
 				static_cast<int>(Gw2Ui::Icon::Options),
 			};
+			CrashTrail::SetPhase("pad.rail");
 			gTab = PadNav::DrawSideRail("###gw2tt_tt_nav", kTabs, 5, gTab < 0 || gTab > 4 ? 0 : gTab, 0.f, kTabIcons);
 
-			ImGui::BeginChild("###gw2tt_tt_body", ImVec2(0.f, -1.f), false);
+			const float bodyH = -HelperTheme::ResizeGripClearance();
+			CrashTrail::SetPhase("pad.body");
+			ImGui::BeginChild("###gw2tt_tt_body", ImVec2(0.f, bodyH), false,
+				ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			PadNav::PushWrap();
 			if (gTab == 0)
+			{
+				CrashTrail::SetPhase("pad.tab.pack");
 				DrawPackTab();
+			}
 			else if (gTab == 1)
+			{
+				CrashTrail::SetPhase("pad.tab.trails");
 				DrawTrailDesk(false);
+			}
 			else if (gTab == 2)
+			{
+				CrashTrail::SetPhase("pad.tab.markers");
 				DrawMarkersDesk(false);
+			}
 			else if (gTab == 3)
+			{
+				CrashTrail::SetPhase("pad.tab.live");
 				DrawLiveTab();
+			}
 			else
+			{
+				CrashTrail::SetPhase("pad.tab.keybinds");
 				DrawKeybindsTab();
+			}
+			PadNav::PopWrap();
 			ImGui::EndChild();
 
 			hover = ImGui::IsWindowHovered(
 				ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) ||
 				(ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
 					ImGui::GetIO().WantTextInput);
+			CrashTrail::SetPhase("pad.end");
 			HelperTheme::EndPad();
 		}
 	}

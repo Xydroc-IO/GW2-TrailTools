@@ -190,7 +190,7 @@ void TrailToolsDetail::DrawMarkersDesk(bool asPopout)
 		if (leaves[i] == gDraft.markerType)
 		{ cur = static_cast<int>(i); break; }
 	}
-	ImGui::SetNextItemWidth(-1.f);
+	PadNav::SetFullRowWidth();
 	if (ImGui::BeginCombo("###gw2tt_tt_mtype", leaves[static_cast<size_t>(cur)].c_str()))
 	{
 		for (size_t i = 0; i < leaves.size(); ++i)

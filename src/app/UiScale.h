@@ -34,15 +34,34 @@ namespace UiScale
 			return 1.f;
 		const float sx = sz.x / refW;
 		const float sy = sz.y / refH;
-		return Clampf(std::sqrt(sx * sy), 0.82f, 1.42f);
+		return Clampf(std::sqrt(sx * sy), 0.85f, 1.35f);
 	}
 
-	/* Options Font scale only — no per-window size multiplier.
-	   (Window factor made small pads look tiny next to large ones.) */
+	/* Options Font scale only — no per-window size multiplier for body text. */
 	inline float EffectiveFontScale(float /*refW*/ = 560.f, float /*refH*/ = 700.f)
 	{
 		const float base = (G::FontScale > 0.1f) ? G::FontScale : 1.f;
 		return Clampf(base, 0.75f, 2.f);
+	}
+
+	/* Side-rail icon size — tracks live ImGui font (Nexus DPI + FontScale +
+	   SetWindowFontScale) and pad footprint so Win/Linux look matched. */
+	inline float RailIconSize(float design = 40.f)
+	{
+		constexpr float kRefFont = 16.f;
+		float s = 1.f;
+		const float fs = ImGui::GetFontSize();
+		if (fs > 1.f)
+			s = fs / kRefFont;
+		s *= WindowFactor();
+		s = Clampf(s, 0.9f, 1.85f);
+		return Clampf(design * s, 30.f, 72.f);
+	}
+
+	inline float RailCellSize(float iconSize)
+	{
+		const float pad = Clampf(iconSize * 0.12f, 4.f, 10.f);
+		return iconSize + pad * 2.f;
 	}
 
 	/* Opt-in suggestion — height + 16:9/21:9/32:9 awareness. */
@@ -80,13 +99,14 @@ namespace UiScale
 	 * helper theme (large pad) while the rail itself draws after CEF zeroes padding,
 	 * which made the title strip stick out past the rail.
 	 */
-	inline float IconRailWidth(float iconSize = 52.f)
+	inline float IconRailWidth(float cellSize = 0.f)
 	{
-		constexpr float kWinPadX = 4.f;
-		constexpr float kFramePadX = 4.f;
-		const float base = Clampf((G::FontScale > 0.1f) ? G::FontScale : 1.f, 1.f, 1.25f);
-		const float w = iconSize + kFramePadX * 2.f + kWinPadX * 2.f + 12.f;
-		return Clampf(w * base, 56.f, 120.f);
+		/* cellSize should already be scaled (RailCellSize). Don't multiply FontScale again. */
+		constexpr float kWinPadX = 5.f;
+		float cell = cellSize;
+		if (cell < 8.f)
+			cell = RailCellSize(RailIconSize());
+		return Clampf(cell + kWinPadX * 2.f + 2.f, 42.f, 100.f);
 	}
 
 	/* Widest visible label + frame/window padding (call after Begin + font scale).

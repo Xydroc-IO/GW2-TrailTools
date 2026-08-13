@@ -17,7 +17,6 @@ namespace
 	void DrawTrailList()
 	{
 		using namespace TrailToolsDetail;
-		ImGui::TextColored(HelperTheme::Muted, "In pack");
 		if (ImGui::BeginChild("###gw2tt_tt_tlist", ImVec2(0.f, 120.f), true))
 		{
 			for (int i = 0; i < static_cast<int>(gDraft.trails.size()); ++i)
@@ -93,7 +92,7 @@ namespace
 			}
 			const char* preview = leaves.empty() ? (gDraft.trailType[0] ? gDraft.trailType : "(none)")
 				: leaves[static_cast<size_t>(cur)].c_str();
-			ImGui::SetNextItemWidth(-1.f);
+		PadNav::SetFullRowWidth();
 			if (ImGui::BeginCombo("###gw2tt_tt_trltype", preview))
 			{
 				for (size_t i = 0; i < leaves.size(); ++i)
@@ -157,12 +156,15 @@ void TrailToolsDetail::DrawTrailDesk(bool asPopout)
 	if (gDraft.active.fileRel.empty())
 		SyncActiveFileRelFromStem();
 
-	PadNav::SectionTitle("Trails");
-	PadNav::BeginSection("trails_main");
+	PadNav::SectionTitle("Category");
+	PadNav::BeginSection("trails_cat");
 	DrawDefaultCategory();
-	ImGui::Spacing();
-	DrawTrailList();
+	PadNav::EndSection();
 
+	PadNav::SectionTitle("In pack");
+	PadNav::BeginSection("trails_list");
+	DrawTrailList();
+	ImGui::Dummy(ImVec2(0.f, 6.f));
 	if (ImGui::Button("New trail window###gw2tt_tt_open_trn"))
 		OpenNewTrailEditor();
 	if (!asPopout)
@@ -183,9 +185,17 @@ void TrailToolsDetail::DrawTrailDesk(bool asPopout)
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Add to project"));
 	if (PadNav::PrimaryButton("Add to project###gw2tt_tt_ins_trxml"))
 		UpsertActiveTrailInPack();
+	ImGui::Dummy(ImVec2(0.f, 4.f));
+	PadNav::PushWrap();
+	ImGui::TextDisabled("%s%s · %zu pts · map %u",
+		gDraft.active.fileRel.empty() ? "(no trail)" : gDraft.active.fileRel.c_str(),
+		gDraft.trailDirty ? " *" : "",
+		gDraft.active.points.size(), gDraft.active.mapId);
+	PadNav::PopWrap();
+	PadNav::EndSection();
 
-	ImGui::Spacing();
-	ImGui::TextColored(HelperTheme::Muted, "Editors");
+	PadNav::SectionTitle("Editors");
+	PadNav::BeginSection("trails_slots");
 	for (int i = 0; i < kMaxTrailEditors; ++i)
 	{
 		char lab[48]{};
@@ -196,11 +206,6 @@ void TrailToolsDetail::DrawTrailDesk(bool asPopout)
 		if (ImGui::SmallButton(lab))
 			OpenTrailEditorSlot(i);
 	}
-
-	ImGui::TextDisabled("%s%s · %zu pts · map %u",
-		gDraft.active.fileRel.empty() ? "(no trail)" : gDraft.active.fileRel.c_str(),
-		gDraft.trailDirty ? " *" : "",
-		gDraft.active.points.size(), gDraft.active.mapId);
 	PadNav::EndSection();
 
 	if (gDraft.status[0])
@@ -210,6 +215,6 @@ void TrailToolsDetail::DrawTrailDesk(bool asPopout)
 void TrailToolsDetail::DrawTrailTab()
 {
 	DrawTrailDesk();
-	ImGui::Separator();
+	ImGui::Dummy(ImVec2(0.f, 10.f));
 	DrawTrailRawEditor();
 }

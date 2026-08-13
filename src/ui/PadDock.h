@@ -23,6 +23,12 @@ namespace PadDock
 	constexpr float kPathingW = 640.f;
 	constexpr float kPathingH = 700.f;
 
+	/* Title strip height — same on Win/Wine so minimize chrome matches. */
+	inline float TitleBarH(bool collapsed)
+	{
+		return collapsed ? 32.f : 36.f;
+	}
+
 	struct Rect
 	{
 		float x = 0.f;
@@ -91,22 +97,71 @@ namespace PadDock
 		return fromDisp > floorPx ? fromDisp : floorPx;
 	}
 
+	/* Custom title-bar minimize — mirrored outside ImGui StateStorage so we can
+	   read it BEFORE Begin without FindWindowByName (unsafe under Wine). */
+	constexpr int kCollapseSlots = 12;
+	struct CollapseSlot
+	{
+		ImGuiID id = 0;
+		bool on = false;
+	};
+	inline CollapseSlot gCollapse[kCollapseSlots]{};
+
+	inline bool IsCustomCollapsedId(ImGuiID id)
+	{
+		if (!id)
+			return false;
+		for (int i = 0; i < kCollapseSlots; ++i)
+			if (gCollapse[i].id == id)
+				return gCollapse[i].on;
+		return false;
+	}
+
+	inline bool IsCustomCollapsed(const char* windowName)
+	{
+		return windowName && windowName[0] &&
+			IsCustomCollapsedId(ImHashStr(windowName));
+	}
+
+	inline void SetCustomCollapsedId(ImGuiID id, bool on)
+	{
+		if (!id)
+			return;
+		for (int i = 0; i < kCollapseSlots; ++i)
+		{
+			if (gCollapse[i].id == id || gCollapse[i].id == 0)
+			{
+				gCollapse[i].id = id;
+				gCollapse[i].on = on;
+				return;
+			}
+		}
+		gCollapse[0].id = id;
+		gCollapse[0].on = on;
+	}
+
 	/* Size constraints that allow the title-strip while custom-minimized.
-	   Call BEFORE Begin with the same window name string as Begin(...).
-	   Wine: never FindWindowByName / StateStorage here — crash-trail pinned
-	   tips inside this path on Events re-open while Mirror is hot (stale
-	   ImGuiWindow*). Collapsed min-height is skipped on Wine. */
+	   Call BEFORE Begin with the same window name string as Begin(...). */
 	inline void SetSizeConstraints(const char* windowName,
 		float minW, float minH, float maxW, float maxH)
 	{
-		bool collapsed = false;
-		if (!EiRuntime::IsWine() && windowName && windowName[0])
-		{
-			if (ImGuiWindow* w = ImGui::FindWindowByName(windowName))
-				collapsed = w->StateStorage.GetBool(w->GetID("##gw2tt_pad_collapsed"), false);
-		}
-		const float useMinH = collapsed ? 28.f : minH;
-		ImGui::SetNextWindowSizeConstraints(ImVec2(minW, useMinH), ImVec2(maxW, maxH));
+		const bool collapsed = IsCustomCollapsed(windowName);
+		const float stripH = TitleBarH(true);
+		const float useMinH = collapsed ? stripH : minH;
+		const float useMaxH = collapsed ? stripH : maxH;
+		ImGui::SetNextWindowSizeConstraints(
+			ImVec2(collapsed ? 160.f : minW, useMinH),
+			ImVec2(maxW, useMaxH));
+	}
+
+	/* While minimized, latch height to the title strip before Begin so ImGui
+	   draws the resize grip (and hit-test) on the bar — not the old BR. */
+	inline void ApplyCollapsedSize(const char* windowName, float widthHint)
+	{
+		if (!IsCustomCollapsed(windowName))
+			return;
+		const float w = widthHint >= 160.f ? widthHint : 360.f;
+		ImGui::SetNextWindowSize(ImVec2(w, TitleBarH(true)), ImGuiCond_Always);
 	}
 
 	inline ImVec2 ClampPos(float x, float y, float padW, float padH = 0.f)

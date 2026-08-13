@@ -22,7 +22,10 @@ void TrailToolsDetail::DrawTrailRawEditor()
 	if (gDraft.active.fileRel.empty())
 		SyncActiveFileRelFromStem();
 
+	PadNav::SectionTitle("File");
+	PadNav::BeginSection("trl_file");
 	ImGui::TextDisabled("New / Load / Save .trl · Add to project from Trails tab.");
+	ImGui::Dummy(ImVec2(0.f, 4.f));
 
 	if (ImGui::Button("New###gw2tt_tt_newtrl"))
 	{
@@ -98,10 +101,9 @@ void TrailToolsDetail::DrawTrailRawEditor()
 	if (ImGui::Button("Insert XML###gw2tt_tt_raw_ins"))
 		UpsertActiveTrailInPack();
 
-	PadNav::PushWidthForLabel("Trail file stem###gw2tt_tt_trlstem");
-	ImGui::InputText("Trail file stem###gw2tt_tt_trlstem", gDraft.trailFileStem,
-		sizeof(gDraft.trailFileStem));
-	PadNav::PopWidthForLabel();
+	ImGui::Dummy(ImVec2(0.f, 6.f));
+	PadNav::InputCaption("Trail file stem", "gw2tt_tt_trlstem",
+		gDraft.trailFileStem, sizeof(gDraft.trailFileStem));
 	if (ImGui::IsItemDeactivatedAfterEdit())
 	{
 		SyncActiveFileRelFromStem();
@@ -109,13 +111,14 @@ void TrailToolsDetail::DrawTrailRawEditor()
 	}
 	ImGui::TextDisabled("%s%s", gDraft.active.fileRel.c_str(),
 		gDraft.trailDirty ? " *" : "");
+	PadNav::EndSection();
 
 	uint32_t mapId = 0;
 	float x = 0.f, y = 0.f, z = 0.f;
 	const bool pose = ReadMumblePose(mapId, x, y, z);
 
-	ImGui::Separator();
-	ImGui::TextUnformatted("Recording");
+	PadNav::SectionTitle("Recording");
+	PadNav::BeginSection("trl_rec");
 	{
 		auto& kb = TrailToolsBinds::Get();
 		if (kb.trailRecording)
@@ -125,6 +128,7 @@ void TrailToolsDetail::DrawTrailRawEditor()
 		else
 			ImGui::TextDisabled("Idle - Start: %s",
 				TrailToolsBinds::FormatChord(kb.trailStart).c_str());
+		ImGui::Dummy(ImVec2(0.f, 4.f));
 		if (ImGui::Button("Start / resume###gw2tt_tt_rec"))
 			TrailToolsBinds::ActionTrailStart();
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Pause"));
@@ -138,9 +142,10 @@ void TrailToolsDetail::DrawTrailRawEditor()
 			SetStatus("Recording stopped.");
 		}
 	}
+	PadNav::EndSection();
 
-	ImGui::Separator();
-	ImGui::TextUnformatted("Segments");
+	PadNav::SectionTitle("Segments");
+	PadNav::BeginSection("trl_seg");
 	if (ImGui::Button("Map only###gw2tt_tt_insmap"))
 	{
 		if (!pose)
@@ -212,9 +217,10 @@ void TrailToolsDetail::DrawTrailRawEditor()
 		MarkDirty();
 		SetStatus("Cleared active trail points.");
 	}
+	PadNav::EndSection();
 
-	ImGui::Separator();
-	ImGui::TextUnformatted("Edit points");
+	PadNav::SectionTitle("Edit points");
+	PadNav::BeginSection("trl_pts");
 	if (ImGui::Button("Select nearest###gw2tt_tt_near"))
 	{
 		if (!pose)
@@ -281,6 +287,7 @@ void TrailToolsDetail::DrawTrailRawEditor()
 		}
 	}
 
+	ImGui::Dummy(ImVec2(0.f, 6.f));
 	ImGui::Text("Active: map %u | %zu points%s", gDraft.active.mapId, gDraft.active.points.size(),
 		gDraft.trailDirty ? " | modified" : "");
 	if (ImGui::BeginChild("###gw2tt_tt_pts", ImVec2(0.f, 120.f), true))
@@ -302,6 +309,7 @@ void TrailToolsDetail::DrawTrailRawEditor()
 	if (gDraft.selectedPoint >= 0 &&
 		gDraft.selectedPoint < static_cast<int>(gDraft.active.points.size()))
 	{
+		ImGui::Dummy(ImVec2(0.f, 4.f));
 		auto& pt = gDraft.active.points[static_cast<size_t>(gDraft.selectedPoint)];
 		if (ImGui::DragFloat3("Edit point XYZ###gw2tt_tt_ptedit", &pt.x, 0.05f))
 			MarkDirty();
@@ -320,6 +328,7 @@ void TrailToolsDetail::DrawTrailRawEditor()
 			MarkDirty();
 		}
 	}
+	PadNav::EndSection();
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);

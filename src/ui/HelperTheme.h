@@ -8,6 +8,8 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
+#include <cmath>
+
 /* Trail Tools “cartographer” theme — cool slate + teal accents (not wood/gold). */
 namespace HelperTheme
 {
@@ -74,7 +76,7 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.070f, 0.095f, 0.125f, 0.95f));
 		ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, TitleBar);
 		ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.080f, 0.100f, 0.128f, 0.80f));
-		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, Bg);
+		ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(Bg.x, Bg.y, Bg.z, 1.f));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.f, 0.f, 0.f, 0.f));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
 		ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.f, 0.f, 0.f, 0.f));
@@ -90,9 +92,12 @@ namespace HelperTheme
 		ImGui::PushStyleColor(ImGuiCol_Separator, BorderSoft);
 		ImGui::PushStyleColor(ImGuiCol_SeparatorHovered, Gold);
 		ImGui::PushStyleColor(ImGuiCol_SeparatorActive, GoldBright);
-		ImGui::PushStyleColor(ImGuiCol_ResizeGrip, ImVec4(0.25f, 0.40f, 0.42f, 0.30f));
-		ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, Gold);
-		ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, GoldBright);
+		/* Stock grip stays invisible — PaintResizeGripOnTop redraws once late.
+		   Leaving these opaque doubles the BR triangle on Windows (Nexus draws
+		   the stock grip after chrome and it still peeks through). */
+		ImGui::PushStyleColor(ImGuiCol_ResizeGrip, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, ImVec4(0.f, 0.f, 0.f, 0.f));
+		ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, ImVec4(0.f, 0.f, 0.f, 0.f));
 		ImGui::PushStyleColor(ImGuiCol_Tab, TabIdle);
 		ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.16f, 0.26f, 0.30f, 1.f));
 		ImGui::PushStyleColor(ImGuiCol_TabActive, TabActive);
@@ -113,7 +118,7 @@ namespace HelperTheme
 		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 5.f);
-		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 12.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 14.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarRounding, 4.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 3.f);
 		ImGui::PushStyleVar(ImGuiStyleVar_TabRounding, 4.f);
@@ -128,6 +133,7 @@ namespace HelperTheme
 		ImGuiContext& g = *GImGui;
 		const int nVar = g.StyleVarStack.Size;
 		const int nCol = g.ColorStack.Size;
+		/* Cap to what Push() added; never PopStyleVar past empty (CRT Size>0). */
 		if (nVar > 0)
 			ImGui::PopStyleVar(nVar >= 15 ? 15 : nVar);
 		if (nCol > 0)
@@ -139,6 +145,47 @@ namespace HelperTheme
 		return Gw2Ui::PadWindowFlags(extra);
 	}
 
+	inline bool IsPadCollapsed()
+	{
+		return ImGui::GetStateStorage()->GetBool(ImGui::GetID("##gw2tt_pad_collapsed"), false);
+	}
+
+	inline void PaintResizeGripOnTop(float opacity = 1.f)
+	{
+		/* ImGui draws the stock grip during Begin; PaintPadChrome + children
+		   cover it. Redraw a BR grip late so it stays visible. */
+		ImGuiWindow* w = ImGui::GetCurrentWindow();
+		if (!w || w->SkipItems || (w->Flags & ImGuiWindowFlags_NoResize))
+			return;
+		/* Custom minimize is a title bar only — don't paint a grip at the old
+		   expanded BR (looks like a floating triangle in the world). */
+		if (IsPadCollapsed())
+			return;
+		ImDrawList* dl = w->DrawList;
+		if (!dl)
+			return;
+		const float sz = IM_FLOOR(ImMax(ImGui::GetFontSize() * 1.35f,
+			w->WindowRounding + 1.f + ImGui::GetFontSize() * 0.2f));
+		if (sz < 8.f || !std::isfinite(sz))
+			return;
+		const ImVec2 br(w->Pos.x + w->Size.x, w->Pos.y + w->Size.y);
+		if (!std::isfinite(br.x) || !std::isfinite(br.y))
+			return;
+		ImVec4 col = Gold;
+		col.w = ImClamp(opacity * 0.65f, 0.25f, 0.9f);
+		const ImU32 u = ImGui::ColorConvertFloat4ToU32(col);
+		dl->PathClear();
+		dl->PathLineTo(ImVec2(br.x - sz, br.y));
+		dl->PathLineTo(br);
+		dl->PathLineTo(ImVec2(br.x, br.y - sz));
+		dl->PathFillConvex(u);
+	}
+
+	inline float ResizeGripClearance()
+	{
+		return IM_FLOOR(ImMax(ImGui::GetFontSize() * 1.5f, 18.f)) + 6.f;
+	}
+
 	inline void EndPad()
 	{
 		ImGuiWindow* pad = ImGui::GetCurrentWindow();
@@ -147,6 +194,10 @@ namespace HelperTheme
 		st.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.f, 0.f, 0.f, 0.f);
 		st.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.f, 0.f, 0.f, 0.f);
 		st.Colors[ImGuiCol_ScrollbarBg] = Bg;
+		st.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.f, 0.f, 0.f, 0.f);
+		st.Colors[ImGuiCol_ResizeGripHovered] = ImVec4(0.f, 0.f, 0.f, 0.f);
+		st.Colors[ImGuiCol_ResizeGripActive] = ImVec4(0.f, 0.f, 0.f, 0.f);
+		PaintResizeGripOnTop(G::Opacity > 0.05f ? G::Opacity : 1.f);
 		ImGui::End();
 		Gw2Ui::PaintNativeScrollbars(G::Opacity > 0.05f ? G::Opacity : 1.f, pad);
 	}
@@ -167,7 +218,27 @@ namespace HelperTheme
 			PadDock::KeepOnScreen();
 			const bool collapsed = ImGui::GetStateStorage()->GetBool(
 				ImGui::GetID("##gw2tt_pad_collapsed"), false);
-			if (!collapsed)
+			if (ImGuiWindow* w = ImGui::GetCurrentWindow())
+				PadDock::SetCustomCollapsedId(w->ID, collapsed);
+			if (collapsed)
+			{
+				/* Keep the ImGui window a title-bar strip — otherwise Size stays
+				   expanded and the resize grip floats in empty space. */
+				const float barH = PadDock::TitleBarH(true);
+				ImGuiWindow* w = ImGui::GetCurrentWindow();
+				if (w)
+				{
+					w->Scroll = ImVec2(0.f, 0.f);
+					w->ScrollMax = ImVec2(0.f, 0.f);
+					w->ScrollbarSizes = ImVec2(0.f, 0.f);
+					if (w->Size.y > barH + 1.f)
+					{
+						w->SizeFull.y = barH;
+						w->Size.y = barH;
+					}
+				}
+			}
+			else
 				Gw2Ui::PaintPadChrome(opacity, false, false, /*solidStack=*/true);
 			return Gw2Ui::DrawPadTitleBar(title, pOpen, opacity, 0.f, /*solidStack=*/true);
 		}

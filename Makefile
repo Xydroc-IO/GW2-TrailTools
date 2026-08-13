@@ -22,6 +22,7 @@ SRC_CPP = \
 	src/app/CrashTrailStack.cpp \
 	src/app/Settings.cpp \
 	src/ui/Gw2Ui.cpp \
+	src/ui/Gw2UiPadScroll.cpp \
 	src/ui/UI_Render.cpp \
 	src/ui/TrailToolsQuickAccess.cpp \
 	src/pathing/PathingTrails.cpp \

@@ -6,6 +6,7 @@
 #include "UiScale.h"
 
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 #include <cstdio>
 #include <cstring>
@@ -15,24 +16,33 @@
 namespace PadNav
 {
 	/* Breathing room between content / slider labels and the scrollbar gutter. */
-	constexpr float kScrollGutterPad = 10.f;
+	constexpr float kScrollGutterPad = 8.f;
 
-	/* Visible right edge in screen space. Prefer ContentRegionMax over
-	   WindowContentRegionMax — the latter can overshoot the clip rect after a
-	   side-rail SameLine + BeginChild, so text never wraps and just clips. */
+	/* Visible right edge in screen space. */
 	inline float WrapEdgeX()
 	{
-		return ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x - kScrollGutterPad;
+		ImGuiWindow* w = ImGui::GetCurrentWindow();
+		if (!w)
+			return ImGui::GetWindowPos().x + ImGui::GetContentRegionMax().x - kScrollGutterPad;
+		return w->WorkRect.Max.x - kScrollGutterPad;
 	}
 
-	/* Window-local wrap X for PushTextWrapPos (tracks resize / rail / scroll). */
+	/* Window-local wrap X — WorkRect / avail, not ContentRegionMax (that overshoots
+	   after side-rail SameLine + BeginChild and never wraps inside the clip). */
 	inline float WrapLocalX()
 	{
-		float x = ImGui::GetContentRegionMax().x - kScrollGutterPad + ImGui::GetScrollX();
-		const float minX = ImGui::GetCursorPos().x + 48.f;
-		if (x < minX)
-			x = minX;
-		return x;
+		ImGuiWindow* w = ImGui::GetCurrentWindow();
+		float localRight = ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x - kScrollGutterPad;
+		if (w)
+		{
+			const float workRight = w->WorkRect.Max.x - w->Pos.x - kScrollGutterPad + w->Scroll.x;
+			if (workRight < localRight)
+				localRight = workRight;
+		}
+		const float minX = ImGui::GetCursorPos().x + 32.f;
+		if (localRight < minX)
+			localRight = minX;
+		return localRight;
 	}
 
 	/* Word-wrap to the live content edge (reflows when the pad is resized).
@@ -45,6 +55,15 @@ namespace PadNav
 	inline void PopWrap()
 	{
 		ImGui::PopTextWrapPos();
+	}
+
+	/* Fill remaining row width without trusting ContentRegionMax overshoot. */
+	inline void SetFullRowWidth()
+	{
+		float w = ImGui::GetContentRegionAvail().x;
+		if (w < 40.f)
+			w = 40.f;
+		ImGui::SetNextItemWidth(w);
 	}
 
 	/* Leave room for right-side labels + gutter (SliderFloat / DragFloat). */
@@ -259,11 +278,13 @@ namespace PadNav
 	inline int DrawSideRail(const char* id, const char* const* labels, int count, int current,
 		float width = 0.f, const int* icons = nullptr)
 	{
-		constexpr float kIconSz = 28.f;
+		/* Auto-size from live font + pad footprint (call after ScopedFontScale). */
+		const float iconSz = icons ? UiScale::RailIconSize(40.f) : 16.f;
+		const float cell = icons ? UiScale::RailCellSize(iconSz) : 22.f;
 		if (width <= 1.f)
 		{
 			if (icons)
-				width = UiScale::IconRailWidth(kIconSz);
+				width = UiScale::IconRailWidth(cell);
 			else
 				width = UiScale::FitSideRailWidth(labels, count, 80.f, 260.f, 0.f);
 		}
@@ -276,10 +297,13 @@ namespace PadNav
 		if (current >= count)
 			current = count - 1;
 
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.f, 8.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.f, 5.f));
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, 4.f));
-		ImGui::BeginChild(id, ImVec2(width, -1.f), true,
+		const float padY = UiScale::Clampf(cell * 0.12f, 4.f, 10.f);
+		const float gapY = UiScale::Clampf(cell * 0.12f, 4.f, 8.f);
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.f, padY));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.f, gapY));
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
+		const float railH = -HelperTheme::ResizeGripClearance();
+		ImGui::BeginChild(id, ImVec2(width, railH), true,
 			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NavFlattened);
 
 		for (int i = 0; i < count; ++i)
@@ -288,7 +312,7 @@ namespace PadNav
 			char buf[96];
 			std::snprintf(buf, sizeof(buf), "%s###side_%d", labels[i], i);
 			const int asset = (icons && icons[i] > 0) ? icons[i] : 0;
-			if (Gw2Ui::RailToggle(buf, i == current, asset, icons ? kIconSz : 18.f, false))
+			if (Gw2Ui::RailToggle(buf, i == current, asset, iconSz, false))
 				current = i;
 			ImGui::PopID();
 		}
@@ -316,12 +340,15 @@ namespace PadNav
 		if (!title || !title[0])
 			return;
 		ImGui::Spacing();
+		PushWrap();
 		ImGui::TextColored(HelperTheme::Gold, "%s", title);
+		PopWrap();
 		const ImVec2 a = ImGui::GetItemRectMin();
 		const ImVec2 b = ImGui::GetItemRectMax();
+		const float lineW = ImMin(ImGui::CalcTextSize(title).x, b.x - a.x);
 		ImGui::GetWindowDrawList()->AddLine(
 			ImVec2(a.x, b.y + 2.f),
-			ImVec2(a.x + ImGui::CalcTextSize(title).x, b.y + 2.f),
+			ImVec2(a.x + lineW, b.y + 2.f),
 			ImGui::ColorConvertFloat4ToU32(HelperTheme::Accent), 1.5f);
 		ImGui::Dummy(ImVec2(0.f, 4.f));
 	}
@@ -365,8 +392,10 @@ namespace PadNav
 	/* Caption above full-width control — readable left-to-right flow. */
 	inline bool InputCaption(const char* caption, const char* id, char* buf, size_t n)
 	{
+		PushWrap();
 		ImGui::TextColored(HelperTheme::Muted, "%s", caption);
-		ImGui::SetNextItemWidth(-1.f);
+		PopWrap();
+		SetFullRowWidth();
 		char hid[128]{};
 		std::snprintf(hid, sizeof(hid), "##%s", id);
 		return ImGui::InputText(hid, buf, n);
