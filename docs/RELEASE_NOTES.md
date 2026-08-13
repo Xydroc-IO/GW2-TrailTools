@@ -79,7 +79,7 @@ Data: `<GW2>/addons/GW2-TrailTools/` (`settings.ini`, `pathing/authoring/`, buil
 - World preview via SwapChain D3D (no Present hooks)
 - **No** game memory R/W
 
-See `docs/COMPLIANCE.md` and `docs/ARCHITECTURE.md`.
+See `COMPLIANCE.md` and `ARCHITECTURE.md`.
 
 ---
 
