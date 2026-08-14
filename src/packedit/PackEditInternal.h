@@ -18,6 +18,8 @@ namespace PackEdit
 	void DrawTree();
 	void DrawDetails();
 	void DrawResources();
+	void DrawCanvas();
+	std::string PatchXmlFile(const std::string& xml, const std::string& fileName);
 	void DrawPopouts();
 	void ClearHistory();
 	void ApplyParsed(PeDoc& doc,

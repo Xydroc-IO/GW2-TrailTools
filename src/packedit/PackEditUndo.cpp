@@ -66,6 +66,19 @@ bool PackEdit::Redo()
 	return true;
 }
 
+void PackEdit::AddPoiAt(float x, float y, float z, uint32_t mapId)
+{
+	AddPoiAtFeet();
+	PePathable* p = Selected();
+	if (!p)
+		return;
+	p->x = x;
+	p->y = y;
+	p->z = z;
+	if (mapId)
+		p->mapId = mapId;
+}
+
 void PackEdit::AddPoiAtFeet()
 {
 	PePathable p;

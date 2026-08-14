@@ -131,6 +131,10 @@ void PackEdit::DrawTab()
 	ImGui::Checkbox("Pop details###pe_popd", &gDoc.popDet);
 	ImGui::SameLine();
 	ImGui::Checkbox("Pop resources###pe_popr", &gDoc.popRes);
+	ImGui::SameLine();
+	ImGui::Checkbox("Pop 2D map###pe_popm", &gDoc.popMap);
+	ImGui::Checkbox("Ground snap###pe_gsnap", &TrailToolsDetail::gGroundSnap);
+	ImGui::TextDisabled("Ground snap: walk + pack points, plane fit (not the game mesh).");
 	if (ImGui::Button("Undo###pe_undo"))
 		Undo();
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Redo"));
@@ -168,12 +172,14 @@ void PackEdit::DrawTab()
 		DrawDetails();
 	if (!gDoc.popRes)
 		DrawResources();
+	if (!gDoc.popMap)
+		DrawCanvas();
 
 	if (gDoc.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDoc.status);
 	const int lint = LintIssues();
 	if (lint > 0)
 		ImGui::TextColored(HelperTheme::Warn, "%d lint issues (empty type, MapID 0, or missing trailData).", lint);
-	ImGui::TextDisabled("%zu markers/trails · %zu selected · backup packs before Save.",
+	ImGui::TextDisabled("%zu markers/trails · %zu selected · Save keeps original XML files.",
 		gDoc.items.size(), gDoc.selItems.size());
 }

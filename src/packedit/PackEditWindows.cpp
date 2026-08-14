@@ -22,4 +22,10 @@ void PackEdit::DrawPopouts()
 			DrawResources();
 		ImGui::End();
 	}
+	if (gDoc.popMap)
+	{
+		if (ImGui::Begin("Pack 2D map###pe_pop_map", &gDoc.popMap))
+			DrawCanvas();
+		ImGui::End();
+	}
 }

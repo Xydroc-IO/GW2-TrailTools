@@ -70,7 +70,7 @@ void PackEdit::DrawDetails()
 			gDoc.dirty = true;
 		}
 		ImGui::TextDisabled("%zu points", p->points.size());
-		if (ImGui::BeginChild("###pe_pts", ImVec2(0.f, 120.f), true))
+		if (ImGui::BeginChild("###pe_pts", ImVec2(0.f, 120.f), true, PadNav::kNestedList))
 		{
 			for (int i = 0; i < static_cast<int>(p->points.size()); ++i)
 			{

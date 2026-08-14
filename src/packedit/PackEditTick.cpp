@@ -47,9 +47,11 @@ void PackEdit::Tick()
 			for (int i = 0; i < static_cast<int>(gDoc.items.size()); ++i)
 			{
 				const auto& it = gDoc.items[static_cast<size_t>(i)];
-				if (it.tombstone || CategoryHidden(it.type))
+				if (it.tombstone)
 					continue;
 				if (gDoc.thisMapOnly && mapId && it.mapId && it.mapId != mapId)
+					continue;
+				if (!gDoc.hidden.empty() && CategoryHidden(it.type))
 					continue;
 				float sx = 0.f, sy = 0.f;
 				if (it.isTrail)

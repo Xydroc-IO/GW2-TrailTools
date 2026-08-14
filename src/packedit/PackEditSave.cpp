@@ -121,9 +121,46 @@ bool PackEdit::SaveZip(const std::wstring& path, std::string& err)
 		err = "Zip writer init failed.";
 		return false;
 	}
-	const std::string overlay = EmitOverlay(gDoc);
-	bool ok = mz_zip_writer_add_mem(&zip, "OverlayData.xml", overlay.data(), overlay.size(),
-		MZ_DEFAULT_COMPRESSION) != 0;
+	bool ok = true;
+	int xmlN = 0;
+	std::string hostXml;
+	for (const auto& e : gDoc.entries)
+	{
+		const std::string low = PathingParse::ToLower(e.name);
+		if (low.size() >= 4 && low.compare(low.size() - 4, 4, ".xml") == 0)
+		{
+			++xmlN;
+			if (hostXml.empty())
+				hostXml = e.name;
+			if (PathingParse::ToLower(e.name) == "overlaydata.xml")
+				hostXml = e.name;
+		}
+	}
+	if (xmlN == 0)
+	{
+		const std::string overlay = EmitOverlay(gDoc);
+		ok = mz_zip_writer_add_mem(&zip, "OverlayData.xml", overlay.data(), overlay.size(),
+			MZ_DEFAULT_COMPRESSION) != 0;
+	}
+	else
+	{
+		for (auto& p : gDoc.items)
+		{
+			if (p.tombstone || !p.xmlFile.empty())
+				continue;
+			p.xmlFile = hostXml;
+		}
+		for (const auto& e : gDoc.entries)
+		{
+			const std::string low = PathingParse::ToLower(e.name);
+			if (low.size() < 4 || low.compare(low.size() - 4, 4, ".xml") != 0)
+				continue;
+			std::string xml(reinterpret_cast<const char*>(e.bytes.data()), e.bytes.size());
+			xml = PatchXmlFile(xml, e.name);
+			ok = ok && mz_zip_writer_add_mem(&zip, e.name.c_str(), xml.data(), xml.size(),
+				MZ_DEFAULT_COMPRESSION) != 0;
+		}
+	}
 
 	for (const auto& p : gDoc.items)
 	{
@@ -140,7 +177,21 @@ bool PackEdit::SaveZip(const std::wstring& path, std::string& err)
 		if (low.size() >= 4 && low.compare(low.size() - 4, 4, ".xml") == 0)
 			continue;
 		if (low.size() >= 4 && low.compare(low.size() - 4, 4, ".trl") == 0)
-			continue;
+		{
+			bool replaced = false;
+			for (const auto& p : gDoc.items)
+			{
+				if (p.tombstone || !p.isTrail || p.points.empty())
+					continue;
+				if (PathingParse::ToLower(p.trailData) == low)
+				{
+					replaced = true;
+					break;
+				}
+			}
+			if (replaced)
+				continue;
+		}
 		ok = ok && mz_zip_writer_add_mem(&zip, e.name.c_str(), e.bytes.data(), e.bytes.size(),
 			MZ_DEFAULT_COMPRESSION) != 0;
 	}
@@ -161,6 +212,7 @@ bool PackEdit::SaveZip(const std::wstring& path, std::string& err)
 	}
 	gDoc.path = path;
 	gDoc.dirty = false;
-	std::snprintf(gDoc.status, sizeof(gDoc.status), "Saved pack.");
+	std::snprintf(gDoc.status, sizeof(gDoc.status),
+		"Saved pack (kept original XML files; patched POI/Trail tags).");
 	return true;
 }

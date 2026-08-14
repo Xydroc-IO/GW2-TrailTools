@@ -30,6 +30,7 @@ namespace TrailToolsDetail
 	bool  gWorldPickEnabled = false;
 	int   gWorldPickMode = 0;
 	bool  gUberToolEnabled = true;
+	bool  gGroundSnap = true;
 	bool  gPopoutTrails = false;
 	bool  gPopoutMarkers = false;
 

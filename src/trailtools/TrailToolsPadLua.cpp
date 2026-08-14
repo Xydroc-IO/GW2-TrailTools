@@ -48,7 +48,7 @@ namespace TrailToolsDetail
 		scan(root + L"\\Scripts", "Scripts/");
 		CreateDirectoryW((root + L"\\Scripts").c_str(), nullptr);
 
-		if (ImGui::BeginChild("###gw2tt_tt_luas", ImVec2(0.f, 70.f), true))
+		if (ImGui::BeginChild("###gw2tt_tt_luas", ImVec2(0.f, 70.f), true, PadNav::kNestedList))
 		{
 			if (luas.empty())
 				ImGui::TextDisabled("No .lua files yet - Open folder and add Scripts/foo.lua");

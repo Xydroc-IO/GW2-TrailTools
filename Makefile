@@ -38,6 +38,7 @@ SRC_CPP = \
 	src/pathing/world/WorldGpsD3dDraw.cpp \
 	src/pathing/world/WorldGpsImgui.cpp \
 	src/packedit/PackEditAttrs.cpp \
+	src/packedit/PackEditCanvas.cpp \
 	src/packedit/PackEditDetails.cpp \
 	src/packedit/PackEditLoad.cpp \
 	src/packedit/PackEditLoadFinish.cpp \
@@ -45,6 +46,7 @@ SRC_CPP = \
 	src/packedit/PackEditPad.cpp \
 	src/packedit/PackEditResources.cpp \
 	src/packedit/PackEditSave.cpp \
+	src/packedit/PackEditSaveXml.cpp \
 	src/packedit/PackEditState.cpp \
 	src/packedit/PackEditStyle.cpp \
 	src/packedit/PackEditTick.cpp \
@@ -60,6 +62,7 @@ SRC_CPP = \
 	src/trailtools/TrailToolsBuild.cpp \
 	src/trailtools/TrailToolsDraftStyle.cpp \
 	src/trailtools/TrailToolsEditUndo.cpp \
+	src/trailtools/TrailToolsGround.cpp \
 	src/trailtools/TrailToolsImport.cpp \
 	src/trailtools/TrailToolsPad.cpp \
 	src/trailtools/TrailToolsPadContent.cpp \

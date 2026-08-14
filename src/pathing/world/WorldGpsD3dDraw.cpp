@@ -91,7 +91,7 @@ namespace
 	}
 
 	bool ResamplePath(const std::vector<Vec3>& rawIn, std::vector<Vec3>& pts,
-		std::vector<Vec3>& sides)
+		std::vector<Vec3>& sides, const Vec3& cam)
 	{
 		pts.clear();
 		sides.clear();
@@ -104,7 +104,7 @@ namespace
 		{
 			Vec3 a = rawIn[i], b = rawIn[i + 1], d = b - a;
 			float len = std::sqrt(d.LengthSq());
-			if (!(len > 0.08f) || !std::isfinite(len) || len > 160.f)
+			if (!(len > 0.08f) || !std::isfinite(len) || len > 80.f)
 			{
 				pts.push_back(b);
 				continue;
@@ -125,7 +125,10 @@ namespace
 				: (pts[i] - pts[i - 1]).Normalised();
 			if (pathDir.LengthSq() < 0.5f)
 				pathDir = {1.f, 0.f, 0.f};
-			Vec3 side = pathDir.Cross(Vec3{0.f, 1.f, 0.f}).Normalised();
+			Vec3 toCam = (cam - pts[i]);
+			Vec3 side = pathDir.Cross(toCam).Normalised();
+			if (side.LengthSq() < 0.5f)
+				side = pathDir.Cross(Vec3{0.f, 1.f, 0.f}).Normalised();
 			if (side.LengthSq() < 0.5f)
 			{
 				side = pathDir.Cross(Vec3{0.f, 0.f, -1.f}).Normalised();
@@ -146,18 +149,20 @@ namespace
 		return true;
 	}
 
+	Vec3 gRibbonCam{};
+
 	void EmitRibbonRun(std::vector<Vertex>& out, const std::vector<Vec3>& rawIn,
 		float halfW, float uvPeriod, float flowScroll,
-		float cr, float cg, float cb, float baseA, float along0)
+		float cr, float cg, float cb, float baseA, float along0, const Vec3& cam)
 	{
 		std::vector<Vec3> pts, sides;
-		if (!ResamplePath(rawIn, pts, sides))
+		if (!ResamplePath(rawIn, pts, sides, cam))
 			return;
 		float along = along0;
 		for (size_t i = 0; i + 1 < pts.size(); ++i)
 		{
 			const float segLen = std::sqrt((pts[i + 1] - pts[i]).LengthSq());
-			if (!(segLen > 0.05f))
+			if (!(segLen > 0.05f) || segLen > 80.f)
 				continue;
 			const float v0 = -(along / uvPeriod) + flowScroll;
 			const float v1 = -((along + segLen) / uvPeriod) + flowScroll;
@@ -209,7 +214,7 @@ namespace
 				return;
 			}
 			EmitRibbonRun(out, raw, halfW, WorldGpsMath::kBlishUvPeriodM, flowScroll,
-				cr, cg, cb, baseA, along);
+				cr, cg, cb, baseA, along, gRibbonCam);
 			for (size_t i = 0; i + 1 < raw.size(); ++i)
 				along += std::sqrt((raw[i + 1] - raw[i]).LengthSq());
 			raw.clear();
@@ -264,7 +269,7 @@ namespace
 
 bool WorldGpsD3d::DrawTrails(
 	const WorldGpsMath::Mat4& viewProj,
-	const WorldGpsMath::Vec3& /*cam*/,
+	const WorldGpsMath::Vec3& cam,
 	const WorldGpsMath::Vec3& avatar,
 	float maxDist,
 	float thickness,
@@ -273,6 +278,7 @@ bool WorldGpsD3d::DrawTrails(
 {
 	if (!EnsureDevice() || !gCtx || !G::API || !G::API->SwapChain)
 		return false;
+	gRibbonCam = cam;
 
 	struct Batch
 	{
@@ -340,7 +346,7 @@ bool WorldGpsD3d::DrawTrails(
 	std::memcpy(cb.viewProj, viewProj.m, sizeof(cb.viewProj));
 	cb.avatar[0] = avatar.x; cb.avatar[1] = avatar.y; cb.avatar[2] = avatar.z;
 	cb.avatar[3] = clearMul;
-	cb.camPos[0] = avatar.x; cb.camPos[1] = avatar.y; cb.camPos[2] = avatar.z;
+	cb.camPos[0] = cam.x; cb.camPos[1] = cam.y; cb.camPos[2] = cam.z;
 	cb.camPos[3] = 0.f; /* flow baked into ribbon verts */
 	cb.fade[0] = fadeStart; cb.fade[1] = fadeEnd; cb.fade[2] = hideM; cb.fade[3] = fadeM;
 

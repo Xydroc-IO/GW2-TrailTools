@@ -317,7 +317,7 @@ void TrailToolsDetail::DrawPackTab()
 
 	if (ImGui::CollapsingHeader("Categories###gw2tt_tt_cats_hdr"))
 	{
-		if (ImGui::BeginChild("###gw2tt_tt_cats", ImVec2(0.f, 180.f), true))
+		if (ImGui::BeginChild("###gw2tt_tt_cats", ImVec2(0.f, 180.f), true, PadNav::kNestedList))
 			DrawCategoryNode(gDraft.root, 0);
 		ImGui::EndChild();
 	}

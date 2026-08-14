@@ -5,30 +5,72 @@
 #include "imgui/imgui.h"
 
 #include <cstdio>
-#include <string>
+
+namespace
+{
+	bool EntryMatches(const PackEdit::PePathable& it, const std::string& name)
+	{
+		if (name.empty())
+			return false;
+		if (it.trailData == name)
+			return true;
+		const auto st = PackEdit::EffectiveStyle(it);
+		if (st.iconFile == name || st.texture == name)
+			return true;
+		auto ends = [&](const std::string& s) {
+			return s.size() >= name.size() &&
+				s.compare(s.size() - name.size(), name.size(), name) == 0;
+		};
+		return ends(it.trailData) || ends(st.iconFile) || ends(st.texture);
+	}
+}
 
 void PackEdit::DrawResources()
 {
-	using namespace PackEdit;
 	PadNav::SectionTitle("Resources");
 	PadNav::BeginSection("pe_res");
-	ImGui::TextDisabled("%zu pack entries (images, xml, trl, lua).", gDoc.entries.size());
-	if (ImGui::BeginChild("###pe_reslist", ImVec2(0.f, 140.f), true))
+	ImGui::TextDisabled("%zu files — click to copy path and jump to a user.",
+		gDoc.entries.size());
+	if (ImGui::BeginChild("###pe_reslist", ImVec2(0.f, 160.f), true, PadNav::kNestedList))
 	{
-		for (size_t i = 0; i < gDoc.entries.size(); ++i)
+		/* Hub PushWrap + clipper made rows unclickable (uneven heights). */
+		ImGui::PushTextWrapPos(0.f);
+		const int n = static_cast<int>(gDoc.entries.size());
+		ImGuiListClipper clip;
+		clip.Begin(n);
+		while (clip.Step())
 		{
-			const auto& e = gDoc.entries[i];
-			int refs = 0;
-			const std::string& nm = e.name;
-			for (const auto& it : gDoc.items)
+			for (int i = clip.DisplayStart; i < clip.DisplayEnd; ++i)
 			{
-				if (it.tombstone)
-					continue;
-				if (it.trailData == nm || it.style.iconFile == nm || it.style.texture == nm)
-					++refs;
+				const auto& e = gDoc.entries[static_cast<size_t>(i)];
+				ImGui::PushID(i);
+				char lab[220]{};
+				std::snprintf(lab, sizeof(lab), "%s  (%zu B)", e.name.c_str(), e.bytes.size());
+				if (ImGui::Selectable(lab, false, ImGuiSelectableFlags_SpanAvailWidth))
+				{
+					ImGui::SetClipboardText(e.name.c_str());
+					int hit = -1;
+					for (int k = 0; k < static_cast<int>(gDoc.items.size()); ++k)
+					{
+						const auto& it = gDoc.items[static_cast<size_t>(k)];
+						if (it.tombstone)
+							continue;
+						if (EntryMatches(it, e.name))
+						{
+							hit = k;
+							break;
+						}
+					}
+					if (hit >= 0)
+						RevealItem(hit);
+					std::snprintf(gDoc.status, sizeof(gDoc.status),
+						hit >= 0 ? "Resource %s (copied)." : "Copied %s (no marker uses it).",
+						e.name.c_str());
+				}
+				ImGui::PopID();
 			}
-			ImGui::Text("%s  (%zu B, %d refs)", nm.c_str(), e.bytes.size(), refs);
 		}
+		ImGui::PopTextWrapPos();
 	}
 	ImGui::EndChild();
 	PadNav::EndSection();

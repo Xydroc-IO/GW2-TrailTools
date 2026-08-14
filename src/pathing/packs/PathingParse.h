@@ -106,18 +106,22 @@ namespace PathingParse
 		int          fileIndex = -1; /* zip central-dir index within its pack */
 		bool         mapCompletion = false;
 		MarkerStyle  style;
+		std::string  tag; /* original <Trail ...> */
+		std::string  xmlEntry;
 	};
 
 	struct IndexedPoi
 	{
 		std::wstring packPath;
 		std::string  type;
-		std::string  guid; /* Blish/TacO GUID - behavior persistence key */
+		std::string  guid;
 		uint32_t     mapId = 0;
 		float        wx = 0.f;
 		float        wy = 0.f;
 		float        wz = 0.f;
 		MarkerStyle  style;
+		std::string  tag;
+		std::string  xmlEntry;
 	};
 
 	std::string ToLower(std::string s);

@@ -1,5 +1,6 @@
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
+#include "TrailToolsGround.h"
 #include "TrailToolsWorldPick.h"
 
 #include "HelperTheme.h"
@@ -65,7 +66,10 @@ void TrailToolsDetail::DrawLiveTab()
 	PadNav::SectionTitle("World click");
 	PadNav::BeginSection("live_pick");
 	ImGui::Checkbox("Enable click place/select###gw2tt_tt_wpick", &gWorldPickEnabled);
-	ImGui::TextDisabled("Ray × feet-height plane (no terrain mesh).");
+	ImGui::Checkbox("Ground snap###gw2tt_tt_gsnap", &gGroundSnap);
+	ImGui::TextDisabled("Snap: walk samples + draft + open pack, plane fit. Not the game mesh.");
+	ImGui::TextDisabled("%d walk samples. Walk a slope (or open a pack on it) before clicking.",
+		TrailToolsGround::PoseSamples());
 	static const char* kModes[] = {
 		"Place marker",
 		"Add trail point",

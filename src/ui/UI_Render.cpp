@@ -11,6 +11,7 @@
 #include "TrailToolsShared.h"
 #include "TrailToolsUberTool.h"
 #include "TrailToolsWorldPick.h"
+#include "TrailToolsGround.h"
 #include "UiScale.h"
 #include "PackEdit.h"
 #include "WorldClick.h"
@@ -37,6 +38,7 @@ void UI_Render()
 	TrailToolsBinds::Poll();
 	CrashTrail::SetPhase("pad");
 	WorldClick::TickImGui();
+	TrailToolsGround::TickSample();
 	TrailToolsPad::Render();
 	CrashTrail::HeartbeatIfHot();
 	PackEdit::Tick();
@@ -51,7 +53,7 @@ void UI_Render()
 		TrailToolsPreview::RenderWorld();
 		TrailToolsUberTool::Render();
 	}
-	if (TrailToolsPad::AnyOpen())
+	if (TrailToolsPad::AnyOpen() && TrailToolsDetail::gTab == 0)
 		PackEdit::RenderWorld();
 
 	static int sFrames = 0;

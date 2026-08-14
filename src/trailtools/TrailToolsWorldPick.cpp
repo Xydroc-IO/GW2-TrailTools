@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "TrailToolsEditUndo.h"
+#include "TrailToolsGround.h"
 #include "TrailToolsShared.h"
 #include "TrailToolsTrailGeom.h"
 #include "WorldGpsMath.h"
@@ -64,6 +65,8 @@ bool TrailToolsWorldPick::RayPlaneY(float planeY, float& outX, float& outY, floa
 
 bool TrailToolsWorldPick::RayFeetPlane(float& outX, float& outY, float& outZ)
 {
+	if (TrailToolsDetail::gGroundSnap && TrailToolsGround::RaySnap(outX, outY, outZ))
+		return true;
 	uint32_t mapId = 0;
 	float fx = 0.f, fy = 0.f, fz = 0.f;
 	if (!TrailToolsDetail::ReadMumblePose(mapId, fx, fy, fz))

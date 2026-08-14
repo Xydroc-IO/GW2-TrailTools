@@ -141,6 +141,7 @@ namespace TrailToolsDetail
 	extern bool gWorldPickEnabled;
 	extern int  gWorldPickMode; /* 0 place marker, 1 add trail pt, 2 select nearest */
 	extern bool gUberToolEnabled; /* 3D gizmo: click-select + drag like TacO UberTool */
+	extern bool gGroundSnap; /* plane fit from walk/draft/pack Y (not game mesh) */
 
 	struct MarkerEditorSlot
 	{

@@ -389,6 +389,10 @@ namespace PadNav
 		ImGui::Spacing();
 	}
 
+	/* Nested lists inside a scrolling pad: wheel goes to the pad, not the list.
+	   Drag the list’s own scrollbar to move inside it. */
+	constexpr ImGuiWindowFlags kNestedList = ImGuiWindowFlags_NoScrollWithMouse;
+
 	/* Caption above full-width control — readable left-to-right flow. */
 	inline bool InputCaption(const char* caption, const char* id, char* buf, size_t n)
 	{

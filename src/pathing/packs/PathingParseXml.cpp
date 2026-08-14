@@ -49,6 +49,7 @@ void IndexXml(const std::wstring& packPath, const std::string& xml,
 		it.color = 0xFFFFFFFFu;
 		it.mapCompletion = LooksLikeMapCompletion(it.type, it.entryName);
 		it.style = ParseStyle(tag);
+		it.tag = tag;
 		out.push_back(std::move(it));
 	}
 }
@@ -204,6 +205,7 @@ void IndexPoisXml(const std::wstring& packPath, const std::string& xml,
 		poi.guid = Attr(tag, "GUID");
 		if (poi.guid.empty())
 			poi.guid = Attr(tag, "guid");
+		poi.tag = tag;
 		if (!std::isfinite(poi.wx) || !std::isfinite(poi.wz))
 			continue;
 		out.push_back(std::move(poi));

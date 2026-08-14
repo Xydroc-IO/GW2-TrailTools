@@ -62,7 +62,7 @@ void TrailToolsDetail::DrawContentTab()
 
 	PadNav::SectionTitle("Trails in project");
 	PadNav::BeginSection("content_trails");
-	if (ImGui::BeginChild("###gw2tt_tt_tlist", ImVec2(0.f, 110.f), true))
+	if (ImGui::BeginChild("###gw2tt_tt_tlist", ImVec2(0.f, 110.f), true, PadNav::kNestedList))
 	{
 		for (int i = 0; i < static_cast<int>(gDraft.trails.size()); ++i)
 		{
@@ -173,7 +173,7 @@ void TrailToolsDetail::DrawContentTab()
 	const bool pose = ReadMumblePose(mapId, x, y, z);
 	static bool sThisMapOnly = true;
 	ImGui::Checkbox("This map only###gw2tt_tt_mmap", &sThisMapOnly);
-	if (ImGui::BeginChild("###gw2tt_tt_mlist", ImVec2(0.f, 110.f), true))
+	if (ImGui::BeginChild("###gw2tt_tt_mlist", ImVec2(0.f, 110.f), true, PadNav::kNestedList))
 	{
 		for (int i = 0; i < static_cast<int>(gDraft.pois.size()); ++i)
 		{

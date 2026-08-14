@@ -41,6 +41,7 @@ namespace PackEdit
 		std::string guid;
 		std::string xmlFile;
 		std::string trailData;
+		std::string rawTag;
 		uint32_t    mapId = 0;
 		float       x = 0.f, y = 0.f, z = 0.f;
 		float       rotate = 0.f;
@@ -76,6 +77,7 @@ namespace PackEdit
 		bool popTree = false;
 		bool popDet = false;
 		bool popRes = false;
+		bool popMap = false;
 	};
 
 	const AttrDef* AttrTable(int& count);
@@ -91,6 +93,7 @@ namespace PackEdit
 	bool Undo();
 	bool Redo();
 	void AddPoiAtFeet();
+	void AddPoiAt(float x, float y, float z, uint32_t mapId);
 	void AddTrailEmpty();
 	void AddCategory();
 	void TombstoneSelected();

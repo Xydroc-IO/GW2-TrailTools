@@ -86,10 +86,16 @@ bool PackEdit::OpenFolder(const std::wstring& dir, std::string& err)
 		if (low.size() >= 4 && low.compare(low.size() - 4, 4, ".xml") == 0)
 		{
 			const std::string xml = EntryUtf8(e.bytes);
+			const size_t poi0 = pois.size();
+			const size_t tr0 = trails.size();
 			PathingParse::ParseMarkerMenuXml(xml, catRoots, styles);
 			PathingParse::CollectCategoryMapIds(xml, catMaps);
 			PathingParse::IndexPoisXml(dir, xml, pois, catMaps);
 			PathingParse::IndexXml(dir, xml, trails);
+			for (size_t k = poi0; k < pois.size(); ++k)
+				pois[k].xmlEntry = e.name;
+			for (size_t k = tr0; k < trails.size(); ++k)
+				trails[k].xmlEntry = e.name;
 		}
 		doc.entries.push_back(std::move(e));
 	});

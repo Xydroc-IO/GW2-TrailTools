@@ -2,6 +2,7 @@
 
 #include "PathingParse.h"
 
+#include <cstdlib>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -47,6 +48,14 @@ void PackEdit::ApplyParsed(PeDoc& doc,
 		it.y = p.wy;
 		it.z = p.wz;
 		it.style = p.style;
+		it.xmlFile = p.xmlEntry;
+		it.rawTag = p.tag;
+		it.rotate = 0.f;
+		{
+			const std::string rs = PathingParse::Attr(p.tag, "rotate");
+			if (!rs.empty())
+				it.rotate = static_cast<float>(std::atof(rs.c_str()));
+		}
 		doc.items.push_back(std::move(it));
 	}
 	for (auto& t : trails)
@@ -56,6 +65,8 @@ void PackEdit::ApplyParsed(PeDoc& doc,
 		it.type = t.type;
 		it.trailData = t.entryName;
 		it.style = t.style;
+		it.xmlFile = t.xmlEntry;
+		it.rawTag = t.tag;
 		it.mapId = t.mapId;
 		for (const auto& e : doc.entries)
 		{
