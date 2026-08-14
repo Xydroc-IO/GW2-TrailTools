@@ -10,7 +10,7 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 
 ### Authoring hub
 - Side-rail tabs: **Editor → Pack → Content → Live → Keybinds**
-- **Editor** tab: in-place `.taco` document (open zip or folder, tree, details, resources, world gizmo). **Close pack** clears the session. Save writes a zip — **backup first** (lossy vs original XML split/comments)
+- **Editor** tab: in-place `.taco` (open zip or folder, 2D map, tree, details, clickable resources). Save patches original XML. **Close pack** clears the session. Wheel scrolls the pad; **Ctrl+wheel** zooms the map.
 - Pack tab owns the OverlayData project (New / Load / Save) — **one XML file**
 - **Content** lists trails and markers in that project and opens TrailsN / MarkersN editors
 - TrailsN / MarkersN pop-outs own their own `.trl` / marker data until **Add to project**
@@ -46,8 +46,8 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Copy markers from currently loaded Pathing packs
 
 ### Live
-- **3D UberTool** (on by default while a pad is open): click a draft marker or trail vertex, drag RGB axes to move, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Selected markers with `triggerRange` show a range ring. Mumble camera only — no terrain snap.
-- World click place/select via Mumble camera × feet-height plane (no terrain mesh). Disabled for that click when UberTool consumes it.
+- **3D UberTool** + **Ground snap**: plane fit from walked Mumble feet, draft points, and the open pack (same Mumble pose TacO uses — not game process memory, not a live mesh). Click a draft marker or trail vertex, drag RGB axes to move, Ctrl+click a trail to insert a point, right-click while dragging to cancel.
+- World click / map Shift+click place against that plane when Ground snap is on. Disabled for that click when UberTool consumes it.
 - Empty-world `LBUTTONDOWN` is seen through Nexus `WndProc` (`WorldClick`) because ImGui does not get clicks on empty game view.
 
 ### Keybinds

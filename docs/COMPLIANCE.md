@@ -12,7 +12,7 @@ Normative allow/deny for this Nexus addon.
 
 ## Denied
 
-- Game process memory read/write for cheating or camera matrices
+- Game **process** memory read/write (scanning `Gw2-64.exe` for collision, camera, etc.). MumbleLink is the game-published pose block, not that.
 - `IDXGISwapChain::Present` / `d3d11.dll` hooks
 - Writing into Guild Wars 2 `bin64/cef` or other game-owned trees
 - Auto-teleport / movement automation

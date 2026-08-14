@@ -47,13 +47,17 @@ Prefer **≤500 lines** per `.cpp`. Split pad vs state vs binds vs parse. Genera
 
 Hub tabs: **Editor** → Pack → Content → Live → Keybinds.
 
-**Editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder, edit the tree / details / resources, draw and pick in the world (Nexus `WndProc` + gizmo), then Save / Save As a zip. **Close pack** drops the session without deleting files. Save reformats to one `OverlayData.xml` (comments and split XML files are not preserved) — backup packs first.
+**Editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder, edit the tree / details / 2D map / resources, draw in the world (distance-culled D3D trails + nearby markers), pick with Nexus `WndProc` + gizmo + ground snap, then Save. Save **patches POI/Trail tags in the original XML files** (comments and unknown attributes stay). New packs still emit one OverlayData.xml.
+
+Editor lists sit inside the scrolling hub: the mouse wheel moves the **pad**; drag a list scrollbar to move inside it; **Ctrl+wheel** zooms the 2D map. Resource rows are selectable (copy path, jump to a user).
+
+**Ground snap** (`TrailToolsGround.cpp`) fits a local height plane from walked Mumble feet, draft points, and the **open pack**. TacO also uses Mumble (not GW2 process memory); neither has a live collision mesh. Empty ground falls back to feet Y.
 
 TrailsN/MarkersN remain the authoring workbench for new OverlayData.
 
 XML shape follows TacO: nested `<MarkerCategory>`, `<POIs>` with `<Trail trailData="Data/{stem}.trl"/>` and `<POI>`, textures/icons under `Data/Images/`. Default seed is root + leaves `example` / `circle` / `heart` / `square` / `triangle`. TrailsN can copy a **basic** `<Trail type trailData>` tag (TacO TrailsN style).
 
-Live **UberTool** (`TrailToolsUberTool.cpp`) click-selects draft verts/markers in the world and moves them with an RGB gizmo. Picking uses Mumble camera × plane math (`TrailToolsWorldPick`) — no terrain mesh, no game memory. Recording does not append points while standing still (spacing vs last vertex).
+Live **UberTool** (`TrailToolsUberTool.cpp`) click-selects draft verts/markers and moves them with an RGB gizmo. World click / Shift+click place use the same ground plane when Ground snap is on. Recording does not append points while standing still.
 
 **XML editor** (`TrailToolsPadXmlEdit.cpp`) is a pop-out OverlayData text buffer. Save writes that text as-is so pack-specific attributes survive; **Apply to editors** parses known TacO/Blish fields into the draft.
 
@@ -76,7 +80,7 @@ Live **UberTool** (`TrailToolsUberTool.cpp`) click-selects draft verts/markers i
 ## Compliance
 
 Allowed: Nexus APIs, MumbleLink read-only, SwapChain D3D world GPS ribbons.  
-Denied: game memory R/W, Present hooks, writes into `bin64/cef`.
+Denied: GW2 **process** memory R/W, Present hooks, writes into `bin64/cef`.
 
 ## Pack runtime
 
