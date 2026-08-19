@@ -70,7 +70,7 @@ namespace PackEdit
 		int  selItem = -1;
 		int  selPoint = -1;
 		std::vector<int> selItems;
-		bool worldDraw = true;
+		bool worldDraw = false;
 		bool gizmoOn = true;
 		bool rotateMode = false;
 		bool thisMapOnly = true;
@@ -82,7 +82,8 @@ namespace PackEdit
 
 	const AttrDef* AttrTable(int& count);
 	void DrawTab();
-	void DrawWorldToggles();
+	void DrawWorldToggles(const char* idSuf = "");
+	void HideWorldOverlay();
 	void Tick();
 	void RenderWorld();
 	bool OpenZip(const std::wstring& path, std::string& err);

@@ -1,7 +1,6 @@
 #include "TrailToolsPad.h"
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
-#include "PackEdit.h"
 
 #include "CrashTrail.h"
 #include "EiRuntime.h"
@@ -11,6 +10,7 @@
 #include "PadDock.h"
 #include "PadNav.h"
 #include "Settings.h"
+#include "TrailToolsBinds.h"
 
 #include "imgui/imgui.h"
 
@@ -215,7 +215,7 @@ void TrailToolsPad::OpenTrailsWindow()
 {
 	using namespace TrailToolsDetail;
 	OpenNewTrailEditor();
-	gTab = 2; /* Content */
+	gTab = 0; /* Content */
 	Settings::SetDirty();
 }
 
@@ -223,7 +223,7 @@ void TrailToolsPad::OpenMarkersWindow()
 {
 	using namespace TrailToolsDetail;
 	OpenNewMarkerEditor();
-	gTab = 2; /* Content */
+	gTab = 0; /* Content */
 	Settings::SetDirty();
 }
 
@@ -301,11 +301,9 @@ bool TrailToolsPad::Render()
 					ImGui::SetWindowSize(ImVec2(kHubW, sz.y < 280.f ? kHubH : sz.y));
 			}
 
-			static const char* kTabs[] = { "Editor", "Pack", "Content", "Keybinds" };
+			static const char* kTabs[] = { "Content", "Keybinds" };
 			static const int kTabIcons[] = {
 				static_cast<int>(Gw2Ui::Icon::TrailAnvil),
-				static_cast<int>(Gw2Ui::Icon::Bag),
-				static_cast<int>(Gw2Ui::Icon::Inventory),
 				static_cast<int>(Gw2Ui::Icon::Options),
 			};
 			CrashTrail::SetPhase("pad.rail");
@@ -313,10 +311,10 @@ bool TrailToolsPad::Render()
 			   (Windows can deliver the same click onto the newly shown body). */
 			static int sPrevRailTab = -1;
 			gHubSkipOpenClicks = false;
-			if (gTab < 0 || gTab > 3)
+			if (gTab < 0 || gTab > 1)
 				gTab = 0;
 			const int railTab = PadNav::DrawSideRail(
-				"###gw2tt_tt_nav", kTabs, 4, gTab, 0.f, kTabIcons);
+				"###gw2tt_tt_nav", kTabs, 2, gTab, 0.f, kTabIcons);
 			if (sPrevRailTab >= 0 && railTab != sPrevRailTab)
 				gHubSkipOpenClicks = true;
 			sPrevRailTab = railTab;
@@ -328,16 +326,6 @@ bool TrailToolsPad::Render()
 				ImGuiWindowFlags_AlwaysVerticalScrollbar);
 			PadNav::PushWrap();
 			if (gTab == 0)
-			{
-				CrashTrail::SetPhase("pad.tab.editor");
-				PackEdit::DrawTab();
-			}
-			else if (gTab == 1)
-			{
-				CrashTrail::SetPhase("pad.tab.pack");
-				DrawPackTab();
-			}
-			else if (gTab == 2)
 			{
 				CrashTrail::SetPhase("pad.tab.content");
 				DrawContentTab();
@@ -454,6 +442,7 @@ bool TrailToolsPad::Render()
 	if (gTrailRecordSlot < 0 || gTrailRecordSlot >= kMaxTrailEditors ||
 		!gTrailEditors[gTrailRecordSlot].open)
 	{
+		gTrailRecordSlot = -1;
 		for (int i = 0; i < kMaxTrailEditors; ++i)
 		{
 			if (!gTrailEditors[i].open)
@@ -461,6 +450,11 @@ bool TrailToolsPad::Render()
 			gTrailRecordSlot = i;
 			break;
 		}
+	}
+	if (gTrailRecordSlot < 0 && TrailToolsBinds::Get().trailRecording)
+	{
+		TrailToolsBinds::Get().trailRecording = false;
+		TrailToolsBinds::Get().trailPaused = false;
 	}
 
 	/* Markers1 … MarkersN */

@@ -68,7 +68,7 @@ bool PackEdit::OpenFolder(const std::wstring& dir, std::string& err)
 	PeDoc doc{};
 	doc.path = dir;
 	doc.fromZip = false;
-	doc.worldDraw = true;
+	doc.worldDraw = false;
 	doc.gizmoOn = true;
 	doc.thisMapOnly = true;
 	std::vector<PathingParse::IndexedPoi> pois;

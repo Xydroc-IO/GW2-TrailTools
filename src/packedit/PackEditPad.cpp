@@ -119,7 +119,7 @@ void PackEdit::DrawTab()
 	}
 	if (gDoc.dirty)
 		ImGui::TextColored(HelperTheme::Warn, "Unsaved edits");
-	DrawWorldToggles();
+	DrawWorldToggles("_tab");
 	if (ImGui::Button("Undo###pe_undo"))
 		Undo();
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Redo"));
@@ -169,22 +169,39 @@ void PackEdit::DrawTab()
 		gDoc.items.size(), gDoc.selItems.size());
 }
 
-void PackEdit::DrawWorldToggles()
+void PackEdit::HideWorldOverlay()
 {
-	ImGui::Checkbox("Draw pack in world###pe_wdraw", &gDoc.worldDraw);
+	gDoc.worldDraw = false;
+}
+
+void PackEdit::DrawWorldToggles(const char* idSuf)
+{
+	if (!idSuf)
+		idSuf = "";
+	char id[48];
+	std::snprintf(id, sizeof(id), "Draw pack in world###pe_wdraw%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.worldDraw);
 	ImGui::SameLine();
-	ImGui::Checkbox("World gizmo###pe_giz", &gDoc.gizmoOn);
+	std::snprintf(id, sizeof(id), "World gizmo###pe_giz%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.gizmoOn);
 	ImGui::SameLine();
-	ImGui::Checkbox("Rotate drag###pe_rotmode", &gDoc.rotateMode);
-	ImGui::Checkbox("This map only###pe_maponly", &gDoc.thisMapOnly);
+	std::snprintf(id, sizeof(id), "Rotate drag###pe_rotmode%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.rotateMode);
+	std::snprintf(id, sizeof(id), "This map only###pe_maponly%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.thisMapOnly);
 	ImGui::SameLine();
-	ImGui::Checkbox("Pop tree###pe_popt", &gDoc.popTree);
+	std::snprintf(id, sizeof(id), "Pop tree###pe_popt%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.popTree);
 	ImGui::SameLine();
-	ImGui::Checkbox("Pop details###pe_popd", &gDoc.popDet);
+	std::snprintf(id, sizeof(id), "Pop details###pe_popd%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.popDet);
 	ImGui::SameLine();
-	ImGui::Checkbox("Pop resources###pe_popr", &gDoc.popRes);
+	std::snprintf(id, sizeof(id), "Pop resources###pe_popr%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.popRes);
 	ImGui::SameLine();
-	ImGui::Checkbox("Pop 2D map###pe_popm", &gDoc.popMap);
-	ImGui::Checkbox("Ground snap###pe_gsnap", &TrailToolsDetail::gGroundSnap);
+	std::snprintf(id, sizeof(id), "Pop 2D map###pe_popm%s", idSuf);
+	ImGui::Checkbox(id, &gDoc.popMap);
+	std::snprintf(id, sizeof(id), "Ground snap###pe_gsnap%s", idSuf);
+	ImGui::Checkbox(id, &TrailToolsDetail::gGroundSnap);
 	ImGui::TextDisabled("Ground snap: walk + pack points, plane fit (not the game mesh).");
 }

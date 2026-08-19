@@ -94,12 +94,15 @@ namespace TrailToolsDetail
 
 	bool HasDraftPreview()
 	{
+		if (DraftWorldVisible())
+		{
+			if (RecordingTrail().points.size() >= 2 && RecordingTrail().mapId != 0)
+				return true;
+			if (gDraft.active.points.size() >= 2 && gDraft.active.mapId != 0)
+				return true;
+		}
 		if (!gDraft.previewEnabled)
 			return false;
-		if (RecordingTrail().points.size() >= 2 && RecordingTrail().mapId != 0)
-			return true;
-		if (gDraft.active.points.size() >= 2 && gDraft.active.mapId != 0)
-			return true;
 		uint32_t mapId = 0;
 		float x = 0.f, y = 0.f, z = 0.f;
 		if (!ReadMumblePose(mapId, x, y, z))

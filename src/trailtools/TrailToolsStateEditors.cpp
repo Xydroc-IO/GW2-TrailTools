@@ -131,6 +131,7 @@ namespace TrailToolsDetail
 		s.placeOnce = true;
 		s.focus = true;
 		s.dirty = false;
+		s.worldShown = false;
 		s.selectedPoint = -1;
 		s.geomX = -1.f;
 		s.geomY = -1.f;
@@ -144,6 +145,18 @@ namespace TrailToolsDetail
 		s.trail.type = gDraft.trailType[0] ? gDraft.trailType
 			: (RootCategoryName() + ".example");
 		s.trail.fileRel = std::string("Data/") + s.stem + ".trl";
+		if (!gDraft.active.points.empty())
+		{
+			s.trail = gDraft.active;
+			if (s.trail.fileRel.empty())
+				s.trail.fileRel = std::string("Data/") + s.stem + ".trl";
+			s.worldShown = true;
+			s.dirty = true;
+			gDraft.active.points.clear();
+			gDraft.active.mapId = 0;
+			gDraft.trailWorldShown = false;
+			gDraft.selectedPoint = -1;
+		}
 	}
 
 	int OpenTrailEditorSlot(int slot)

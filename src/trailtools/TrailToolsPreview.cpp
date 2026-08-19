@@ -50,7 +50,7 @@ void TrailToolsPreview::RenderWorld()
 	const float maxDist = std::max(80.f, G::WorldTrailMaxDist);
 
 	const DraftTrail& rec = RecordingTrail();
-	if (rec.points.size() >= 2 && rec.mapId == ctx->mapId)
+	if (DraftWorldVisible() && rec.points.size() >= 2 && rec.mapId == ctx->mapId)
 	{
 		PathingTrails::WorldSnippet snip = TrailToolsDraftStyle::BuildActiveSnippet();
 		if (snip.points.size() >= 2)
@@ -89,6 +89,8 @@ void TrailToolsPreview::RenderWorld()
 	if (!marks.empty())
 		WorldGpsImgui::DrawMarkers(dl, viewProj, screenW, screenH, avatar, marks);
 
+	if (!DraftWorldVisible())
+		return;
 	if (rec.mapId != 0 && rec.mapId != ctx->mapId)
 		return;
 

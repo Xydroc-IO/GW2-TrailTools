@@ -45,9 +45,9 @@ Prefer **≤500 lines** per `.cpp`. Split pad vs state vs binds vs parse. Genera
 
 ## Authoring model
 
-Hub tabs: **Editor** → Pack → Content → Keybinds. **Content** is project lists plus Live pose / UberTool / world click.
+Hub tabs: **Content** → Keybinds. **Content** is project lists plus Live pose / UberTool / world click. Pack name / import / **Build .taco** sit in a collapsed Pack section on Content. In-place `.taco` file tools are under Nexus Options → Pack editor.
 
-**Editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder, edit the tree / details / 2D map / resources, draw in the world (distance-culled D3D trails + nearby markers), pick with Nexus `WndProc` + gizmo + ground snap, then Save. Save **patches POI/Trail tags in the original XML files** (comments and unknown attributes stay). New packs still emit one OverlayData.xml.
+**Pack editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder from Nexus Options → Pack editor, then Save. World-draw / gizmo / pop-out / ground-snap checkboxes appear in Nexus Options, the Pack editor header, and Content (same flags, distinct ImGui IDs). **Draw pack in world** starts **off** on open/load so a pack is not painted until that box is checked; overlay still runs if the hub pad is closed. Save **patches POI/Trail tags in the original XML files**. New packs still emit one OverlayData.xml.
 
 Editor lists sit inside the scrolling hub: the mouse wheel moves the **pad**; drag a list scrollbar to move inside it; **Ctrl+wheel** zooms the 2D map. Resource rows are selectable (copy path, jump to a user).
 
@@ -61,7 +61,11 @@ Live **UberTool** (`TrailToolsUberTool.cpp` + `TrailToolsUberToolDraw.cpp`): cli
 
 Recording samples on a **time** interval (`Spacing` seconds) and skips duplicate poses while standing still. **Stop** and **Start** are separate ImGui widgets so Stop cannot immediately Start. Start after a stop does not insert a section or extra vector (empty trails still get a first vector). **New Segment** is the only TrailsN control that writes a TacO `0,0,0` break plus MapID + feet vector. Those breaks split world ribbons.
 
+Draft GPS / vertex dots draw only for an **open TrailsN** after **Start** (or Insert Vector / world-click add point). UberTool and Draft preview default **on** (`UberTool` / `DraftPreview` in `settings.ini`). Start with no Trails window opens one and can absorb a leftover hub trail. **Clear world trail** (`ClearWorldDraftTrails` + `PackEdit::HideWorldOverlay`) wipes hub + TrailsN drafts, stops recording, and turns pack overlay off. Closing the last TrailsN stops recording.
+
 **Hide trail near me** (`G::WorldTrailPlayerClearOn`) gates the player-clear bubble; radius remains **Trail player clear** in Nexus Options.
+
+Nexus Options ends with a centered credit block (CREATED BY XYDROC + Ko-fi for Trail Tools).
 
 **XML editor** (`TrailToolsPadXmlEdit.cpp`) is a pop-out OverlayData text buffer. Save writes that text as-is so pack-specific attributes survive; **Apply to editors** parses known TacO/Blish fields into the draft.
 

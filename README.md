@@ -12,14 +12,16 @@ Official Nexus APIs + MumbleLink (read-only). **No** game memory R/W, **no** Pre
 
 ## Features
 
-- **Editor** / Pack / Content / Keybinds authoring hub
-- In-place `.taco` Editor: tree, 2D map, details, resources; Save patches original XML POI/Trail tags
+- **Content** / Keybinds authoring hub (anvil icon on Content)
+- In-place `.taco` pack editor under Nexus Options (tree, 2D map); pack-in-world / gizmo / pop-out toggles on Options, Pack editor, and Content
 - Ground snap from walked Mumble + pack/draft points (plane fit, not a collision mesh)
 - One OverlayData XML (TacO layout: nested categories, `trailData="Data/….trl"`, `Data/Images/`) + up to five TrailsN / four MarkersN editors
 - Editable OverlayData window for custom TacO/Blish attributes and layouts
-- Live 3D UberTool: click-select + RGB move gizmo on draft markers and trail vertices (Select Nearest / Move to Feet snap the gizmo)
-- TrailsN recording: timed samples while moving; Stop stays stopped; New Segment for TacO `0,0,0` breaks
+- Live 3D UberTool + draft preview **on by default** (saved in `settings.ini`): click-select + RGB move gizmo on draft markers and trail vertices
+- TrailsN recording: no world GPS until **Start**; Start opens a Trails window if none is open; Stop stays stopped; New Segment for TacO `0,0,0` breaks
+- **Clear world trail** (Content and Nexus Options) drops a GPS that is not in any Trails window
 - Optional **Hide trail near me** player-clear bubble (Nexus Options radius)
+- Nexus Options credit / Ko-fi footer (Trail Tools)
 - Import existing `.taco`, build new packs under `addons/GW2-TrailTools/pathing/`
 - Addon-polled trail/marker chords (works while pad closed)
 - Nexus QuickAccess icon (custom Trail Tools brand art)

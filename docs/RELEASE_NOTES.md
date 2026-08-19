@@ -9,9 +9,11 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 ## Highlights
 
 ### Authoring hub
-- Side-rail tabs: **Editor → Pack → Content → Keybinds** (Content includes Live pose / UberTool / world click)
-- **Editor** tab: in-place `.taco` (open zip or folder, 2D map, tree, details, clickable resources). Save patches original XML. **Close pack** clears the session. Wheel scrolls the pad; **Ctrl+wheel** zooms the map.
-- Pack tab owns the OverlayData project (New / Load / Save) — **one XML file**
+- Side-rail tabs: **Content → Keybinds** (Content uses the former Editor anvil icon; Live pose / UberTool / world click). Pack build is collapsed on Content
+- Pack-in-world / gizmo / pop-out checkboxes on Nexus Options, Pack editor, and Content. **Draw pack in world** starts off; overlay still works with the pad closed
+- In-place `.taco` tools (open zip/folder, 2D map, tree, details, resources) live under Nexus Options → **Pack editor**. Save patches original XML. Wheel scrolls lists; **Ctrl+wheel** zooms the map
+- Nexus Options footer: CREATED BY XYDROC + Ko-fi (Trail Tools)
+- OverlayData New / Load / Save is on **Content** — **one XML file**
 - **Content** lists trails and markers in that project and opens TrailsN / MarkersN editors
 - TrailsN / MarkersN pop-outs own their own `.trl` / marker data until **Add to project**
 - Cartographer UI theme (slate + teal), custom brand QuickAccess icon
@@ -29,6 +31,8 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Default trail category on Content; up to **five** TrailsN windows
 - Compact TrailsN: New / Load / Save / Save As · New Segment / Insert Vector / Select Nearest / Move to Feet / Delete Nearest / Undo
 - Recording rail: **Start** and **Stop** are separate buttons (Stop cannot immediately Start); Pause/Resume; **Spacing in seconds** (0.3 = 1/3 s); samples only while the character moves
+- World GPS for a draft trail does not appear until **Start** (or Insert Vector / world-click add point) in an open TrailsN. Start with no Trails window opens one
+- **Clear world trail** (Content Live and Nexus Options) deletes a GPS that is not in any Trails window and turns pack overlay off
 - After Stop, walking does not add points. Start on a trail that already has vectors does not insert a section or extra vertex (use New Segment / Insert Vector). Empty trails still get a first vector on Start
 - New Segment: TacO `0,0,0` break + current MapID + vector at feet
 - Draft vertices drawn as clickable circles; Select Nearest / Move to Feet move the UberTool onto that vector
@@ -48,7 +52,7 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Copy markers from currently loaded Pathing packs
 
 ### Live
-- **3D UberTool** + **Ground snap**: plane fit from walked Mumble feet, draft points, and the open pack (same Mumble pose TacO uses — not game process memory, not a live mesh). Click a draft marker or trail vertex (stays selected while recording), drag the white hub to slide / RGB arrows for XYZ, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Gizmo clicks are swallowed so camera look does not steal the drag; movement follows the mouse.
+- **3D UberTool** + **Draft preview** default **on** (persisted). **Ground snap**: plane fit from walked Mumble feet, draft points, and the open pack (same Mumble pose TacO uses — not game process memory, not a live mesh). Click a draft marker or trail vertex (stays selected while recording), drag the white hub to slide / RGB arrows for XYZ, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Gizmo clicks are swallowed so camera look does not steal the drag; movement follows the mouse.
 - **Hide trail near me** (Content → Live, and Nexus Options) toggles the player-clear bubble; **Trail player clear** is the radius
 - World click / map Shift+click place against that plane when Ground snap is on. Disabled for that click when UberTool consumes it.
 - Empty-world `LBUTTONDOWN` is seen through Nexus `WndProc` (`WorldClick`) because ImGui does not get clicks on empty game view.

@@ -125,7 +125,7 @@ void PackEdit::WorldGpu::Cull(uint32_t mapId, const WorldGpsMath::Vec3& avatar, 
 
 void PackEdit::WorldGpu::Draw()
 {
-	if (!gDoc.worldDraw || TrailToolsDetail::gTab != 0)
+	if (!gDoc.worldDraw)
 		return;
 	if (!G::Mumble || G::Mumble->uiTick == 0)
 		return;

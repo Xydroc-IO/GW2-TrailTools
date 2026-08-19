@@ -38,7 +38,7 @@ bool PackEdit::OpenZip(const std::wstring& path, std::string& err)
 	PeDoc doc{};
 	doc.path = path;
 	doc.fromZip = true;
-	doc.worldDraw = true;
+	doc.worldDraw = false;
 	doc.gizmoOn = true;
 	doc.thisMapOnly = true;
 	const int n = static_cast<int>(mz_zip_reader_get_num_files(&zip));

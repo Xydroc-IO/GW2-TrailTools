@@ -191,6 +191,17 @@ void TrailToolsBinds::ActionTrailStart()
 	using namespace TrailToolsDetail;
 	auto& gBinds = Get();
 	EnsureWorkspace();
+	bool anyTrailEd = false;
+	for (int i = 0; i < kMaxTrailEditors; ++i)
+	{
+		if (gTrailEditors[i].open)
+		{
+			anyTrailEd = true;
+			break;
+		}
+	}
+	if (!anyTrailEd)
+		OpenNewTrailEditor();
 	if (gTrailEditorDrawActive && gTrailEditorDrawSlot >= 0)
 		gTrailRecordSlot = gTrailEditorDrawSlot;
 	DraftTrail& tr = RecordingTrail();
@@ -198,6 +209,7 @@ void TrailToolsBinds::ActionTrailStart()
 	{
 		gBinds.trailRecording = true;
 		gBinds.trailPaused = false;
+		RecordingWorldShown() = true;
 		if (tr.type.empty() && gDraft.trailType[0])
 			tr.type = gDraft.trailType;
 		uint32_t mapId = 0;

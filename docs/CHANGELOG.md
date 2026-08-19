@@ -4,7 +4,11 @@ Full player-facing notes: [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
 
 ## Unreleased
 
-- Hub tabs: **Editor → Pack → Content → Keybinds** (Content includes Live pose, UberTool, world click)
+- Hub tabs: **Content → Keybinds** (Content uses the anvil icon; Live / UberTool / world click live there). Pack workshop is a collapsed section on Content
+- Pack-in-world / gizmo / pop-out / ground-snap checkboxes on Nexus Options, Pack editor, and Content; **Draw pack in world** defaults off; pack overlay works with the pad closed
+- Draft GPS waits for **Start recording** (or an explicit place) in an open TrailsN; UberTool + Draft preview default on (saved in settings)
+- **Clear world trail** on Content and Nexus Options removes a GPS that is not in any Trails window (and turns pack overlay off)
+- Nexus Options credit / Ko-fi footer names **Trail Tools**
 - TrailsN: more pad padding; file tools vs trail tools on separate wrap rows; recording **Start** / **Stop** are separate buttons; samples on **time** (Spacing seconds) while moving; **New Segment** writes TacO `0,0,0` plus MapID + feet vector; Start after Stop does not auto-insert a segment or vector (empty trail still gets a first vector)
 - Live **Hide trail near me** toggles the player-clear bubble (radius still in Nexus Options → Trail player clear)
 - UberTool: click or Select Nearest / Move to Feet to place the gizmo; drag follows the mouse (white hub / RGB axes); recording does not hop the gizmo to new samples

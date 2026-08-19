@@ -18,6 +18,8 @@ void TrailToolsPreviewCompass::Draw(
 	using namespace TrailToolsDetail;
 	if (!TrailToolsDetail::AnyAuthoringPadOpen() || !gDraft.previewEnabled || !dl)
 		return;
+	if (!DraftWorldVisible())
+		return;
 
 	TrailToolsDraftStyle::BeginFrame();
 

@@ -3,6 +3,7 @@
 #include "TrailToolsEditUndo.h"
 
 #include "HelperTheme.h"
+#include "PackEdit.h"
 #include "PadNav.h"
 #include "TrailToolsXml.h"
 
@@ -76,6 +77,7 @@ void TrailToolsDetail::DrawContentTab()
 	if (gDraft.active.fileRel.empty())
 		SyncActiveFileRelFromStem();
 
+	PackEdit::DrawWorldToggles("_pad");
 	DrawLiveTab();
 
 	PadNav::SectionTitle("Project");
@@ -259,4 +261,7 @@ void TrailToolsDetail::DrawContentTab()
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+
+	if (ImGui::CollapsingHeader("Pack###gw2tt_tt_packmore"))
+		DrawPackTab();
 }

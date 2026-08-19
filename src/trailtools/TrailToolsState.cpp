@@ -65,6 +65,55 @@ namespace TrailToolsDetail
 			return gTrailEditors[gTrailRecordSlot].dirty;
 		return gDraft.trailDirty;
 	}
+
+	bool& RecordingWorldShown()
+	{
+		int slot = -1;
+		if (gTrailEditorDrawActive)
+			slot = gTrailEditorDrawSlot;
+		else
+			slot = gTrailRecordSlot;
+		if (slot >= 0 && slot < kMaxTrailEditors && gTrailEditors[slot].open)
+			return gTrailEditors[slot].worldShown;
+		return gDraft.trailWorldShown;
+	}
+
+	bool DraftWorldVisible()
+	{
+		if (!gDraft.previewEnabled)
+			return false;
+		int slot = -1;
+		if (gTrailEditorDrawActive)
+			slot = gTrailEditorDrawSlot;
+		else
+			slot = gTrailRecordSlot;
+		if (slot < 0 || slot >= kMaxTrailEditors || !gTrailEditors[slot].open)
+			return false;
+		if (TrailToolsBinds::Get().trailRecording)
+			return true;
+		return gTrailEditors[slot].worldShown;
+	}
+
+	void ClearWorldDraftTrails()
+	{
+		TrailToolsBinds::Get().trailRecording = false;
+		TrailToolsBinds::Get().trailPaused = false;
+		gDraft.active.points.clear();
+		gDraft.active.mapId = 0;
+		gDraft.selectedPoint = -1;
+		gDraft.trailWorldShown = false;
+		gDraft.trailDirty = true;
+		for (int i = 0; i < kMaxTrailEditors; ++i)
+		{
+			gTrailEditors[i].trail.points.clear();
+			gTrailEditors[i].trail.mapId = 0;
+			gTrailEditors[i].selectedPoint = -1;
+			gTrailEditors[i].selectedPoints.clear();
+			gTrailEditors[i].worldShown = false;
+			gTrailEditors[i].dirty = true;
+		}
+		SetStatus("Cleared world draft trail (not in a Trails window).");
+	}
 }
 
 namespace

@@ -74,6 +74,10 @@ namespace
 			G::CompassMarkerScale = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "ShowTrailTools") == 0)
 			G::ShowTrailTools = AsBool(val);
+		else if (std::strcmp(key, "UberTool") == 0)
+			TrailToolsDetail::gUberToolEnabled = AsBool(val);
+		else if (std::strcmp(key, "DraftPreview") == 0)
+			TrailToolsDetail::gDraft.previewEnabled = AsBool(val);
 		else if (std::strcmp(key, "TrailToolsLastTrlDir") == 0)
 		{
 			std::snprintf(TrailToolsDetail::gDraft.lastTrlDir,
@@ -148,6 +152,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "WorldMarkerScale=%.2f\n", G::WorldMarkerScale);
 	std::fprintf(f, "CompassMarkerScale=%.2f\n", G::CompassMarkerScale);
 	std::fprintf(f, "ShowTrailTools=%d\n", G::ShowTrailTools ? 1 : 0);
+	std::fprintf(f, "UberTool=%d\n", TrailToolsDetail::gUberToolEnabled ? 1 : 0);
+	std::fprintf(f, "DraftPreview=%d\n", TrailToolsDetail::gDraft.previewEnabled ? 1 : 0);
 	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
 	std::fprintf(f, "TrailToolsXmlLayout=0\n");
 	std::fprintf(f, "TrailToolsBinds=%s\n", TrailToolsBinds::Serialize().c_str());

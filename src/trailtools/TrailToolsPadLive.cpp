@@ -5,6 +5,7 @@
 
 #include "Globals.h"
 #include "HelperTheme.h"
+#include "PackEdit.h"
 #include "PadNav.h"
 #include "Settings.h"
 
@@ -30,9 +31,11 @@ void TrailToolsDetail::DrawLiveTab()
 		gWorldPickMode = 0;
 	PadNav::SetFullRowWidth();
 	ImGui::Combo("###gw2tt_tt_wmode", &gWorldPickMode, kModes, 3);
-	ImGui::Checkbox("UberTool###gw2tt_tt_uber", &gUberToolEnabled);
+	if (ImGui::Checkbox("UberTool###gw2tt_tt_uber", &gUberToolEnabled))
+		Settings::SetDirty();
 	ImGui::SameLine();
-	ImGui::Checkbox("Draft preview###gw2tt_tt_prev", &gDraft.previewEnabled);
+	if (ImGui::Checkbox("Draft preview###gw2tt_tt_prev", &gDraft.previewEnabled))
+		Settings::SetDirty();
 	if (ImGui::Checkbox("Hide trail near me###gw2tt_tt_pclear", &G::WorldTrailPlayerClearOn))
 	{
 		if (G::WorldTrailPlayerClearOn && G::WorldTrailPlayerClear < 0.05f)
@@ -41,6 +44,13 @@ void TrailToolsDetail::DrawLiveTab()
 	}
 	ImGui::TextDisabled(
 		"UberTool: click a trail/marker, then drag (white dot = slide, RGB = XYZ).");
+	if (ImGui::Button("Clear world trail###gw2tt_tt_clrworld", ImVec2(-1.f, 0.f)))
+	{
+		ClearWorldDraftTrails();
+		PackEdit::HideWorldOverlay();
+		Settings::SetDirty();
+	}
+	ImGui::TextDisabled("Removes the GPS that is not in a Trails window, and pack overlay.");
 	float hx = 0.f, hy = 0.f, hz = 0.f;
 	if (gWorldPickEnabled && TrailToolsWorldPick::RayFeetPlane(hx, hy, hz))
 		ImGui::TextDisabled("Under cursor  %.2f  %.2f  %.2f", hx, hy, hz);

@@ -1,4 +1,3 @@
-#include "PackEdit.h"
 #include "TrailToolsBinds.h"
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
@@ -134,7 +133,6 @@ void TrailToolsDetail::DrawKeybindsTab()
 	using namespace TrailToolsBinds;
 	auto& st = Get();
 
-	PackEdit::DrawWorldToggles();
 	PadNav::PushWrap();
 	ImGui::TextDisabled(
 		"Keybinds work while GW2 is focused (pad can be closed). "

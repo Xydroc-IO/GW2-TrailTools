@@ -41,6 +41,7 @@ namespace
 			gDraft.selectedTrail = -1;
 			gDraft.selectedPoint = -1;
 			gDraft.trailDirty = false;
+			RecordingWorldShown() = false;
 			SetStatus("New empty trail.");
 		}
 		if (RowBtn("Load###gw2tt_tt_load", false))

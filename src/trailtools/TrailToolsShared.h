@@ -106,6 +106,7 @@ namespace TrailToolsDetail
 		char          status[384] = {};
 		bool          previewEnabled = true;
 		bool          trailDirty = false;
+		bool          trailWorldShown = false; /* GPS after Start / explicit place, not on load */
 		int           xmlLayout = 0; /* unused: always one OverlayData file */
 		int           selectedPoi = -1;
 		int           selectedTrail = -1;
@@ -115,7 +116,7 @@ namespace TrailToolsDetail
 	extern DraftPack gDraft;
 	extern bool      gPlaceOnce;
 	extern bool      gFocus;
-	extern int       gTab; /* 0 Editor, 1 Pack, 2 Content (incl. Live), 3 Keybinds */
+	extern int       gTab; /* 0 Content (incl. Live), 1 Keybinds */
 
 	/* Multiple TrailsN / MarkersN editors (mockup: Trails1+Trails2, Markers1+Markers2). */
 	constexpr int kMaxTrailEditors = 5;
@@ -127,6 +128,7 @@ namespace TrailToolsDetail
 		bool      placeOnce = false;
 		bool      focus = false;
 		bool      dirty = false;
+		bool      worldShown = false;
 		int       selectedPoint = -1;
 		std::vector<int> selectedPoints; /* multi-select (Ctrl/Shift in TrailsN) */
 		DraftTrail trail{};
@@ -183,6 +185,9 @@ namespace TrailToolsDetail
 	DraftTrail& RecordingTrail(); /* editor slot if focused, else gDraft.active */
 	int& RecordingSelectedPoint();
 	bool& RecordingTrailDirty();
+	bool& RecordingWorldShown(); /* in-world GPS/verts after Start recording */
+	bool DraftWorldVisible();
+	void ClearWorldDraftTrails(); /* wipe hub + TrailsN drafts and stop recording */
 
 	/* Legacy single-flag aliases used by unload; prefer desks + editor slots. */
 	extern bool gPopoutTrails;

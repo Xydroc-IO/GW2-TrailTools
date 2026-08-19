@@ -18,6 +18,66 @@
 
 #include "imgui/imgui.h"
 
+#include <windows.h>
+#include <shellapi.h>
+
+namespace
+{
+	void CenterLine(const char* text)
+	{
+		const float w = ImGui::CalcTextSize(text).x;
+		const float avail = ImGui::GetContentRegionAvail().x;
+		if (w < avail)
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (avail - w) * 0.5f);
+		ImGui::TextUnformatted(text);
+	}
+
+	void DrawSettingsCredit()
+	{
+		const ImVec4 gold(0.82f, 0.68f, 0.28f, 1.f);
+		const ImVec4 goldDim(0.72f, 0.58f, 0.24f, 1.f);
+		const ImVec4 muted(0.72f, 0.74f, 0.76f, 1.f);
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.50f, 0.38f, 0.16f, 0.80f));
+		ImGui::Separator();
+		ImGui::PopStyleColor();
+		ImGui::Spacing();
+		ImGui::PushStyleColor(ImGuiCol_Text, gold);
+		CenterLine("CREATED BY XYDROC");
+		ImGui::PopStyleColor();
+		const char* donate =
+			"If you would like to donate or support Trail Tools, you can do so here — ";
+		const char* kofi = "ko-fi.com/xydroc";
+		const float avail = ImGui::GetContentRegionAvail().x;
+		const float donateW = ImGui::CalcTextSize(donate).x + ImGui::CalcTextSize(kofi).x;
+		if (donateW < avail)
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (avail - donateW) * 0.5f);
+		ImGui::PushStyleColor(ImGuiCol_Text, muted);
+		ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + ImGui::GetContentRegionAvail().x);
+		ImGui::TextUnformatted(donate);
+		ImGui::PopTextWrapPos();
+		ImGui::PopStyleColor();
+		ImGui::SameLine(0.f, 0.f);
+		ImGui::PushStyleColor(ImGuiCol_Text, goldDim);
+		ImGui::TextUnformatted(kofi);
+		ImGui::PopStyleColor();
+		{
+			const ImVec2 min = ImGui::GetItemRectMin();
+			const ImVec2 max = ImGui::GetItemRectMax();
+			ImGui::GetWindowDrawList()->AddLine(
+				ImVec2(min.x, max.y - 1.f), ImVec2(max.x, max.y - 1.f),
+				ImGui::GetColorU32(goldDim), 1.f);
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+			if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+				ShellExecuteA(nullptr, "open", "https://ko-fi.com/xydroc",
+					nullptr, nullptr, SW_SHOWNORMAL);
+		}
+	}
+}
+
 void UI_Render()
 {
 	CrashTrail::SetPhase("RT_Render");
@@ -54,8 +114,7 @@ void UI_Render()
 		TrailToolsPreview::RenderWorld();
 		TrailToolsUberTool::Render();
 	}
-	if (TrailToolsPad::AnyOpen() && TrailToolsDetail::gTab == 0)
-		PackEdit::RenderWorld();
+	PackEdit::RenderWorld();
 
 	static int sFrames = 0;
 	if (++sFrames >= 600)
@@ -75,7 +134,14 @@ void UI_DrawSettingsControls()
 {
 	ImGui::TextUnformatted("GW2-TrailTools");
 	ImGui::Separator();
-	PackEdit::DrawWorldToggles();
+	PackEdit::DrawWorldToggles("_opt");
+	if (ImGui::Button("Clear world trail###gw2tt_opt_clrworld"))
+	{
+		TrailToolsDetail::ClearWorldDraftTrails();
+		PackEdit::HideWorldOverlay();
+	}
+	if (ImGui::CollapsingHeader("Pack editor###gw2tt_opt_pe"))
+		PackEdit::DrawTab();
 	ImGui::TextDisabled("Keybinds work while GW2 is focused (pad can be closed).");
 	ImGui::Separator();
 	ImGui::Checkbox("Show Trail Tools", &G::ShowTrailTools);
@@ -104,5 +170,6 @@ void UI_DrawSettingsControls()
 	ImGui::Spacing();
 	ImGui::Separator();
 	ImGui::TextDisabled("Thanks to Lady Elyssa for UI help, feature selection, and Windows testing.");
+	DrawSettingsCredit();
 	Settings::SetDirty();
 }

@@ -22,8 +22,6 @@ void PackEdit::Tick()
 		sDrag = false;
 	if (!gDoc.gizmoOn || gDoc.items.empty())
 		return;
-	if (TrailToolsDetail::gTab != 0)
-		return;
 
 	float mx = 0.f, my = 0.f;
 	const bool click = WorldClick::TakeLeftDown(mx, my);

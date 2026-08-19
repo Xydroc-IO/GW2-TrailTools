@@ -69,6 +69,7 @@ void TrailToolsBinds::ActionTrailInsertVector()
 	tr.points.push_back({ x, y, z });
 	sel = static_cast<int>(tr.points.size()) - 1;
 	dirty = true;
+	RecordingWorldShown() = true;
 	SetStatus("Point #%zu at feet.", tr.points.size());
 }
 

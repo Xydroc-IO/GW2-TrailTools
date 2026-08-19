@@ -223,5 +223,6 @@ void TrailToolsWorldPick::Tick()
 	tr.points.push_back({ hx, hy, hz });
 	RecordingSelectedPoint() = static_cast<int>(tr.points.size()) - 1;
 	RecordingTrailDirty() = true;
+	RecordingWorldShown() = true;
 	SetStatus("Trail point #%zu at click.", tr.points.size());
 }
