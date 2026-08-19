@@ -42,7 +42,9 @@ make install   # optional
 | In-place pack Editor | `src/packedit/` |
 | Authoring pad | `src/trailtools/` |
 | OverlayData XML | `TrailToolsXml.cpp` (TacO indent / `trailData`) |
-| 3D UberTool | `TrailToolsUberTool.cpp` + `TrailToolsWorldPick.cpp` |
+| 3D UberTool | `TrailToolsUberTool.cpp` / `TrailToolsUberToolDraw.cpp` + `TrailToolsWorldPick.cpp` |
+| World click swallow | `src/ui/WorldClick.cpp` |
+| View-proj / player-clear mul | `src/pathing/world/WorldGpsMath.cpp` |
 
 ## License
 

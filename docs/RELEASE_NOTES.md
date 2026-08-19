@@ -9,7 +9,7 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 ## Highlights
 
 ### Authoring hub
-- Side-rail tabs: **Editor → Pack → Content → Live → Keybinds**
+- Side-rail tabs: **Editor → Pack → Content → Keybinds** (Content includes Live pose / UberTool / world click)
 - **Editor** tab: in-place `.taco` (open zip or folder, 2D map, tree, details, clickable resources). Save patches original XML. **Close pack** clears the session. Wheel scrolls the pad; **Ctrl+wheel** zooms the map.
 - Pack tab owns the OverlayData project (New / Load / Save) — **one XML file**
 - **Content** lists trails and markers in that project and opens TrailsN / MarkersN editors
@@ -28,8 +28,10 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 ### Trails
 - Default trail category on Content; up to **five** TrailsN windows
 - Compact TrailsN: New / Load / Save / Save As · New Segment / Insert Vector / Select Nearest / Move to Feet / Delete Nearest / Undo
-- Recording rail: Start/Pause, vector spacing; raw XYZ list; TacO-basic `<Trail type trailData>` copy
-- Recording skips samples while standing still (last vertex vs spacing)
+- Recording rail: **Start** and **Stop** are separate buttons (Stop cannot immediately Start); Pause/Resume; **Spacing in seconds** (0.3 = 1/3 s); samples only while the character moves
+- After Stop, walking does not add points. Start on a trail that already has vectors does not insert a section or extra vertex (use New Segment / Insert Vector). Empty trails still get a first vector on Start
+- New Segment: TacO `0,0,0` break + current MapID + vector at feet
+- Draft vertices drawn as clickable circles; Select Nearest / Move to Feet move the UberTool onto that vector
 - `.trl` stays with the pop-out until **Add to project** inserts it into OverlayData
 - Per-`<Trail>` attrs (texture, trailScale, fade, alpha, animSpeed)
 - Geometry: reverse / densify / smooth / multi-select (Ctrl/Shift)
@@ -46,7 +48,8 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Copy markers from currently loaded Pathing packs
 
 ### Live
-- **3D UberTool** + **Ground snap**: plane fit from walked Mumble feet, draft points, and the open pack (same Mumble pose TacO uses — not game process memory, not a live mesh). Click a draft marker or trail vertex, drag RGB axes to move, Ctrl+click a trail to insert a point, right-click while dragging to cancel.
+- **3D UberTool** + **Ground snap**: plane fit from walked Mumble feet, draft points, and the open pack (same Mumble pose TacO uses — not game process memory, not a live mesh). Click a draft marker or trail vertex (stays selected while recording), drag the white hub to slide / RGB arrows for XYZ, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Gizmo clicks are swallowed so camera look does not steal the drag; movement follows the mouse.
+- **Hide trail near me** (Content → Live, and Nexus Options) toggles the player-clear bubble; **Trail player clear** is the radius
 - World click / map Shift+click place against that plane when Ground snap is on. Disabled for that click when UberTool consumes it.
 - Empty-world `LBUTTONDOWN` is seen through Nexus `WndProc` (`WorldClick`) because ImGui does not get clicks on empty game view.
 

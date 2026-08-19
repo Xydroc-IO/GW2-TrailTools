@@ -20,7 +20,7 @@ Guild Wars 2.exe
  └─ Nexus loads GW2-TrailTools.dll
       ├─ QuickAccess (baked trailtools-icon.png) → KB_TRLS_TOGGLE
       ├─ RT_Render → TrailToolsPad + PackEdit + UberTool + optional world preview
-      ├─ WndProc → WorldClick (empty-world LBUTTONDOWN; ImGui never sees it)
+      ├─ WndProc → WorldClick (empty-world LBUTTONDOWN; swallow when UberTool grabs)
       └─ RT_OptionsRender → settings
 ```
 
@@ -35,7 +35,7 @@ src/
     packs/            PathingParse (.taco / XML / .trl)
     world/            WorldGpsMath + D3D/ImGui preview
   packedit/           In-place .taco document (tree / details / zip save / world gizmo)
-  trailtools/         Authoring pad (Pack / Content / Live / Keybinds + TrailsN / MarkersN)
+  trailtools/         Authoring pad (Pack / Content / Keybinds + TrailsN / MarkersN)
 assets/               Brand PNGs (icon / hover / logo) — bake with tools/bake_icons.py
 ```
 
@@ -45,7 +45,7 @@ Prefer **≤500 lines** per `.cpp`. Split pad vs state vs binds vs parse. Genera
 
 ## Authoring model
 
-Hub tabs: **Editor** → Pack → Content → Live → Keybinds.
+Hub tabs: **Editor** → Pack → Content → Keybinds. **Content** is project lists plus Live pose / UberTool / world click.
 
 **Editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder, edit the tree / details / 2D map / resources, draw in the world (distance-culled D3D trails + nearby markers), pick with Nexus `WndProc` + gizmo + ground snap, then Save. Save **patches POI/Trail tags in the original XML files** (comments and unknown attributes stay). New packs still emit one OverlayData.xml.
 
@@ -57,7 +57,11 @@ TrailsN/MarkersN remain the authoring workbench for new OverlayData.
 
 XML shape follows TacO: nested `<MarkerCategory>`, `<POIs>` with `<Trail trailData="Data/{stem}.trl"/>` and `<POI>`, textures/icons under `Data/Images/`. Default seed is root + leaves `example` / `circle` / `heart` / `square` / `triangle`. TrailsN can copy a **basic** `<Trail type trailData>` tag (TacO TrailsN style).
 
-Live **UberTool** (`TrailToolsUberTool.cpp`) click-selects draft verts/markers and moves them with an RGB gizmo. World click / Shift+click place use the same ground plane when Ground snap is on. Recording does not append points while standing still.
+Live **UberTool** (`TrailToolsUberTool.cpp` + `TrailToolsUberToolDraw.cpp`): click a draft vert/marker (or Select Nearest / Move to Feet); the gizmo stays on that index while recording samples. Drag the white hub to slide on the vertex Y; RGB arrows lock X/Y/Z. Clicks on a handle are swallowed in `WorldClick` so camera look does not steal the drag. Pick rays unproject the same view-projection as world overlay (drag follows the mouse). World click / Shift+click place use the same ground plane when Ground snap is on.
+
+Recording samples on a **time** interval (`Spacing` seconds) and skips duplicate poses while standing still. **Stop** and **Start** are separate ImGui widgets so Stop cannot immediately Start. Start after a stop does not insert a section or extra vector (empty trails still get a first vector). **New Segment** is the only TrailsN control that writes a TacO `0,0,0` break plus MapID + feet vector. Those breaks split world ribbons.
+
+**Hide trail near me** (`G::WorldTrailPlayerClearOn`) gates the player-clear bubble; radius remains **Trail player clear** in Nexus Options.
 
 **XML editor** (`TrailToolsPadXmlEdit.cpp`) is a pop-out OverlayData text buffer. Save writes that text as-is so pack-specific attributes survive; **Apply to editors** parses known TacO/Blish fields into the draft.
 

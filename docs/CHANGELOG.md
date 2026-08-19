@@ -4,7 +4,11 @@ Full player-facing notes: [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
 
 ## Unreleased
 
-- Hub tabs: **Editor → Pack → Content → Live → Keybinds**
+- Hub tabs: **Editor → Pack → Content → Keybinds** (Content includes Live pose, UberTool, world click)
+- TrailsN: more pad padding; file tools vs trail tools on separate wrap rows; recording **Start** / **Stop** are separate buttons; samples on **time** (Spacing seconds) while moving; **New Segment** writes TacO `0,0,0` plus MapID + feet vector; Start after Stop does not auto-insert a segment or vector (empty trail still gets a first vector)
+- Live **Hide trail near me** toggles the player-clear bubble (radius still in Nexus Options → Trail player clear)
+- UberTool: click or Select Nearest / Move to Feet to place the gizmo; drag follows the mouse (white hub / RGB axes); recording does not hop the gizmo to new samples
+- Trail preview: clickable vertex circles; default no hide-around-player; optional untextured thin GPS (Nexus Options)
 - **Editor** (`src/packedit/`): open `.taco` / folder, New / Close pack, Save patches original XML (keeps comments/unknown attrs on POI/Trail tags), 2D map (pan/zoom/select/Shift+click place), clickable resources, collapsed tree + clipper, pop-outs, this-map world draw (culled), WndProc pick + gizmo, duplicate, tombstone, undo, lint
 - Hub wheel scrolls the pad (nested lists use their own scrollbar); 2D map **Ctrl+wheel** zoom
 - Content: trail/marker defaults, project lists, open Trails1–5 / MarkersN; **Add to project** writes the one OverlayData XML
@@ -13,7 +17,7 @@ Full player-facing notes: [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
 - Five TrailsN windows (not four); opening an editor no longer freezes the game (swap instead of copying point vectors)
 - Pack XML matches TacO OverlayData (Lady Elyssa layout): nested MarkerCategory, 3-space indent, `<Trail type="…" trailData="Data/….trl"/>`, images under `Data/Images/`
 - Seed categories: root + `example` / `circle` / `heart` / `square` / `triangle` (`pack.example`, `pack.circle`, …)
-- Live **3D UberTool** + **Ground snap** (plane fit from walked Mumble feet, draft points, and open-pack Y — not a collision mesh)
+- Live **3D UberTool** + **Ground snap** (plane fit from walked Mumble feet, draft points, and open-pack Y — not a collision mesh); gizmo stays on the clicked vector (does not follow recording); drag after an 8px mouse move; larger RGB arrows
 - Empty-world clicks via Nexus `WndProc` (`WorldClick`) so ImGui can pick when the cursor is not over a window
 - Editable OverlayData window (Pack → XML editor): keep custom TacO/Blish attrs; Apply maps known fields into the editors; Save writes the text as-is
 - Draft world preview follows the focused TrailsN recording trail
