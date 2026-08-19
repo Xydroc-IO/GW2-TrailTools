@@ -25,6 +25,7 @@ namespace TrailToolsDetail
 	std::string gXmlEdit;
 	bool  gXmlEditDirty = false;
 	int   gTrailRecordSlot = -1;
+	int   gTrailEditorDrawSlot = -1;
 	bool  gHubSkipOpenClicks = false;
 	bool  gTrailEditorDrawActive = false;
 	bool  gWorldPickEnabled = false;

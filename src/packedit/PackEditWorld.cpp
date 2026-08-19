@@ -164,7 +164,7 @@ void PackEdit::WorldGpu::Draw()
 			snips.push_back(std::move(s));
 	}
 
-	const float thick = std::clamp(G::WorldTrailWidth, 0.5f, 4.f);
+	const float thick = std::clamp(G::WorldTrailWidth, 0.15f, 4.f);
 	if (!snips.empty())
 	{
 		if (!WorldGpsD3d::Available() ||

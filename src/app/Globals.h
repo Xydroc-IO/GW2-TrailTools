@@ -78,6 +78,8 @@ namespace G
 	extern float WorldTrailMaxDist;
 	extern float WorldTrailWidth;
 	extern float WorldTrailPlayerClear;
+	extern bool  WorldTrailPlayerClearOn;
+	extern bool  WorldTrailUseTexture;
 	extern float WorldMarkerPlayerClear;
 	extern float WorldMarkerScale;
 	extern float CompassMarkerScale;

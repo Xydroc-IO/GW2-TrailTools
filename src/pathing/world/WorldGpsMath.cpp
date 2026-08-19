@@ -3,6 +3,7 @@
 #include "Globals.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -99,6 +100,85 @@ namespace WorldGpsMath
 		out = proj * view;
 		camOut = camPos;
 		return true;
+	}
+
+	bool InvertMat4(const Mat4& in, Mat4& out)
+	{
+		float a[4][8]{};
+		for (int r = 0; r < 4; ++r)
+		{
+			for (int c = 0; c < 4; ++c)
+				a[r][c] = in.m[c][r];
+			a[r][4 + r] = 1.f;
+		}
+		for (int i = 0; i < 4; ++i)
+		{
+			int piv = i;
+			for (int r = i + 1; r < 4; ++r)
+			{
+				if (std::fabs(a[r][i]) > std::fabs(a[piv][i]))
+					piv = r;
+			}
+			if (std::fabs(a[piv][i]) < 1e-12f)
+				return false;
+			if (piv != i)
+			{
+				for (int c = 0; c < 8; ++c)
+					std::swap(a[i][c], a[piv][c]);
+			}
+			const float d = a[i][i];
+			for (int c = 0; c < 8; ++c)
+				a[i][c] /= d;
+			for (int r = 0; r < 4; ++r)
+			{
+				if (r == i)
+					continue;
+				const float f = a[r][i];
+				for (int c = 0; c < 8; ++c)
+					a[r][c] -= f * a[i][c];
+			}
+		}
+		for (int r = 0; r < 4; ++r)
+			for (int c = 0; c < 4; ++c)
+				out.m[c][r] = a[r][4 + c];
+		return true;
+	}
+
+	bool ScreenRay(float mx, float my, float screenW, float screenH,
+		const Mat4& viewProj, Vec3& origin, Vec3& dir)
+	{
+		if (screenW < 8.f || screenH < 8.f)
+			return false;
+		Mat4 inv{};
+		if (!InvertMat4(viewProj, inv))
+			return false;
+		const float ndcX = (mx / screenW) * 2.f - 1.f;
+		const float ndcY = 1.f - (my / screenH) * 2.f;
+		auto unproj = [&](float ndcZ, Vec3& p) -> bool
+		{
+			float x = 0.f, y = 0.f, z = 0.f, w = 0.f;
+			inv.Transform(ndcX, ndcY, ndcZ, x, y, z, w);
+			if (!std::isfinite(w) || std::fabs(w) < 1e-8f)
+				return false;
+			p = { x / w, y / w, z / w };
+			return ReasonablePos(p.x, p.y, p.z);
+		};
+		Vec3 p0{}, p1{};
+		if (!unproj(0.f, p0) || !unproj(1.f, p1))
+			return false;
+		origin = p0;
+		dir = (p1 - p0).Normalised();
+		return dir.LengthSq() > 0.5f;
+	}
+
+	float TrailPlayerClearMul()
+	{
+		if (!G::WorldTrailPlayerClearOn)
+			return 0.f;
+		const float m = G::WorldTrailPlayerClear;
+		if (!(m > 0.01f))
+			return 1.f;
+		return std::clamp(m, 0.f, 3.f);
 	}
 
 	bool WorldToScreen(const Vec3& world, const Mat4& viewProj,

@@ -200,10 +200,9 @@ namespace
 
 void TrailToolsDetail::DrawPackTab()
 {
-	DrawXmlProjectDesk();
-
-	PadNav::SectionTitle("2 · Pack");
+	PadNav::SectionTitle("Pack");
 	PadNav::BeginSection("pack_id");
+	ImGui::TextDisabled("OverlayData New / Load / Save and the XML editor are on Content.");
 	PadNav::PushWrap();
 	ImGui::TextDisabled("pathing/authoring/%s/", gDraft.packName);
 	PadNav::PopWrap();
@@ -264,7 +263,7 @@ void TrailToolsDetail::DrawPackTab()
 	PadNav::PopWrap();
 	PadNav::EndSection();
 
-	PadNav::SectionTitle("3 · Import / build");
+	PadNav::SectionTitle("Import / build");
 	PadNav::BeginSection("pack_build");
 	static char sImportName[96] = "Hero.Blish.Pack.taco";
 	PadNav::InputCaption("Installed .taco filename", "gw2tt_tt_impname",
@@ -324,11 +323,6 @@ void TrailToolsDetail::DrawPackTab()
 
 	ImGui::TextDisabled("%zu trails · %zu markers", gDraft.trails.size() +
 		(gDraft.active.points.size() >= 2 ? 1u : 0u), gDraft.pois.size());
-
-	if (ImGui::Button("XML editor###gw2tt_tt_xmlprevopen") && !gHubSkipOpenClicks)
-		OpenXmlEditor();
-	ImGui::SameLine();
-	ImGui::TextDisabled("Raw OverlayData (custom attrs, different TacO layouts).");
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);

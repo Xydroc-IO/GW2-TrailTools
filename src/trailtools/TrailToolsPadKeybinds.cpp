@@ -1,5 +1,6 @@
-#include "TrailToolsInternal.h"
+#include "PackEdit.h"
 #include "TrailToolsBinds.h"
+#include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
 
 #include "HelperTheme.h"
@@ -133,10 +134,11 @@ void TrailToolsDetail::DrawKeybindsTab()
 	using namespace TrailToolsBinds;
 	auto& st = Get();
 
+	PackEdit::DrawWorldToggles();
 	PadNav::PushWrap();
-	ImGui::TextColored(HelperTheme::Muted,
-		"Binds work while GW2 is focused (pad can be closed). "
-		"%d place-marker slots - each gets a category + chord.",
+	ImGui::TextDisabled(
+		"Keybinds work while GW2 is focused (pad can be closed). "
+		"Up to %d categories can be assigned to a keybind.",
 		kPlaceSlots);
 	PadNav::PopWrap();
 
@@ -146,11 +148,11 @@ void TrailToolsDetail::DrawKeybindsTab()
 		Settings::SetDirty();
 		SetStatus("Keybinds reset to defaults.");
 	}
-	PadNav::WrapSameLine(ImGui::CalcTextSize("Click a bind, then press the key combo. Esc cancels.").x);
-	ImGui::TextDisabled("Click a bind, then press the key combo. Esc cancels.");
+	PadNav::WrapSameLine(ImGui::CalcTextSize("Click a bind, then press the combo. Esc cancels.").x);
+	ImGui::TextDisabled("Click a bind, then press the combo. Esc cancels.");
 
 	static const char* kTrailLabels[] = {
-		"Start / resume recording",
+		"Start recording (no extra click-points)",
 		"Pause / unpause",
 		"New trail section",
 		"Delete trail segment",
@@ -161,7 +163,6 @@ void TrailToolsDetail::DrawKeybindsTab()
 	};
 	const float labelCol = LabelColumnWidth(allLabels, 5);
 
-	ImGui::Separator();
 	PadNav::SectionTitle("TRAILS");
 	if (st.trailRecording)
 	{
@@ -175,53 +176,37 @@ void TrailToolsDetail::DrawKeybindsTab()
 	BindRow(kTrailLabels[2], labelCol, "kb_tsec", st.trailSection, 2);
 	BindRow(kTrailLabels[3], labelCol, "kb_tdel", st.trailDeleteSeg, 3);
 
-	ImGui::Separator();
 	PadNav::SectionTitle("MARKERS");
 	BindRow(kMarkLabels[0], labelCol, "kb_mdel", st.markerDelete, 4);
 	ImGui::TextDisabled("Selected POI, or last one if none selected.");
 
-	ImGui::Separator();
-	PadNav::SectionTitle("PLACE MARKER SLOTS");
-	ImGui::TextDisabled("Empty type → Markers tab default.");
-
-	const float slotLabW = ImGui::CalcTextSize("Slot 10").x +
-		ImGui::GetStyle().ItemInnerSpacing.x + 4.f;
-	for (int i = 0; i < kPlaceSlots; ++i)
+	if (ImGui::BeginTable("###kb_place", 3,
+		ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoSavedSettings))
 	{
-		ImGui::PushID(i);
-		char rowLab[32]{};
-		std::snprintf(rowLab, sizeof(rowLab), "Slot %d", i + 1);
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted(rowLab);
-
-		const float labField = ImGui::CalcTextSize("Marker 10").x +
-			ImGui::GetStyle().FramePadding.x * 2.f + 8.f;
-		PadNav::WrapSameLine(labField);
-		if (ImGui::GetCursorPosX() < slotLabW)
-			ImGui::SetCursorPosX(slotLabW);
-		ImGui::SetNextItemWidth(labField);
-		if (ImGui::InputText("###lab", st.place[i].label, sizeof(st.place[i].label)))
-			Settings::SetDirty();
-
-		char bid[32]{};
-		std::snprintf(bid, sizeof(bid), "kb_p%d", i);
-		const float chordW = ChordButtonWidth(
-			FormatChord(st.place[i].chord).c_str());
-		PadNav::WrapSameLine(chordW + PadNav::ButtonWidth("Clear") + 8.f);
-		BindButton(bid, st.place[i].chord, 10 + i);
-
-		const float placeW = PadNav::ButtonWidth("Place now");
-		const float comboW = ImGui::CalcTextSize("(default marker type)").x +
-			ImGui::GetStyle().FramePadding.x * 2.f + ImGui::GetFrameHeight();
-		PadNav::WrapSameLine(comboW + placeW + 16.f);
-		DrawTypeCombo(st.place[i].type, sizeof(st.place[i].type), bid, comboW);
-		PadNav::WrapSameLine(placeW);
-		if (ImGui::SmallButton("Place now###now"))
-			ActionPlaceMarker(i);
-
-		if (i + 1 < kPlaceSlots)
-			ImGui::Separator();
-		ImGui::PopID();
+		ImGui::TableSetupColumn("Marker", ImGuiTableColumnFlags_WidthFixed, 88.f);
+		ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Keybind", ImGuiTableColumnFlags_WidthStretch);
+		for (int i = 0; i < kPlaceSlots; ++i)
+		{
+			ImGui::PushID(i);
+			ImGui::TableNextColumn();
+			char hint[24]{};
+			std::snprintf(hint, sizeof(hint), "Marker %d", i + 1);
+			ImGui::SetNextItemWidth(-1.f);
+			if (ImGui::InputTextWithHint("###lab", hint, st.place[i].label, sizeof(st.place[i].label)))
+				Settings::SetDirty();
+			ImGui::TableNextColumn();
+			char bid[32]{};
+			std::snprintf(bid, sizeof(bid), "kb_p%d", i);
+			DrawTypeCombo(st.place[i].type, sizeof(st.place[i].type), bid, -1.f);
+			ImGui::TableNextColumn();
+			BindButton(bid, st.place[i].chord, 10 + i);
+			ImGui::SameLine();
+			if (ImGui::SmallButton("Place###now"))
+				ActionPlaceMarker(i);
+			ImGui::PopID();
+		}
+		ImGui::EndTable();
 	}
 
 	if (gDraft.status[0])

@@ -2,6 +2,7 @@
 
 #include "TrailToolsEditUndo.h"
 #include "TrailToolsShared.h"
+#include "TrailToolsUberTool.h"
 
 namespace
 {
@@ -88,7 +89,9 @@ void TrailToolsBinds::ActionTrailSelectNearest()
 		return;
 	}
 	RecordingSelectedPoint() = best;
-	SetStatus("Selected #%d.", best);
+	gDraft.selectedPoi = -1;
+	TrailToolsUberTool::FollowSelection();
+	SetStatus("Selected #%d — Move to Feet, Delete Nearest, or drag with UberTool.", best);
 }
 
 void TrailToolsBinds::ActionTrailMoveToFeet()
@@ -119,6 +122,7 @@ void TrailToolsBinds::ActionTrailMoveToFeet()
 	pt.y = y;
 	pt.z = z;
 	RecordingTrailDirty() = true;
+	TrailToolsUberTool::FollowSelection();
 	SetStatus("Moved #%d to feet.", sel);
 }
 
@@ -183,6 +187,8 @@ void TrailToolsBinds::ActionMarkerSelectNearest()
 		return;
 	}
 	gDraft.selectedPoi = best;
+	RecordingSelectedPoint() = -1;
+	TrailToolsUberTool::FollowSelection();
 	SetStatus("Selected marker #%d.", best);
 }
 
@@ -207,5 +213,6 @@ void TrailToolsBinds::ActionMarkerMoveToFeet()
 	p.x = x;
 	p.y = y;
 	p.z = z;
+	TrailToolsUberTool::FollowSelection();
 	SetStatus("Moved marker #%d to feet.", gDraft.selectedPoi);
 }

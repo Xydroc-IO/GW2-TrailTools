@@ -9,5 +9,7 @@ namespace WorldClick
 	/* True once per left-down that missed ImGui (screen coords). */
 	bool TakeLeftDown(float& mx, float& my);
 	bool LeftHeld();
+	/* Latest client mouse from WndProc (true after any mouse message). */
+	bool Cursor(float& mx, float& my);
 	void TickImGui(); /* sync WantCaptureMouse before pad logic */
 }

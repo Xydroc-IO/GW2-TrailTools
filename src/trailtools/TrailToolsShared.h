@@ -115,7 +115,7 @@ namespace TrailToolsDetail
 	extern DraftPack gDraft;
 	extern bool      gPlaceOnce;
 	extern bool      gFocus;
-	extern int       gTab; /* 0 Editor, 1 Pack, 2 Content, 3 Live, 4 Keybinds */
+	extern int       gTab; /* 0 Editor, 1 Pack, 2 Content (incl. Live), 3 Keybinds */
 
 	/* Multiple TrailsN / MarkersN editors (mockup: Trails1+Trails2, Markers1+Markers2). */
 	constexpr int kMaxTrailEditors = 5;
@@ -174,6 +174,7 @@ namespace TrailToolsDetail
 	extern bool  gXmlEditDirty;
 	/* Last-focused TrailsN for keybind recording (−1 = gDraft.active). */
 	extern int gTrailRecordSlot;
+	extern int gTrailEditorDrawSlot; /* slot index while Push/Pop draw is active; −1 else */
 	/* Hub: ignore Pop out / New window for one frame after a side-rail tab click. */
 	extern bool gHubSkipOpenClicks;
 	/* True while PushTrailEditorToActive holds a TrailsN trail in gDraft.active. */

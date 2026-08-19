@@ -40,6 +40,7 @@ void UI_Render()
 	WorldClick::TickImGui();
 	TrailToolsGround::TickSample();
 	TrailToolsPad::Render();
+	TrailToolsBinds::PollRecording();
 	CrashTrail::HeartbeatIfHot();
 	PackEdit::Tick();
 	PackEdit::DrawPopouts();
@@ -74,19 +75,30 @@ void UI_DrawSettingsControls()
 {
 	ImGui::TextUnformatted("GW2-TrailTools");
 	ImGui::Separator();
+	PackEdit::DrawWorldToggles();
+	ImGui::TextDisabled("Keybinds work while GW2 is focused (pad can be closed).");
+	ImGui::Separator();
 	ImGui::Checkbox("Show Trail Tools", &G::ShowTrailTools);
 	ImGui::SliderFloat("Opacity", &G::Opacity, 0.5f, 1.f, "%.2f");
 	ImGui::SliderFloat("Font scale", &G::FontScale, 0.75f, 2.f, "%.2f");
 	ImGui::Checkbox("Auto font scale", &G::FontScaleAuto);
 	ImGui::Checkbox("Hide preview when map open", &G::HideWhenMapOpen);
 	ImGui::Checkbox("Hide preview out of gameplay", &G::HideOutOfGameplay);
-	ImGui::SliderFloat("GPS max distance", &G::WorldTrailMaxDist, 40.f, 400.f, "%.0f");
-	ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.5f, 4.f, "%.2f");
-	ImGui::SliderFloat("Trail player clear", &G::WorldTrailPlayerClear, 0.f, 3.f, "%.2f");
-	ImGui::SliderFloat("Marker player clear", &G::WorldMarkerPlayerClear, 0.f, 3.f, "%.2f");
-	ImGui::SliderFloat("World marker scale", &G::WorldMarkerScale, 0.5f, 3.f, "%.2f");
+	if (ImGui::CollapsingHeader("World GPS###gw2tt_opt_gps"))
+	{
+		ImGui::SliderFloat("GPS max distance", &G::WorldTrailMaxDist, 40.f, 400.f, "%.0f");
+		ImGui::SliderFloat("GPS width", &G::WorldTrailWidth, 0.15f, 4.f, "%.2f");
+		ImGui::Checkbox("Trail texture (arrows)", &G::WorldTrailUseTexture);
+		if (ImGui::Checkbox("Hide trail near me", &G::WorldTrailPlayerClearOn) &&
+			G::WorldTrailPlayerClearOn && G::WorldTrailPlayerClear < 0.05f)
+			G::WorldTrailPlayerClear = 1.f;
+		ImGui::SliderFloat("Trail player clear", &G::WorldTrailPlayerClear, 0.f, 3.f, "%.2f");
+		ImGui::SliderFloat("Marker player clear", &G::WorldMarkerPlayerClear, 0.f, 3.f, "%.2f");
+		ImGui::SliderFloat("World marker scale", &G::WorldMarkerScale, 0.5f, 3.f, "%.2f");
+	}
 	if (ImGui::Button("Open Trail Tools"))
 		TrailToolsPad::Open();
+	ImGui::SameLine();
 	if (ImGui::Button("Reload packs"))
 		PathingTrails::ReloadPacks();
 	ImGui::Spacing();

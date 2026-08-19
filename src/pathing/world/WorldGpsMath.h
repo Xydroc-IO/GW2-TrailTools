@@ -28,7 +28,7 @@ namespace WorldGpsMath
 		if (!(scale >= 0.05f && scale <= 8.f))
 			scale = 1.f;
 		float mul = userMul;
-		if (!(mul >= 0.5f && mul <= 4.f))
+		if (!(mul >= 0.15f && mul <= 4.f))
 			mul = 1.f;
 		return kBlishHalfM * scale * mul;
 	}
@@ -76,10 +76,19 @@ namespace WorldGpsMath
 		}
 	};
 
+	/* TacO .trl section break — must not be drawn as a world vertex at origin. */
+	inline bool IsTrailSectionBreak(float x, float y, float z)
+	{
+		return x == 0.f && y == 0.f && z == 0.f;
+	}
+
 	bool Finite3(float x, float y, float z);
 	bool ReasonablePos(float x, float y, float z);
 	float ParseFovRadians();
 	bool BuildViewProj(float screenW, float screenH, Mat4& out, Vec3& camOut);
+	bool ScreenRay(float mx, float my, float screenW, float screenH,
+		const Mat4& viewProj, Vec3& origin, Vec3& dir);
+	float TrailPlayerClearMul();
 	bool WorldToScreen(const Vec3& world, const Mat4& viewProj,
 		float screenW, float screenH, float& sx, float& sy);
 	float ClipW(const Vec3& world, const Mat4& viewProj);

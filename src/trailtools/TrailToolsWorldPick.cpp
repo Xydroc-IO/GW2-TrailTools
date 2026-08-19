@@ -14,35 +14,26 @@
 
 bool TrailToolsWorldPick::CameraRay(WorldGpsMath::Vec3& cam, WorldGpsMath::Vec3& dir)
 {
+	const ImGuiIO& io = ImGui::GetIO();
+	return CameraRayAt(io.MousePos.x, io.MousePos.y, cam, dir);
+}
+
+bool TrailToolsWorldPick::CameraRayAt(float mx, float my, WorldGpsMath::Vec3& cam, WorldGpsMath::Vec3& dir)
+{
 	using namespace WorldGpsMath;
 	if (!G::Mumble)
 		return false;
 	const ImGuiIO& io = ImGui::GetIO();
 	const float sw = io.DisplaySize.x;
 	const float sh = io.DisplaySize.y;
-	if (sw < 8.f || sh < 8.f)
+	Mat4 vp{};
+	Vec3 camOut{};
+	if (!BuildViewProj(sw, sh, vp, camOut))
 		return false;
-	const float* cp = G::Mumble->fCameraPosition;
-	const float* cf = G::Mumble->fCameraFront;
-	const float* ct = G::Mumble->fCameraTop;
-	if (!ReasonablePos(cp[0], cp[1], cp[2]))
+	Vec3 dummy{};
+	if (!ScreenRay(mx, my, sw, sh, vp, dummy, dir))
 		return false;
-	cam = { cp[0], cp[1], cp[2] };
-	Vec3 f = Vec3{ cf[0], cf[1], cf[2] }.Normalised();
-	Vec3 topHint{ ct[0], ct[1], ct[2] };
-	Vec3 worldUp = (topHint.LengthSq() > 0.01f) ? topHint.Normalised() : Vec3{ 0.f, 1.f, 0.f };
-	if (std::fabs(f.Dot(worldUp)) > 0.98f)
-		worldUp = Vec3{ 0.f, 1.f, 0.f };
-	Vec3 r = worldUp.Cross(f).Normalised();
-	Vec3 u = f.Cross(r).Normalised();
-	if (r.LengthSq() < 0.5f || u.LengthSq() < 0.5f)
-		return false;
-	const float fov = ParseFovRadians();
-	const float aspect = sw / sh;
-	const float tanHalf = std::tan(fov * 0.5f);
-	const float ndcX = (io.MousePos.x / sw) * 2.f - 1.f;
-	const float ndcY = 1.f - (io.MousePos.y / sh) * 2.f;
-	dir = (f + r * (ndcX * aspect * tanHalf) + u * (ndcY * tanHalf)).Normalised();
+	cam = camOut;
 	return dir.LengthSq() > 0.5f;
 }
 
@@ -51,6 +42,24 @@ bool TrailToolsWorldPick::RayPlaneY(float planeY, float& outX, float& outY, floa
 	using namespace WorldGpsMath;
 	Vec3 cam{}, dir{};
 	if (!CameraRay(cam, dir))
+		return false;
+	if (std::fabs(dir.y) < 1e-4f)
+		return false;
+	const float t = (planeY - cam.y) / dir.y;
+	if (t < 0.5f || t > 4000.f)
+		return false;
+	outX = cam.x + dir.x * t;
+	outY = planeY;
+	outZ = cam.z + dir.z * t;
+	return ReasonablePos(outX, outY, outZ);
+}
+
+bool TrailToolsWorldPick::RayPlaneYAt(float planeY, float mx, float my,
+	float& outX, float& outY, float& outZ)
+{
+	using namespace WorldGpsMath;
+	Vec3 cam{}, dir{};
+	if (!CameraRayAt(mx, my, cam, dir))
 		return false;
 	if (std::fabs(dir.y) < 1e-4f)
 		return false;

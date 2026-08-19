@@ -82,6 +82,7 @@ namespace PackEdit
 
 	const AttrDef* AttrTable(int& count);
 	void DrawTab();
+	void DrawWorldToggles();
 	void Tick();
 	void RenderWorld();
 	bool OpenZip(const std::wstring& path, std::string& err);

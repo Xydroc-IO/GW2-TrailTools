@@ -2,6 +2,7 @@
 
 #include "TrailToolsDraftStyle.h"
 #include "TrailToolsShared.h"
+#include "TrailToolsTrailGeom.h"
 #include "Globals.h"
 #include "WorldGpsD3d.h"
 #include "WorldGpsImgui.h"
@@ -45,7 +46,7 @@ void TrailToolsPreview::RenderWorld()
 		G::Mumble->fAvatarPosition[1],
 		G::Mumble->fAvatarPosition[2]
 	};
-	const float thickness = std::clamp(G::WorldTrailWidth, 0.5f, 4.f);
+	const float thickness = std::clamp(G::WorldTrailWidth, 0.15f, 4.f);
 	const float maxDist = std::max(80.f, G::WorldTrailMaxDist);
 
 	const DraftTrail& rec = RecordingTrail();
@@ -87,4 +88,43 @@ void TrailToolsPreview::RenderWorld()
 	}
 	if (!marks.empty())
 		WorldGpsImgui::DrawMarkers(dl, viewProj, screenW, screenH, avatar, marks);
+
+	if (rec.mapId != 0 && rec.mapId != ctx->mapId)
+		return;
+
+	int& sel = RecordingSelectedPoint();
+	int bestHit = -1;
+	float bestD = 22.f * 22.f;
+	for (int i = 0; i < static_cast<int>(rec.points.size()); ++i)
+	{
+		const auto& p = rec.points[static_cast<size_t>(i)];
+		if (TrailToolsTrailGeom::IsBreak(p))
+			continue;
+		float sx = 0.f, sy = 0.f;
+		if (!WorldGpsMath::WorldToScreen({ p.x, p.y, p.z }, viewProj, screenW, screenH, sx, sy))
+			continue;
+		const float r = (sel == i) ? 13.f : 10.f;
+		const ImU32 fill = (sel == i) ? IM_COL32(80, 220, 255, 230) : IM_COL32(255, 255, 255, 215);
+		dl->AddCircleFilled(ImVec2(sx, sy), r, fill, 20);
+		dl->AddCircle(ImVec2(sx, sy), r + 1.4f, IM_COL32(20, 20, 24, 230), 20, 1.8f);
+		if (!io.WantCaptureMouse)
+		{
+			const float dx = sx - io.MousePos.x, dy = sy - io.MousePos.y;
+			const float d = dx * dx + dy * dy;
+			if (d < bestD)
+			{
+				bestD = d;
+				bestHit = i;
+			}
+		}
+	}
+
+	if (gUberToolEnabled || bestHit < 0 || io.WantCaptureMouse)
+		return;
+	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+	{
+		sel = bestHit;
+		SetStatus("Selected #%d — Move to Feet, Delete Nearest, or enable UberTool to drag.",
+			bestHit);
+	}
 }

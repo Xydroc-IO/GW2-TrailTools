@@ -29,6 +29,7 @@ namespace
 	void DrawFileTools()
 	{
 		using namespace TrailToolsDetail;
+		PadNav::PushWrap();
 		if (RowBtn("New###gw2tt_tt_newtrl", true))
 		{
 			TrailToolsEditUndo::PushTrail();
@@ -109,10 +110,12 @@ namespace
 				SetStatus("Copied %s", line.c_str());
 			}
 		}
+		PadNav::PopWrap();
 	}
 
 	void DrawTrailTools()
 	{
+		PadNav::PushWrap();
 		if (RowBtn("New Segment###gw2tt_tt_sec", true))
 			TrailToolsBinds::ActionTrailSection();
 		if (RowBtn("Insert Vector###gw2tt_tt_insvec", false))
@@ -123,13 +126,17 @@ namespace
 			TrailToolsBinds::ActionTrailMoveToFeet();
 		if (RowBtn("Delete Nearest###gw2tt_tt_delnear", false))
 			TrailToolsBinds::ActionTrailDeleteNearest();
-		if (RowBtn("Undo###gw2tt_tt_tr_undo", false))
-			TrailToolsEditUndo::UndoTrail();
+		if (TrailToolsEditUndo::CanUndoTrail())
+		{
+			if (RowBtn("Undo###gw2tt_tt_tr_undo", false))
+				TrailToolsEditUndo::UndoTrail();
+		}
+		PadNav::PopWrap();
 	}
 
 	void ClampSampleSpacing(float& v)
 	{
-		if (!std::isfinite(v) || v < 0.1f || v > 5.f)
+		if (!std::isfinite(v) || v < 0.05f || v > 5.f)
 			v = 0.3f;
 	}
 
@@ -139,21 +146,27 @@ namespace
 		auto& kb = TrailToolsBinds::Get();
 		ClampSampleSpacing(kb.trailSampleSpacing);
 		ImGui::TextUnformatted("Recording");
-		ImGui::Dummy(ImVec2(0.f, 2.f));
-		if (ImGui::Button("Start###gw2tt_tt_rec", ImVec2(-1.f, 0.f)))
-		{
-			if (kb.trailRecording)
-				TrailToolsBinds::ActionTrailStop();
-			else
-				TrailToolsBinds::ActionTrailStart();
-		}
-		if (ImGui::Button("Pause###gw2tt_tt_recpause", ImVec2(-1.f, 0.f)))
-			TrailToolsBinds::ActionTrailPause();
 		ImGui::Dummy(ImVec2(0.f, 6.f));
+		if (kb.trailRecording)
+		{
+			if (ImGui::Button("Stop###gw2tt_tt_recstop", ImVec2(-1.f, 0.f)))
+				TrailToolsBinds::ActionTrailStop();
+		}
+		else if (ImGui::Button("Start###gw2tt_tt_recstart", ImVec2(-1.f, 0.f)))
+			TrailToolsBinds::ActionTrailStart();
+		const char* pauseLab = (kb.trailRecording && kb.trailPaused)
+			? "Resume###gw2tt_tt_recpause"
+			: "Pause###gw2tt_tt_recpause";
+		if (ImGui::Button(pauseLab, ImVec2(-1.f, 0.f)))
+			TrailToolsBinds::ActionTrailPause();
+		ImGui::Dummy(ImVec2(0.f, 10.f));
 		ImGui::TextUnformatted("Spacing");
 		ImGui::SetNextItemWidth(-1.f);
 		if (ImGui::InputFloat("###gw2tt_tt_vspace", &kb.trailSampleSpacing, 0.f, 0.f, "%.2f"))
 			ClampSampleSpacing(kb.trailSampleSpacing);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Seconds between samples while moving (0.3 = 1/3 s).\n"
+				"Standing still does not add duplicate vectors.");
 		if (kb.trailRecording)
 			ImGui::TextColored(kb.trailPaused ? HelperTheme::Muted : HelperTheme::Ok,
 				kb.trailPaused ? "Paused" : "Recording");
@@ -166,41 +179,41 @@ namespace
 		using namespace TrailToolsDetail;
 		ImGui::TextDisabled("Raw trail data  ·  map %u  ·  %zu pts%s", gDraft.active.mapId,
 			gDraft.active.points.size(), gDraft.trailDirty ? " *" : "");
-		if (ImGui::BeginChild("###gw2tt_tt_rawpts", ImVec2(0.f, height), true))
+		ImGui::BeginChild("###gw2tt_tt_rawpts", ImVec2(0.f, height), true);
+		ImGui::Dummy(ImVec2(0.f, 4.f));
+		for (int i = 0; i < static_cast<int>(gDraft.active.points.size()); ++i)
 		{
-			for (int i = 0; i < static_cast<int>(gDraft.active.points.size()); ++i)
+			auto& p = gDraft.active.points[static_cast<size_t>(i)];
+			ImGui::PushID(i);
+			const bool sel = gDraft.selectedPoint == i;
+			if (IsSectionBreak(p))
 			{
-				auto& p = gDraft.active.points[static_cast<size_t>(i)];
-				ImGui::PushID(i);
-				const bool sel = gDraft.selectedPoint == i;
-				if (IsSectionBreak(p))
-				{
-					if (ImGui::Selectable("[segment]", sel))
-						gDraft.selectedPoint = i;
-				}
-				else
-				{
-					char idx[16]{};
-					std::snprintf(idx, sizeof(idx), "%d", i);
-					if (ImGui::Selectable(idx, sel, 0, ImVec2(36.f, 0.f)))
-						gDraft.selectedPoint = i;
-					ImGui::SameLine();
-					float v[3] = { p.x, p.y, p.z };
-					ImGui::SetNextItemWidth(-1.f);
-					if (ImGui::InputFloat3("###xyz", v, "%.4f"))
-					{
-						p.x = v[0];
-						p.y = v[1];
-						p.z = v[2];
-						gDraft.selectedPoint = i;
-						gDraft.trailDirty = true;
-					}
-				}
-				ImGui::PopID();
+				if (ImGui::Selectable("[segment]", sel))
+					gDraft.selectedPoint = i;
 			}
-			if (gDraft.active.points.empty())
-				ImGui::TextDisabled("Insert Vector (feet) or Start recording.");
+			else
+			{
+				char idx[16]{};
+				std::snprintf(idx, sizeof(idx), "%d", i);
+				if (ImGui::Selectable(idx, sel, 0, ImVec2(28.f, 0.f)))
+					gDraft.selectedPoint = i;
+				ImGui::SameLine();
+				float v[3] = { p.x, p.y, p.z };
+				const float xyzW = ImGui::GetContentRegionAvail().x * 0.58f;
+				ImGui::SetNextItemWidth(xyzW < 168.f ? 168.f : xyzW);
+				if (ImGui::InputFloat3("###xyz", v, "%.4f"))
+				{
+					p.x = v[0];
+					p.y = v[1];
+					p.z = v[2];
+					gDraft.selectedPoint = i;
+					gDraft.trailDirty = true;
+				}
+			}
+			ImGui::PopID();
 		}
+		if (gDraft.active.points.empty())
+			ImGui::TextDisabled("Insert Vector (feet) or Start recording.");
 		ImGui::EndChild();
 	}
 }
@@ -215,11 +228,11 @@ void TrailToolsDetail::DrawTrailRawEditor()
 	const bool focused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 	TrailToolsEditUndo::PollTrailHotkey(focused);
 
-	PadNav::PushWrap();
+	ImGui::Dummy(ImVec2(0.f, 10.f));
 	DrawFileTools();
+	ImGui::Dummy(ImVec2(0.f, 10.f));
 	DrawTrailTools();
-	PadNav::PopWrap();
-	ImGui::Dummy(ImVec2(0.f, 4.f));
+	ImGui::Dummy(ImVec2(0.f, 10.f));
 
 	const float pad = ImGui::GetStyle().WindowPadding.x * 2.f + 4.f;
 	const float leftW = PadNav::ButtonWidth("Recording") + pad;
@@ -228,7 +241,7 @@ void TrailToolsDetail::DrawTrailRawEditor()
 		ImGuiWindowFlags_NoScrollbar);
 	DrawRecordingRail();
 	ImGui::EndChild();
-	ImGui::SameLine(0.f, 8.f);
+	ImGui::SameLine(0.f, 12.f);
 	ImGui::BeginChild("###gw2tt_tt_rawbody", ImVec2(0.f, rowH), false);
 	{
 		const float moreH = ImGui::GetFrameHeightWithSpacing();

@@ -23,8 +23,10 @@ namespace G
 	float FontScale = 1.25f;
 	bool  FontScaleAuto = false;
 	float WorldTrailMaxDist = 120.f;
-	float WorldTrailWidth = 1.f;
-	float WorldTrailPlayerClear = 1.f;
+	float WorldTrailWidth = 0.55f;
+	float WorldTrailPlayerClear = 0.f;
+	bool  WorldTrailPlayerClearOn = false;
+	bool  WorldTrailUseTexture = false;
 	float WorldMarkerPlayerClear = 1.f;
 	float WorldMarkerScale = 2.f;
 	float CompassMarkerScale = 1.f;

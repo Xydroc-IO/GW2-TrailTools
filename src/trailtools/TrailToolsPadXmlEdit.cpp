@@ -81,6 +81,22 @@ void TrailToolsDetail::DrawXmlEditorBody()
 		gXmlEditDirty = true;
 }
 
+void TrailToolsDetail::DrawXmlEditorPane(float height)
+{
+	if (gXmlEdit.empty())
+		gXmlEdit = TrailToolsXml::EmitOverlayData(gDraft);
+	if (gXmlEdit.capacity() < gXmlEdit.size() + 256)
+		gXmlEdit.reserve(gXmlEdit.size() + 1024);
+	const float h = height > 40.f ? height : 40.f;
+	ImGuiInputTextFlags flags = ImGuiInputTextFlags_AllowTabInput |
+		ImGuiInputTextFlags_CallbackResize;
+	const float w = ImGui::GetContentRegionAvail().x;
+	if (ImGui::InputTextMultiline("###gw2tt_tt_xmlbuf_hub", gXmlEdit.data(),
+		gXmlEdit.capacity() + 1, ImVec2(w > 8.f ? w : 8.f, h),
+		flags, XmlResizeCb, &gXmlEdit))
+		gXmlEditDirty = true;
+}
+
 bool TrailToolsDetail::RenderXmlEditorPad()
 {
 	if (!gShowXmlEdit)

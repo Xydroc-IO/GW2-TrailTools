@@ -36,14 +36,15 @@ namespace TrailToolsBinds
 		PlaceSlot place[kPlaceSlots]{};
 		bool      trailRecording = false;
 		bool      trailPaused = false;
-		float     trailSampleSpacing = 0.3f; /* meters between auto samples while recording */
+		float     trailSampleSpacing = 0.3f; /* seconds between auto samples while recording */
 		int       captureTarget = -1; /* UI: which row is listening; -1 = none */
 	};
 
 	State& Get();
 
 	void SetDefaults();
-	void Poll(); /* edge-trigger chords + auto-sample while recording */
+	void Poll(); /* edge-trigger chords */
+	void PollRecording(); /* auto-sample after TrailsN swap is committed */
 
 	/* Actions (also used by Trails / Markers tabs). */
 	void ActionTrailStart();

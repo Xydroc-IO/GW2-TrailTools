@@ -7,8 +7,8 @@
 /* Trail Tools pad tab drawers (TrailToolsPad*.cpp). */
 namespace TrailToolsDetail
 {
-	void DrawLiveTab();
-	void DrawContentTab(); /* combined Trails + Markers project lists */
+	void DrawLiveTab(); /* pose / UberTool / world click — drawn on Content */
+	void DrawContentTab(); /* Live + Trails/Markers project lists */
 	void DrawTrailTab(); /* full tab when docked: desk + raw (legacy entry) */
 	void DrawTrailDesk(bool asPopout = false); /* category + list + TrailsN (no XML chrome) */
 	void DrawTrailRawEditor(); /* uses gDraft.active (after PushTrailEditorToActive) */
@@ -16,8 +16,9 @@ namespace TrailToolsDetail
 	void DrawMarkersDesk(bool asPopout = false); /* category + list + MarkersN (no XML chrome) */
 	void DrawMarkerRawEditor(); /* uses gDraft.selectedPoi */
 	void DrawMarkerRawEditorForSlot(int slot); /* MarkersN bound to slot.poiIndex */
-	void DrawXmlProjectDesk(); /* Pack tab only — New/Load/Save OverlayData */
+	void DrawXmlProjectStrip(); /* Content — OverlayData path + New/Load/Save */
 	void DrawXmlEditorBody();
+	void DrawXmlEditorPane(float height);
 	bool RenderXmlEditorPad(); /* pop-out OverlayData text editor */
 	void DrawPackTab();
 	void DrawKeybindsTab();

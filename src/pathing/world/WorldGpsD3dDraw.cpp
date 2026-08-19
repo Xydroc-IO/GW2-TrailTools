@@ -221,7 +221,8 @@ namespace
 		};
 		for (const auto& wp : snip.points)
 		{
-			if (!WorldGpsMath::ReasonablePos(wp.x, wp.y, wp.z))
+			if (WorldGpsMath::IsTrailSectionBreak(wp.x, wp.y, wp.z) ||
+				!WorldGpsMath::ReasonablePos(wp.x, wp.y, wp.z))
 			{
 				flush();
 				continue;
@@ -309,6 +310,8 @@ bool WorldGpsD3d::DrawTrails(
 	auto addSnip = [&](const PathingTrails::WorldSnippet& snip, bool bright, float thick) {
 		Batch b;
 		b.srv = ResolveSrv(snip);
+		if (!G::WorldTrailUseTexture && !IsHeartTrail(snip))
+			b.srv = nullptr;
 		/* Hearts without texture would fall back to a solid yellow ribbon - skip. */
 		if (IsHeartTrail(snip) && !b.srv)
 			return;
@@ -338,7 +341,7 @@ bool WorldGpsD3d::DrawTrails(
 
 	float fadeStart = 0.f, fadeEnd = 0.f;
 	WorldGpsMath::TrailFadeRange(maxDist, fadeStart, fadeEnd);
-	const float clearMul = std::clamp(G::WorldTrailPlayerClear, 0.f, 3.f);
+	const float clearMul = WorldGpsMath::TrailPlayerClearMul();
 	const float hideM = WorldGpsMath::kAvatarTrailHideAt1 * clearMul;
 	const float fadeM = hideM + WorldGpsMath::kAvatarTrailFadeExtraAt1 * clearMul;
 

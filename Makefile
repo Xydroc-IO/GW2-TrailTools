@@ -90,6 +90,7 @@ SRC_CPP = \
 	src/trailtools/TrailToolsTrailGeom.cpp \
 	src/trailtools/TrailToolsTrl.cpp \
 	src/trailtools/TrailToolsUberTool.cpp \
+	src/trailtools/TrailToolsUberToolDraw.cpp \
 	src/trailtools/TrailToolsWorldPick.cpp \
 	src/trailtools/TrailToolsXml.cpp \
 	deps/imgui/imgui.cpp \

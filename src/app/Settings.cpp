@@ -62,6 +62,10 @@ namespace
 			G::WorldTrailWidth = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WorldTrailPlayerClear") == 0)
 			G::WorldTrailPlayerClear = static_cast<float>(std::atof(val));
+		else if (std::strcmp(key, "WorldTrailPlayerClearOn") == 0)
+			G::WorldTrailPlayerClearOn = AsBool(val);
+		else if (std::strcmp(key, "WorldTrailUseTexture") == 0)
+			G::WorldTrailUseTexture = AsBool(val);
 		else if (std::strcmp(key, "WorldMarkerPlayerClear") == 0)
 			G::WorldMarkerPlayerClear = static_cast<float>(std::atof(val));
 		else if (std::strcmp(key, "WorldMarkerScale") == 0)
@@ -138,6 +142,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "WorldTrailMaxDist=%.1f\n", G::WorldTrailMaxDist);
 	std::fprintf(f, "WorldTrailWidth=%.2f\n", G::WorldTrailWidth);
 	std::fprintf(f, "WorldTrailPlayerClear=%.2f\n", G::WorldTrailPlayerClear);
+	std::fprintf(f, "WorldTrailPlayerClearOn=%d\n", G::WorldTrailPlayerClearOn ? 1 : 0);
+	std::fprintf(f, "WorldTrailUseTexture=%d\n", G::WorldTrailUseTexture ? 1 : 0);
 	std::fprintf(f, "WorldMarkerPlayerClear=%.2f\n", G::WorldMarkerPlayerClear);
 	std::fprintf(f, "WorldMarkerScale=%.2f\n", G::WorldMarkerScale);
 	std::fprintf(f, "CompassMarkerScale=%.2f\n", G::CompassMarkerScale);

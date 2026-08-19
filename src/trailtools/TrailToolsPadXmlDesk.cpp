@@ -190,30 +190,23 @@ namespace TrailToolsDetail
 		return true;
 	}
 
-	void DrawXmlProjectDesk()
+	void DrawXmlProjectStrip()
 	{
-		PadNav::SectionTitle("1 · Project XML");
-		PadNav::BeginSection("xml_proj");
-		PadNav::InputCaption("OverlayData path", "gw2tt_tt_xmlpath",
+		PadNav::InputCaption("OverlayData path", "gw2tt_tt_xmlpath_c",
 			gDraft.xmlPath, sizeof(gDraft.xmlPath));
 		if (gDraft.xmlDirty)
 			ImGui::TextColored(HelperTheme::Warn, "Unsaved changes");
-
-		if (ImGui::Button("New###gw2tt_tt_xmlnew"))
+		if (ImGui::Button("New###gw2tt_tt_xmlnew_c"))
 			NewProjectXml();
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Load..."));
-		if (ImGui::Button("Load...###gw2tt_tt_xmlload"))
+		if (ImGui::Button("Load...###gw2tt_tt_xmlload_c"))
 			LoadProjectXml();
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Save As..."));
-		if (ImGui::Button("Save As...###gw2tt_tt_xmlsaveas"))
+		if (ImGui::Button("Save As...###gw2tt_tt_xmlsaveas_c"))
 			SaveProjectXml(true);
 		PadNav::WrapSameLine(PadNav::ButtonWidth("Save"));
-		if (PadNav::PrimaryButton("Save###gw2tt_tt_xmlsave"))
+		if (PadNav::PrimaryButton("Save###gw2tt_tt_xmlsave_c"))
 			SaveProjectXml(false);
-		PadNav::WrapSameLine(PadNav::ButtonWidth("XML editor"));
-		if (ImGui::Button("XML editor###gw2tt_tt_xmledit") && !gHubSkipOpenClicks)
-			OpenXmlEditor();
-		ImGui::TextDisabled("One OverlayData file. Use the editor for custom TacO/Blish attrs.");
-		PadNav::EndSection();
+		ImGui::TextDisabled("XML (categories, trails, and markers).");
 	}
 }

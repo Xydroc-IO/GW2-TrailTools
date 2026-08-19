@@ -119,22 +119,7 @@ void PackEdit::DrawTab()
 	}
 	if (gDoc.dirty)
 		ImGui::TextColored(HelperTheme::Warn, "Unsaved edits");
-	ImGui::Checkbox("Draw pack in world###pe_wdraw", &gDoc.worldDraw);
-	ImGui::SameLine();
-	ImGui::Checkbox("World gizmo###pe_giz", &gDoc.gizmoOn);
-	ImGui::SameLine();
-	ImGui::Checkbox("Rotate drag###pe_rotmode", &gDoc.rotateMode);
-	ImGui::Checkbox("This map only###pe_maponly", &gDoc.thisMapOnly);
-	ImGui::SameLine();
-	ImGui::Checkbox("Pop tree###pe_popt", &gDoc.popTree);
-	ImGui::SameLine();
-	ImGui::Checkbox("Pop details###pe_popd", &gDoc.popDet);
-	ImGui::SameLine();
-	ImGui::Checkbox("Pop resources###pe_popr", &gDoc.popRes);
-	ImGui::SameLine();
-	ImGui::Checkbox("Pop 2D map###pe_popm", &gDoc.popMap);
-	ImGui::Checkbox("Ground snap###pe_gsnap", &TrailToolsDetail::gGroundSnap);
-	ImGui::TextDisabled("Ground snap: walk + pack points, plane fit (not the game mesh).");
+	DrawWorldToggles();
 	if (ImGui::Button("Undo###pe_undo"))
 		Undo();
 	PadNav::WrapSameLine(PadNav::ButtonWidth("Redo"));
@@ -182,4 +167,24 @@ void PackEdit::DrawTab()
 		ImGui::TextColored(HelperTheme::Warn, "%d lint issues (empty type, MapID 0, or missing trailData).", lint);
 	ImGui::TextDisabled("%zu markers/trails · %zu selected · Save keeps original XML files.",
 		gDoc.items.size(), gDoc.selItems.size());
+}
+
+void PackEdit::DrawWorldToggles()
+{
+	ImGui::Checkbox("Draw pack in world###pe_wdraw", &gDoc.worldDraw);
+	ImGui::SameLine();
+	ImGui::Checkbox("World gizmo###pe_giz", &gDoc.gizmoOn);
+	ImGui::SameLine();
+	ImGui::Checkbox("Rotate drag###pe_rotmode", &gDoc.rotateMode);
+	ImGui::Checkbox("This map only###pe_maponly", &gDoc.thisMapOnly);
+	ImGui::SameLine();
+	ImGui::Checkbox("Pop tree###pe_popt", &gDoc.popTree);
+	ImGui::SameLine();
+	ImGui::Checkbox("Pop details###pe_popd", &gDoc.popDet);
+	ImGui::SameLine();
+	ImGui::Checkbox("Pop resources###pe_popr", &gDoc.popRes);
+	ImGui::SameLine();
+	ImGui::Checkbox("Pop 2D map###pe_popm", &gDoc.popMap);
+	ImGui::Checkbox("Ground snap###pe_gsnap", &TrailToolsDetail::gGroundSnap);
+	ImGui::TextDisabled("Ground snap: walk + pack points, plane fit (not the game mesh).");
 }

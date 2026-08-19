@@ -43,7 +43,7 @@ int WorldGpsImgui::DrawTrailBillboards(
 	const float stepM = std::clamp(halfM * 2.15f, 0.85f, 2.4f);
 
 	Texture_t* texture = nullptr;
-	if (seg.textureId[0] && G::API && G::API->Textures_Get)
+	if (G::WorldTrailUseTexture && seg.textureId[0] && G::API && G::API->Textures_Get)
 	{
 		texture = G::API->Textures_Get(seg.textureId);
 		if (texture && !texture->Resource)
@@ -66,7 +66,7 @@ int WorldGpsImgui::DrawTrailBillboards(
 		return std::isfinite(d) ? d : 1.0e30f;
 	};
 
-	const float clearMul = std::clamp(G::WorldTrailPlayerClear, 0.f, 3.f);
+	const float clearMul = WorldGpsMath::TrailPlayerClearMul();
 	const float hideM = WorldGpsMath::kAvatarTrailHideAt1 * clearMul;
 	const float fadeM = hideM + WorldGpsMath::kAvatarTrailFadeExtraAt1 * clearMul;
 	const bool clearOn = clearMul > 0.001f;
@@ -253,7 +253,8 @@ int WorldGpsImgui::DrawTrailBillboards(
 	pts.reserve(64);
 	for (const PathingTrails::WorldPoint& wp : seg.points)
 	{
-		if (!WorldGpsMath::ReasonablePos(wp.x, wp.y, wp.z))
+		if (WorldGpsMath::IsTrailSectionBreak(wp.x, wp.y, wp.z) ||
+			!WorldGpsMath::ReasonablePos(wp.x, wp.y, wp.z))
 		{
 			drawBillboards(pts);
 			pts.clear();

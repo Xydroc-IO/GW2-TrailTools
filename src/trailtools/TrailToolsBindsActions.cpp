@@ -20,6 +20,69 @@ namespace
 	bool  gHeld[32]{}; /* edge detect for fixed actions + place slots */
 	float gLastSampleX = 0.f, gLastSampleY = 0.f, gLastSampleZ = 0.f;
 	bool  gHaveSample = false;
+	DWORD gLastSampleTick = 0;
+	int   gSampleFrames = 0;
+
+	void MarkSampleNow()
+	{
+		gLastSampleTick = GetTickCount();
+		if (gLastSampleTick == 0)
+			gLastSampleTick = 1;
+		gSampleFrames = 0;
+	}
+
+	bool SampleIntervalElapsed(float spacingSec)
+	{
+		++gSampleFrames;
+		const DWORD now = GetTickCount();
+		DWORD needMs = static_cast<DWORD>(spacingSec * 1000.f + 0.5f);
+		if (needMs < 50)
+			needMs = 50;
+		if (needMs > 5000)
+			needMs = 5000;
+		int needFr = static_cast<int>(std::lround(static_cast<double>(spacingSec) * 60.0));
+		if (needFr < 2)
+			needFr = 2;
+		if (needFr > 300)
+			needFr = 300;
+		const bool timeDue = gLastSampleTick != 0 && (now - gLastSampleTick) >= needMs;
+		const bool frameDue = gSampleFrames >= needFr;
+		if (!timeDue && !frameDue)
+			return false;
+		gLastSampleTick = now == 0 ? 1 : now;
+		gSampleFrames = 0;
+		return true;
+	}
+
+	bool MovedFrom(float x, float y, float z, float ox, float oy, float oz)
+	{
+		const float dx = x - ox, dy = y - oy, dz = z - oz;
+		return dx * dx + dy * dy + dz * dz >= 0.12f * 0.12f;
+	}
+
+	bool LastRealPoint(const TrailToolsDetail::DraftTrail& tr,
+		float& ox, float& oy, float& oz)
+	{
+		for (int i = static_cast<int>(tr.points.size()) - 1; i >= 0; --i)
+		{
+			const auto& p = tr.points[static_cast<size_t>(i)];
+			if (p.x == 0.f && p.y == 0.f && p.z == 0.f)
+				continue;
+			ox = p.x;
+			oy = p.y;
+			oz = p.z;
+			return true;
+		}
+		return false;
+	}
+
+	void RememberSample(float x, float y, float z)
+	{
+		gLastSampleX = x;
+		gLastSampleY = y;
+		gLastSampleZ = z;
+		gHaveSample = true;
+	}
 
 	bool KeyDown(int vk)
 	{
@@ -36,7 +99,9 @@ namespace
 
 	bool ChordDown(const Chord& c)
 	{
-		return c.vk != 0 && ModsMatch(c) && KeyDown(static_cast<int>(c.vk));
+		if (c.vk == 0 || c.vk <= VK_XBUTTON2)
+			return false;
+		return ModsMatch(c) && KeyDown(static_cast<int>(c.vk));
 	}
 
 	bool Edge(int idx, bool down)
@@ -78,10 +143,8 @@ namespace
 		tr.points.push_back({ x, y, z });
 		sel = static_cast<int>(tr.points.size()) - 1;
 		dirty = true;
-		gLastSampleX = x;
-		gLastSampleY = y;
-		gLastSampleZ = z;
-		gHaveSample = true;
+		RememberSample(x, y, z);
+		MarkSampleNow();
 	}
 
 	void SampleWhileRecording()
@@ -91,51 +154,35 @@ namespace
 		if (!gBinds.trailRecording || gBinds.trailPaused)
 			return;
 		DraftTrail& tr = RecordingTrail();
-		int& sel = RecordingSelectedPoint();
 		bool& dirty = RecordingTrailDirty();
 		uint32_t mapId = 0;
 		float x = 0.f, y = 0.f, z = 0.f;
 		if (!ReadMumblePose(mapId, x, y, z))
 			return;
+		if (tr.type.empty() && gDraft.trailType[0])
+			tr.type = gDraft.trailType;
 		if (tr.mapId == 0)
 			tr.mapId = mapId;
-		if (tr.mapId != mapId)
+		else if (tr.mapId != mapId)
 			return;
 
-		/* Do not append while standing still — compare to last real vertex, not a stale sample. */
-		float lx = x, ly = y, lz = z;
-		bool haveLast = false;
-		for (int i = static_cast<int>(tr.points.size()) - 1; i >= 0; --i)
-		{
-			const auto& p = tr.points[static_cast<size_t>(i)];
-			if (p.x == 0.f && p.y == 0.f && p.z == 0.f)
-				continue;
-			lx = p.x;
-			ly = p.y;
-			lz = p.z;
-			haveLast = true;
-			break;
-		}
 		const float spacing = (std::isfinite(gBinds.trailSampleSpacing) &&
-			gBinds.trailSampleSpacing > 0.05f)
+			gBinds.trailSampleSpacing >= 0.05f)
 			? gBinds.trailSampleSpacing
 			: 0.3f;
-		/* Floor so Mumble idle jitter (~cm) cannot spam duplicates if spacing is tiny. */
-		const float minMove = spacing > 0.05f ? spacing : 0.05f;
-		if (haveLast)
-		{
-			const float dx = x - lx, dy = y - ly, dz = z - lz;
-			if (dx * dx + dy * dy + dz * dz < minMove * minMove)
-				return;
-		}
+		if (!SampleIntervalElapsed(spacing))
+			return;
+
+		float lx = 0.f, ly = 0.f, lz = 0.f;
+		const bool haveLast = LastRealPoint(tr, lx, ly, lz);
+		if (haveLast && !MovedFrom(x, y, z, lx, ly, lz))
+			return;
+		if (gHaveSample && !MovedFrom(x, y, z, gLastSampleX, gLastSampleY, gLastSampleZ))
+			return;
 
 		tr.points.push_back({ x, y, z });
-		sel = static_cast<int>(tr.points.size()) - 1;
 		dirty = true;
-		gLastSampleX = x;
-		gLastSampleY = y;
-		gLastSampleZ = z;
-		gHaveSample = true;
+		RememberSample(x, y, z);
 	}
 }
 
@@ -144,26 +191,51 @@ void TrailToolsBinds::ActionTrailStart()
 	using namespace TrailToolsDetail;
 	auto& gBinds = Get();
 	EnsureWorkspace();
+	if (gTrailEditorDrawActive && gTrailEditorDrawSlot >= 0)
+		gTrailRecordSlot = gTrailEditorDrawSlot;
 	DraftTrail& tr = RecordingTrail();
 	if (!gBinds.trailRecording)
 	{
 		gBinds.trailRecording = true;
 		gBinds.trailPaused = false;
-		gHaveSample = false;
 		if (tr.type.empty() && gDraft.trailType[0])
 			tr.type = gDraft.trailType;
-		AppendPointAtFeet(false);
+		uint32_t mapId = 0;
+		float x = 0.f, y = 0.f, z = 0.f;
+		if (ReadMumblePose(mapId, x, y, z))
+		{
+			if (tr.mapId == 0 && mapId != 0)
+				tr.mapId = mapId;
+			const bool mapChange = tr.mapId != 0 && mapId != 0 && tr.mapId != mapId;
+			if (mapChange)
+			{
+				int& sel = RecordingSelectedPoint();
+				TrailToolsEditUndo::PushTrail();
+				if (!tr.points.empty())
+					tr.points.push_back({ 0.f, 0.f, 0.f });
+				tr.mapId = mapId;
+				tr.points.push_back({ x, y, z });
+				sel = static_cast<int>(tr.points.size()) - 1;
+				RecordingTrailDirty() = true;
+				RememberSample(x, y, z);
+			}
+			else if (tr.points.empty())
+				AppendPointAtFeet(false);
+			else
+				RememberSample(x, y, z);
+		}
+		MarkSampleNow();
 		SetStatus("Recording trail... (%zu pts).", tr.points.size());
 		return;
 	}
 	if (gBinds.trailPaused)
 	{
 		gBinds.trailPaused = false;
+		MarkSampleNow();
 		SetStatus("Trail recording resumed.");
 		return;
 	}
-	AppendPointAtFeet(true);
-	SetStatus("Keyframe #%zu.", tr.points.size());
+	SetStatus("Already recording — Pause or Stop.");
 }
 
 void TrailToolsBinds::ActionTrailPause()
@@ -176,20 +248,38 @@ void TrailToolsBinds::ActionTrailPause()
 		return;
 	}
 	gBinds.trailPaused = !gBinds.trailPaused;
+	if (!gBinds.trailPaused)
+		MarkSampleNow();
 	SetStatus(gBinds.trailPaused ? "Trail recording paused." : "Trail recording resumed.");
 }
 
 void TrailToolsBinds::ActionTrailSection()
 {
 	using namespace TrailToolsDetail;
+	EnsureWorkspace();
 	DraftTrail& tr = RecordingTrail();
 	int& sel = RecordingSelectedPoint();
+	uint32_t mapId = 0;
+	float x = 0.f, y = 0.f, z = 0.f;
+	if (!ReadMumblePose(mapId, x, y, z))
+	{
+		SetStatus("No Mumble pose.");
+		return;
+	}
+	if (tr.type.empty() && gDraft.trailType[0])
+		tr.type = gDraft.trailType;
 	TrailToolsEditUndo::PushTrail();
-	tr.points.push_back({ 0.f, 0.f, 0.f });
+	const bool empty = tr.points.empty();
+	if (!empty)
+		tr.points.push_back({ 0.f, 0.f, 0.f });
+	tr.mapId = mapId;
+	tr.points.push_back({ x, y, z });
 	sel = static_cast<int>(tr.points.size()) - 1;
 	RecordingTrailDirty() = true;
+	RememberSample(x, y, z);
 	gHaveSample = false;
-	SetStatus("Section break added.");
+	MarkSampleNow();
+	SetStatus("New segment on map %u (%zu pts).", mapId, tr.points.size());
 }
 
 void TrailToolsBinds::ActionTrailDeleteSeg()
@@ -289,6 +379,8 @@ void TrailToolsBinds::Poll()
 				vk == VK_LWIN || vk == VK_RWIN || vk == VK_CAPITAL || vk == VK_NUMLOCK ||
 				vk == VK_SCROLL || vk == VK_ESCAPE)
 				continue;
+			if (vk <= VK_XBUTTON2)
+				continue;
 			if (!KeyDown(vk))
 				continue;
 			Chord c;
@@ -315,8 +407,6 @@ void TrailToolsBinds::Poll()
 		return;
 	}
 
-	SampleWhileRecording();
-
 	if (TypingBlocked())
 		return;
 
@@ -335,4 +425,9 @@ void TrailToolsBinds::Poll()
 		if (Edge(10 + i, ChordDown(gBinds.place[i].chord)))
 			ActionPlaceMarker(i);
 	}
+}
+
+void TrailToolsBinds::PollRecording()
+{
+	SampleWhileRecording();
 }

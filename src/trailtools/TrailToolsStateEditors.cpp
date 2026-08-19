@@ -99,6 +99,7 @@ namespace TrailToolsDetail
 		std::snprintf(gDraft.trailFileStem, sizeof(gDraft.trailFileStem), "%s", s.stem);
 		gDraft.trailDirty = s.dirty;
 		gDraft.selectedPoint = s.selectedPoint;
+		gTrailEditorDrawSlot = slot;
 		gTrailEditorDrawActive = true;
 	}
 
@@ -107,6 +108,7 @@ namespace TrailToolsDetail
 		if (!gTrailActiveBackup.valid)
 			return;
 		gTrailEditorDrawActive = false;
+		gTrailEditorDrawSlot = -1;
 		if (slot >= 0 && slot < kMaxTrailEditors && gTrailEditors[slot].open)
 		{
 			TrailEditorSlot& s = gTrailEditors[slot];
