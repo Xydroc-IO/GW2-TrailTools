@@ -184,6 +184,42 @@ void HardenSelfTlsCallbacks()
 		cbsPoison ? 1 : 0, n, patched, static_cast<unsigned>(dirRva));
 }
 
+bool FaultInSelfDll(EXCEPTION_POINTERS* ep)
+{
+	if (!ep || !ep->ExceptionRecord)
+		return false;
+	static ULONG_PTR sBase = 0;
+	static ULONG_PTR sEnd = 0;
+	if (sBase == 0)
+	{
+		HMODULE self = nullptr;
+		if (!GetModuleHandleExW(
+				GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+					GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+				reinterpret_cast<LPCWSTR>(&FaultInSelfDll),
+				&self) ||
+			!self)
+			return true; /* if we cannot resolve, still snapshot */
+		auto* dos = reinterpret_cast<IMAGE_DOS_HEADER*>(self);
+		if (dos->e_magic != IMAGE_DOS_SIGNATURE)
+			return true;
+		auto* nt = reinterpret_cast<IMAGE_NT_HEADERS64*>(
+			reinterpret_cast<BYTE*>(self) + dos->e_lfanew);
+		if (nt->Signature != IMAGE_NT_SIGNATURE)
+			return true;
+		sBase = reinterpret_cast<ULONG_PTR>(self);
+		sEnd = sBase + nt->OptionalHeader.SizeOfImage;
+	}
+	auto inSelf = [](ULONG_PTR p) {
+		return p >= sBase && p < sEnd;
+	};
+	if (inSelf(reinterpret_cast<ULONG_PTR>(ep->ExceptionRecord->ExceptionAddress)))
+		return true;
+	if (ep->ContextRecord && inSelf(static_cast<ULONG_PTR>(ep->ContextRecord->Rip)))
+		return true;
+	return false;
+}
+
 bool CriticalFlushTag(const char* tag)
 {
 	if (!tag)

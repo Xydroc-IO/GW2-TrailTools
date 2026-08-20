@@ -406,6 +406,8 @@ LONG WINAPI VectoredHandler(EXCEPTION_POINTERS* ep)
 		return EXCEPTION_CONTINUE_SEARCH;
 	if (!InterestingException(ep->ExceptionRecord->ExceptionCode))
 		return EXCEPTION_CONTINUE_SEARCH;
+	if (!FaultInSelfDll(ep))
+		return EXCEPTION_CONTINUE_SEARCH;
 	EnsureCs();
 	EnterCriticalSection(&gCs);
 	char tag[96]{};
@@ -421,6 +423,12 @@ LONG WINAPI VectoredHandler(EXCEPTION_POINTERS* ep)
 
 LONG WINAPI UnhandledFilter(EXCEPTION_POINTERS* ep)
 {
+	if (ep && ep->ExceptionRecord && !FaultInSelfDll(ep))
+	{
+		if (gPrevFilter)
+			return gPrevFilter(ep);
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
 	EnsureCs();
 	EnterCriticalSection(&gCs);
 	WriteCrashSnapshotUnlocked(ep, "unhandled");

@@ -21,4 +21,13 @@ Normative allow/deny for this Nexus addon.
 
 Draft preview draws Blish-style upright ribbons via Nexus **SwapChain** D3D11
 (`WorldGpsD3d*`) with ImGui billboard/marker fallback (`WorldGpsImgui`). Device
-acquisition uses Nexus `SwapChain` only — no Present hooks.
+acquisition uses Nexus `SwapChain` only — no Present hooks. After each ribbon
+draw the previous blend / depth / raster / IA / shader / sampler state is
+restored so later addons (ImGui, InGame-Helper, ArcDPS) are not left on our
+pipeline.
+
+## Crash logs
+
+Vectored / unhandled handlers write `Crash-Logs/` snapshots only when the
+exception address is inside `GW2-TrailTools.dll`. Other modules' access
+violations are ignored so Wine is not frozen by dump I/O for foreign faults.

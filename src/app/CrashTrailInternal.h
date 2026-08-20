@@ -82,6 +82,7 @@ namespace CrashTrailDetail
 	void WriteExceptionDetail(FILE* f, EXCEPTION_POINTERS* ep, const char* how);
 	void WriteCrashSnapshotUnlocked(EXCEPTION_POINTERS* ep, const char* how);
 	bool InterestingException(DWORD code);
+	bool FaultInSelfDll(EXCEPTION_POINTERS* ep);
 	LONG WINAPI VectoredHandler(EXCEPTION_POINTERS* ep);
 	LONG WINAPI UnhandledFilter(EXCEPTION_POINTERS* ep);
 }
