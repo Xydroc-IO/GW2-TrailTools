@@ -54,14 +54,30 @@ Editor lists sit inside the scrolling hub: the mouse wheel moves the **pad**; dr
 **Ground snap** (`TrailToolsGround.cpp`) fits a local height plane from walked Mumble feet, draft points, and the **open pack**. TacO also uses Mumble (not GW2 process memory); neither has a live collision mesh. Empty ground falls back to feet Y.
 
 TrailsN/MarkersN remain the authoring workbench for new OverlayData.
+MarkersN uses a left rail (same chrome as the hub): **Data** is toolbar + every draft
+marker (index / XYZ / type); **Settings** is type / filters / POI XML (title bar reads
+MarkersN Settings). List click and Select Nearest call `UberTool::SelectPoi` so the
+gizmo locks to that index; Move to Feet / Delete use `ActivePoiIndex()` (lock → gizmo →
+draft). Pad clicks set `gPadPointerOver` and discard pending `WorldClick` events before
+PackEdit / UberTool tick (Wine often leaves `WantCaptureMouse` false).
+
+Live **UberTool** (`TrailToolsUberTool.cpp` + `UberToolPick.cpp` + `UberToolDraw.cpp`):
+click a draft vert/marker (or Select Nearest / Move to Feet); the gizmo stays on that
+index while recording samples. Drag the white hub to slide on the vertex Y; RGB arrows
+lock X/Y/Z. Clicks on a handle are swallowed in `WorldClick` so camera look does not
+steal the drag. Pick rays unproject the same view-projection as world overlay (drag
+follows the mouse). World click / Shift+click place use the same ground plane when
+Ground snap is on.
+
+Custom pad scroll thumbs (`Gw2UiPadScroll`) only add a title-bar offset on the **root**
+pad window; nested list children clip to their own scrollbar rect so thumbs do not bleed
+into min/close.
 
 XML shape follows TacO: nested `<MarkerCategory>`, `<POIs>` with `<Trail trailData="Data/{stem}.trl"/>` and `<POI>`, textures/icons under `Data/Images/`. Default seed is root + leaves `example` / `circle` / `heart` / `square` / `triangle`. TrailsN can copy a **basic** `<Trail type trailData>` tag (TacO TrailsN style).
 
-Live **UberTool** (`TrailToolsUberTool.cpp` + `TrailToolsUberToolDraw.cpp`): click a draft vert/marker (or Select Nearest / Move to Feet); the gizmo stays on that index while recording samples. Drag the white hub to slide on the vertex Y; RGB arrows lock X/Y/Z. Clicks on a handle are swallowed in `WorldClick` so camera look does not steal the drag. Pick rays unproject the same view-projection as world overlay (drag follows the mouse). World click / Shift+click place use the same ground plane when Ground snap is on.
-
 Recording samples on a **time** interval (`Spacing` seconds) and skips duplicate poses while standing still. **Stop** and **Start** are separate ImGui widgets so Stop cannot immediately Start. Start after a stop does not insert a section or extra vector (empty trails still get a first vector). **New Segment** is the only TrailsN control that writes a TacO `0,0,0` break plus MapID + feet vector. Those breaks split world ribbons.
 
-Draft GPS / vertex dots draw only for an **open TrailsN** after **Start** (or Insert Vector / world-click add point). UberTool and Draft preview default **on** (`UberTool` / `DraftPreview` in `settings.ini`). Start with no Trails window opens one and can absorb a leftover hub trail. **Clear world trail** (`ClearWorldDraftTrails` + `PackEdit::HideWorldOverlay`) wipes hub + TrailsN drafts, stops recording, and turns pack overlay off. Closing the last TrailsN stops recording.
+Draft GPS / vertex dots draw only for an **open TrailsN** after **Start** (or Insert Vector / world-click add point). UberTool and Draft preview default **on** (`UberTool` / `DraftPreview` in `settings.ini`). Start with no Trails window only warns (does not auto-open). Closing a pad (X) skips that frame’s body so the same click cannot Start or open a new Trails window. **Clear world trail** (`ClearWorldDraftTrails` + `PackEdit::HideWorldOverlay`) wipes hub + TrailsN drafts, stops recording, and turns pack overlay off. Closing the last TrailsN stops recording.
 
 **Hide trail near me** (`G::WorldTrailPlayerClearOn`) gates the player-clear bubble; radius remains **Trail player clear** in Nexus Options.
 
@@ -87,7 +103,9 @@ Nexus Options ends with a centered credit block (CREATED BY XYDROC + Ko-fi for T
 
 ## Compliance
 
-Allowed: Nexus APIs, MumbleLink read-only, SwapChain D3D world GPS ribbons.  
+Allowed: Nexus APIs, MumbleLink read-only, SwapChain D3D world GPS ribbons
+(draw restores blend/depth/IA/shaders so later addons are not left with our pipeline).
+Crash snapshots (`Crash-Logs/`) only when the exception address is in this DLL.  
 Denied: GW2 **process** memory R/W, Present hooks, writes into `bin64/cef`.
 
 ## Pack runtime

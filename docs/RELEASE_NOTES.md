@@ -27,11 +27,28 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Pack → Reseed for Lady Elyssa–style leaves (`example` / `circle` / `heart` / `square` / `triangle`)
 - OverlayData **XML editor** pop-out: edit raw text (custom attrs/layout); Apply fills TrailsN/MarkersN; Save writes the buffer as-is
 
+### Markers
+- Default marker category on Content; MarkersN pop-outs for focused POIs
+- MarkersN left rail: **Data** (Insert / Select Nearest / Delete / Move to Feet / Undo + full draft list) and **Settings** (type, GUID, XYZ, behavior, Display, Filters, Script / Blish, Copy POI XML)
+- List click and Select Nearest lock the UberTool on that POI; Move to Feet / Delete use the active gizmo selection
+- Drop / delete at feet, this-map filter on the Markers desk
+- Named behavior combo + Display (mapDisplaySize / minSize / maxSize) + Filters (achievement, festival, profession/race/mount, tip/copy/schedule, toggleCategory, iconFile)
+- Blish-style `script-*` attributes on POIs (stored in OverlayData)
+- Snapshot undo (Ctrl+Z) on MarkersN
+- Copy markers from currently loaded Pathing packs
+
+### Live
+- **3D UberTool** + **Draft preview** default **on** (persisted). **Ground snap**: plane fit from walked Mumble feet, draft points, and the open pack (same Mumble pose TacO uses — not game process memory, not a live mesh). Click a draft marker or trail vertex (stays selected while recording), drag the white hub to slide / RGB arrows for XYZ, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Gizmo clicks are swallowed so camera look does not steal the drag; movement follows the mouse. Pad list selection locks the gizmo until a world pick.
+- **Hide trail near me** (Content → Live, and Nexus Options) toggles the player-clear bubble; **Trail player clear** is the radius
+- World click / map Shift+click place against that plane when Ground snap is on. Disabled for that click when UberTool consumes it, or when the pointer is over Trail Tools chrome.
+- Empty-world `LBUTTONDOWN` is seen through Nexus `WndProc` (`WorldClick`) because ImGui does not get clicks on empty game view.
+
 ### Trails
 - Default trail category on Content; up to **five** TrailsN windows
 - Compact TrailsN: New / Load / Save / Save As · New Segment / Insert Vector / Select Nearest / Move to Feet / Delete Nearest / Undo
 - Recording rail: **Start** and **Stop** are separate buttons (Stop cannot immediately Start); Pause/Resume; **Spacing in seconds** (0.3 = 1/3 s); samples only while the character moves
-- World GPS for a draft trail does not appear until **Start** (or Insert Vector / world-click add point) in an open TrailsN. Start with no Trails window opens one
+- World GPS for a draft trail does not appear until **Start** (or Insert Vector / world-click add point) in an open TrailsN. Start with no Trails window only warns
+- Closing a pad (X) does not click through into Start / New Trails
 - **Clear world trail** (Content Live and Nexus Options) deletes a GPS that is not in any Trails window and turns pack overlay off
 - After Stop, walking does not add points. Start on a trail that already has vectors does not insert a section or extra vertex (use New Segment / Insert Vector). Empty trails still get a first vector on Start
 - New Segment: TacO `0,0,0` break + current MapID + vector at feet
@@ -42,20 +59,10 @@ Toggle: Nexus **QuickAccess** icon or **Alt+Shift+T**.
 - Snapshot undo (Ctrl+Z) on TrailsN
 - Live draft preview (world GPS + compass) follows the focused TrailsN trail
 
-### Markers
-- Default marker category on Content; MarkersN pop-outs for focused POIs
-- Insert / Select Nearest / Delete / Move to Feet / Undo
-- Drop / delete at feet, this-map filter, marker attribute editors
-- Named behavior combo + Display (mapDisplaySize / minSize / maxSize) + Filters (achievement, festival, profession/race/mount, toggleCategory)
-- Blish-style `script-*` attributes on POIs (stored in OverlayData)
-- Snapshot undo (Ctrl+Z) on MarkersN
-- Copy markers from currently loaded Pathing packs
-
-### Live
-- **3D UberTool** + **Draft preview** default **on** (persisted). **Ground snap**: plane fit from walked Mumble feet, draft points, and the open pack (same Mumble pose TacO uses — not game process memory, not a live mesh). Click a draft marker or trail vertex (stays selected while recording), drag the white hub to slide / RGB arrows for XYZ, Ctrl+click a trail to insert a point, right-click while dragging to cancel. Gizmo clicks are swallowed so camera look does not steal the drag; movement follows the mouse.
-- **Hide trail near me** (Content → Live, and Nexus Options) toggles the player-clear bubble; **Trail player clear** is the radius
-- World click / map Shift+click place against that plane when Ground snap is on. Disabled for that click when UberTool consumes it.
-- Empty-world `LBUTTONDOWN` is seen through Nexus `WndProc` (`WorldClick`) because ImGui does not get clicks on empty game view.
+### Stability (Wine / multi-addon)
+- Crash-Logs snapshots only when the exception address is inside `GW2-TrailTools.dll`
+- World GPS draw saves/restores blend, depth, raster, IA, shaders, and samplers after ribbons
+- Nested pad scroll thumbs stay clipped to their child panels
 
 ### Keybinds
 - Trail record / pause / section / delete-segment chords

@@ -4,6 +4,13 @@ Full player-facing notes: [`RELEASE_NOTES.md`](RELEASE_NOTES.md).
 
 ## Unreleased
 
+- MarkersN: left rail **Data** (toolbar + full draft list) / **Settings** (type, filters, POI XML); title becomes MarkersN Settings on the gear tab
+- MarkersN list click / Select Nearest lock the UberTool on that POI; **Move to Feet** and **Delete** follow the active gizmo selection (not a stale slot index)
+- Delete retargets open MarkersN `poiIndex` values when draft indices shift
+- Closing a pad (X) does not click through into Start recording / New Trails; Start with no Trails window only warns (does not auto-open)
+- Nested pad list scroll thumbs stay in their panel (no bleed into title min/close)
+- Pad clicks discard pending WndProc world-clicks before PackEdit / UberTool (Wine often misses `WantCaptureMouse`)
+- Crash handler snapshots only when the fault address is inside `GW2-TrailTools.dll` (avoids Wine freezes dumping other addons); world GPS restores full D3D pipeline state after draw
 - Hub tabs: **Content → Keybinds** (Content uses the anvil icon; Live / UberTool / world click live there). Pack workshop is a collapsed section on Content
 - Pack-in-world / gizmo / pop-out / ground-snap checkboxes on Nexus Options, Pack editor, and Content; **Draw pack in world** defaults off; pack overlay works with the pad closed
 - Draft GPS waits for **Start recording** (or an explicit place) in an open TrailsN; UberTool + Draft preview default on (saved in settings)

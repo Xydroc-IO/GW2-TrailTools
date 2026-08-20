@@ -18,9 +18,12 @@ Official Nexus APIs + MumbleLink (read-only). **No** game memory R/W, **no** Pre
 - One OverlayData XML (TacO layout: nested categories, `trailData="Data/….trl"`, `Data/Images/`) + up to five TrailsN / four MarkersN editors
 - Editable OverlayData window for custom TacO/Blish attributes and layouts
 - Live 3D UberTool + draft preview **on by default** (saved in `settings.ini`): click-select + RGB move gizmo on draft markers and trail vertices
-- TrailsN recording: no world GPS until **Start**; Start opens a Trails window if none is open; Stop stays stopped; New Segment for TacO `0,0,0` breaks
+- MarkersN: **Data** / **Settings** side rail; list shows every draft marker; Move to Feet follows the selected gizmo POI
+- TrailsN recording: no world GPS until **Start**; Start requires an open Trails window; Stop stays stopped; New Segment for TacO `0,0,0` breaks
+- Closing a pad (X) does not click through into Start / New Trails
 - **Clear world trail** (Content and Nexus Options) drops a GPS that is not in any Trails window
 - Optional **Hide trail near me** player-clear bubble (Nexus Options radius)
+- Crash-Logs only for faults inside this DLL; world GPS restores D3D pipeline after draw
 - Nexus Options credit / Ko-fi footer (Trail Tools)
 - Import existing `.taco`, build new packs under `addons/GW2-TrailTools/pathing/`
 - Addon-polled trail/marker chords (works while pad closed)
@@ -60,7 +63,7 @@ cmake --build build -j"$(nproc)"
 
 Runtime data: `<GW2>/addons/GW2-TrailTools/` (`settings.ini`, `pathing/authoring/`, built `.taco`).
 
-Crash dumps: `<GW2>/addons/GW2-TrailTools/Crash-Logs/` (`crash-trail.txt`, `crash.log`, timestamped snapshot folders).
+Crash dumps: `<GW2>/addons/GW2-TrailTools/Crash-Logs/` (`crash-trail.txt`, `crash.log`, timestamped snapshot folders). Snapshots are written only when the fault address is inside `GW2-TrailTools.dll` (other addons' AVs are ignored so Wine is not frozen by dump I/O).
 
 ## Branding
 
