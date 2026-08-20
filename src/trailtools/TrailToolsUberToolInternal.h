@@ -19,6 +19,7 @@ namespace TrailToolsUberToolDetail
 	};
 
 	extern State gSt;
+	extern int   gLockPoi; /* >=0: FollowSelection stays on this draft POI */
 
 	inline WorldGpsMath::Vec3 AxisDir(Axis a)
 	{
@@ -30,7 +31,23 @@ namespace TrailToolsUberToolDetail
 	}
 
 	bool GetSel(WorldGpsMath::Vec3& o);
+	void SetSel(const WorldGpsMath::Vec3& o);
 	float GizmoLen(const WorldGpsMath::Vec3& origin);
 	int HitAxis(const WorldGpsMath::Vec3& origin, const WorldGpsMath::Mat4& vp,
 		float sw, float sh, float mx, float my);
+
+	inline float DistPtSeg2(float px, float py, float ax, float ay, float bx, float by, float& t)
+	{
+		const float abx = bx - ax, aby = by - ay;
+		const float apx = px - ax, apy = py - ay;
+		const float ab2 = abx * abx + aby * aby;
+		t = (ab2 > 1e-8f) ? (apx * abx + apy * aby) / ab2 : 0.f;
+		if (t < 0.f)
+			t = 0.f;
+		else if (t > 1.f)
+			t = 1.f;
+		const float qx = ax + abx * t, qy = ay + aby * t;
+		const float dx = px - qx, dy = py - qy;
+		return dx * dx + dy * dy;
+	}
 }

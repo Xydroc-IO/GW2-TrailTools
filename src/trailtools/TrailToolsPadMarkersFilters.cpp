@@ -90,5 +90,46 @@ void TrailToolsDetail::DrawPoiBehaviorAndFilters(DraftPoi& p)
 		if (ImGui::InputText("toggleCategory###gw2tt_tt_ptog", tog, sizeof(tog)))
 			p.toggleCategory = tog;
 		PadNav::PopWidthForLabel();
+
+		char tip[96]{}, tipd[384]{}, info[384]{}, copy[256]{}, cmsg[128]{};
+		char sched[96]{}, icon[256]{};
+		std::snprintf(tip, sizeof(tip), "%s", p.tipName.c_str());
+		std::snprintf(tipd, sizeof(tipd), "%s", p.tipDescription.c_str());
+		std::snprintf(info, sizeof(info), "%s", p.info.c_str());
+		std::snprintf(copy, sizeof(copy), "%s", p.copy.c_str());
+		std::snprintf(cmsg, sizeof(cmsg), "%s", p.copyMessage.c_str());
+		std::snprintf(sched, sizeof(sched), "%s", p.schedule.c_str());
+		std::snprintf(icon, sizeof(icon), "%s", p.iconFile.c_str());
+		PadNav::PushWidthForLabel("tip-name###gw2tt_tt_ptn");
+		if (ImGui::InputText("tip-name###gw2tt_tt_ptn", tip, sizeof(tip)))
+			p.tipName = tip;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("tip-description###gw2tt_tt_ptd");
+		if (ImGui::InputText("tip-description###gw2tt_tt_ptd", tipd, sizeof(tipd)))
+			p.tipDescription = tipd;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("info###gw2tt_tt_pinfo");
+		if (ImGui::InputText("info###gw2tt_tt_pinfo", info, sizeof(info)))
+			p.info = info;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("copy###gw2tt_tt_pcopy");
+		if (ImGui::InputText("copy###gw2tt_tt_pcopy", copy, sizeof(copy)))
+			p.copy = copy;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("copy-message###gw2tt_tt_pcmsg");
+		if (ImGui::InputText("copy-message###gw2tt_tt_pcmsg", cmsg, sizeof(cmsg)))
+			p.copyMessage = cmsg;
+		PadNav::PopWidthForLabel();
+		PadNav::PushWidthForLabel("schedule###gw2tt_tt_psched");
+		if (ImGui::InputText("schedule###gw2tt_tt_psched", sched, sizeof(sched)))
+			p.schedule = sched;
+		PadNav::PopWidthForLabel();
+		PadNav::PrepLabeled("schedule-duration###gw2tt_tt_psd", 120.f, true);
+		ImGui::DragFloat("schedule-duration###gw2tt_tt_psd", &p.scheduleDuration,
+			1.f, 0.f, 10080.f);
+		PadNav::PushWidthForLabel("iconFile###gw2tt_tt_picon");
+		if (ImGui::InputText("iconFile###gw2tt_tt_picon", icon, sizeof(icon)))
+			p.iconFile = icon;
+		PadNav::PopWidthForLabel();
 	}
 }

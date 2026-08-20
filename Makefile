@@ -70,6 +70,7 @@ SRC_CPP = \
 	src/trailtools/TrailToolsPadLive.cpp \
 	src/trailtools/TrailToolsPadLua.cpp \
 	src/trailtools/TrailToolsPadMarkers.cpp \
+	src/trailtools/TrailToolsPadMarkersEdit.cpp \
 	src/trailtools/TrailToolsPadMarkersFilters.cpp \
 	src/trailtools/TrailToolsPadMarkersScript.cpp \
 	src/trailtools/TrailToolsPadPack.cpp \
@@ -91,6 +92,7 @@ SRC_CPP = \
 	src/trailtools/TrailToolsTrl.cpp \
 	src/trailtools/TrailToolsUberTool.cpp \
 	src/trailtools/TrailToolsUberToolDraw.cpp \
+	src/trailtools/TrailToolsUberToolPick.cpp \
 	src/trailtools/TrailToolsWorldPick.cpp \
 	src/trailtools/TrailToolsXml.cpp \
 	deps/imgui/imgui.cpp \

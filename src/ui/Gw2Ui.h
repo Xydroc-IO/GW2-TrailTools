@@ -18,6 +18,7 @@ namespace Gw2Ui
 		Options      = 157109,
 		Map          = 157122,
 		TrailAnvil   = 155867,
+		Achievement  = 156026, /* AP star — MarkersN Data rail */
 		SettingsGear = 3713037,
 	};
 

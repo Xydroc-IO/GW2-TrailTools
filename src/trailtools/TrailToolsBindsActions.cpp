@@ -201,7 +201,10 @@ void TrailToolsBinds::ActionTrailStart()
 		}
 	}
 	if (!anyTrailEd)
-		OpenNewTrailEditor();
+	{
+		SetStatus("Open a Trails window before recording.");
+		return;
+	}
 	if (gTrailEditorDrawActive && gTrailEditorDrawSlot >= 0)
 		gTrailRecordSlot = gTrailEditorDrawSlot;
 	DraftTrail& tr = RecordingTrail();
@@ -366,9 +369,20 @@ void TrailToolsBinds::ActionDeleteMarker()
 	int& sel = gDraft.selectedPoi;
 	if (sel < 0 || sel >= static_cast<int>(gDraft.pois.size()))
 		sel = static_cast<int>(gDraft.pois.size()) - 1;
+	const int removed = sel;
 	gDraft.pois.erase(gDraft.pois.begin() + sel);
 	if (sel >= static_cast<int>(gDraft.pois.size()))
 		sel = static_cast<int>(gDraft.pois.size()) - 1;
+	for (int i = 0; i < kMaxMarkerEditors; ++i)
+	{
+		int& idx = gMarkerEditors[i].poiIndex;
+		if (idx < 0)
+			continue;
+		if (idx == removed)
+			idx = sel;
+		else if (idx > removed)
+			--idx;
+	}
 	SetStatus("Deleted marker (%zu left).", gDraft.pois.size());
 }
 

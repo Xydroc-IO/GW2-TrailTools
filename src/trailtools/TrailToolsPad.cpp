@@ -58,7 +58,7 @@ namespace
 		const std::function<void()>& body,
 		bool* outFocused = nullptr,
 		float minW = 320.f,
-		bool bodyAlwaysScroll = true)
+		bool bodyAlwaysScroll = true) /* false: caller owns rail + body (MarkersN) */
 	{
 		if (!showFlag)
 			return false;
@@ -90,7 +90,7 @@ namespace
 		if (PadDock::IsCustomCollapsed(title))
 			padFlags |= ImGuiWindowFlags_NoResize;
 		const bool padBody = ImGui::Begin(title, &open, padFlags);
-		if (!theme.AfterBegin(title, &open) || !padBody)
+		if (!theme.AfterBegin(title, &open) || !padBody || !open)
 		{
 			const ImVec2 p = ImGui::GetWindowPos();
 			if (std::fabs(p.x - geom.x) > 0.5f || std::fabs(p.y - geom.y) > 0.5f)
@@ -113,22 +113,20 @@ namespace
 			return hovered || (focused && ImGui::GetIO().WantTextInput);
 		}
 
-		if (!open)
-		{
-			showFlag = false;
-			Settings::SetDirty();
-		}
 		if (!ImGui::IsWindowCollapsed() && PadDock::Capture(geom))
 			Settings::SetDirty();
 
 		HelperTheme::ScopedFontScale fontScale(defW, defH);
-		const float bodyH = -HelperTheme::ResizeGripClearance();
-		ImGuiWindowFlags bodyFlags = bodyAlwaysScroll
-			? ImGuiWindowFlags_AlwaysVerticalScrollbar
-			: ImGuiWindowFlags_None;
-		ImGui::BeginChild("###gw2tt_pad_body", ImVec2(0.f, bodyH), false, bodyFlags);
-		body();
-		ImGui::EndChild();
+		if (bodyAlwaysScroll)
+		{
+			const float bodyH = -HelperTheme::ResizeGripClearance();
+			ImGui::BeginChild("###gw2tt_pad_body", ImVec2(0.f, bodyH), false,
+				ImGuiWindowFlags_AlwaysVerticalScrollbar);
+			body();
+			ImGui::EndChild();
+		}
+		else
+			body();
 
 		const bool hovered = ImGui::IsWindowHovered(
 			ImGuiHoveredFlags_ChildWindows | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
@@ -261,7 +259,7 @@ bool TrailToolsPad::Render()
 		if (PadDock::IsCustomCollapsed(title))
 			padFlags |= ImGuiWindowFlags_NoResize;
 		const bool padBody = ImGui::Begin(title, &open, padFlags);
-		if (!theme.AfterBegin(title, &open) || !padBody)
+		if (!theme.AfterBegin(title, &open) || !padBody || !open)
 		{
 			const ImVec2 p = ImGui::GetWindowPos();
 			if (std::fabs(p.x - G::PadTrailTools.x) > 0.5f ||
@@ -284,11 +282,6 @@ bool TrailToolsPad::Render()
 		}
 		else
 		{
-			if (!open)
-			{
-				G::ShowTrailTools = false;
-				Settings::SetDirty();
-			}
 			if (!ImGui::IsWindowCollapsed() && PadDock::Capture(G::PadTrailTools))
 				Settings::SetDirty();
 
@@ -468,7 +461,12 @@ bool TrailToolsPad::Render()
 			geom = G::PadMarkerEditor;
 
 		char title[96]{};
-		std::snprintf(title, sizeof(title), "Markers%d###GW2TrailToolsMarkerEd%d", i + 1, i);
+		if (slot.tab == 1)
+			std::snprintf(title, sizeof(title),
+				"Markers%d Settings###GW2TrailToolsMarkerEd%d", i + 1, i);
+		else
+			std::snprintf(title, sizeof(title),
+				"Markers%d###GW2TrailToolsMarkerEd%d", i + 1, i);
 
 		hover = RenderCollapsiblePad(
 			title,
@@ -481,12 +479,16 @@ bool TrailToolsPad::Render()
 			MarkerEditorFallback(i),
 			[i]() {
 				DrawMarkerRawEditorForSlot(i);
-			}) || hover;
+			},
+			nullptr,
+			kEditMinW,
+			false) || hover;
 
 		GeomTo(geom, slot.geomX, slot.geomY, slot.geomW, slot.geomH);
 		if (i == 0)
 			G::PadMarkerEditor = geom;
 	}
 
+	gPadPointerOver = hover;
 	return hover;
 }

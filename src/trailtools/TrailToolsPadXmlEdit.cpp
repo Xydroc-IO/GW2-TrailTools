@@ -143,7 +143,7 @@ bool TrailToolsDetail::RenderXmlEditorPad()
 		gXmlEditW = geom.w;
 		gXmlEditH = geom.h;
 	};
-	if (!theme.AfterBegin(title, &open) || !padBody)
+	if (!theme.AfterBegin(title, &open) || !padBody || !open)
 	{
 		const ImVec2 p = ImGui::GetWindowPos();
 		if (std::fabs(p.x - geom.x) > 0.5f || std::fabs(p.y - geom.y) > 0.5f)
@@ -163,11 +163,6 @@ bool TrailToolsDetail::RenderXmlEditorPad()
 		}
 		finishGeom();
 		return hovered || (focused && ImGui::GetIO().WantTextInput);
-	}
-	if (!open)
-	{
-		gShowXmlEdit = false;
-		Settings::SetDirty();
 	}
 	if (!ImGui::IsWindowCollapsed() && PadDock::Capture(geom))
 		Settings::SetDirty();

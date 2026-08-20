@@ -151,6 +151,7 @@ namespace TrailToolsDetail
 		bool  placeOnce = false;
 		bool  focus = false;
 		int   poiIndex = -1; /* index into gDraft.pois */
+		int   tab = 0; /* 0 Data, 1 Settings */
 		float geomX = -1.f;
 		float geomY = -1.f;
 		float geomW = 0.f;
@@ -192,6 +193,8 @@ namespace TrailToolsDetail
 	/* Legacy single-flag aliases used by unload; prefer desks + editor slots. */
 	extern bool gPopoutTrails;
 	extern bool gPopoutMarkers;
+	/* True while the last Pad::Render saw the pointer over hub/desk/editor chrome. */
+	extern bool gPadPointerOver;
 
 	/* Hub, a desk, or any TrailsN/MarkersN editor is open (draft preview). */
 	bool AnyAuthoringPadOpen();

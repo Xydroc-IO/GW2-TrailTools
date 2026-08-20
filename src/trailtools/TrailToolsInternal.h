@@ -16,6 +16,7 @@ namespace TrailToolsDetail
 	void DrawMarkersDesk(bool asPopout = false); /* category + list + MarkersN (no XML chrome) */
 	void DrawMarkerRawEditor(); /* uses gDraft.selectedPoi */
 	void DrawMarkerRawEditorForSlot(int slot); /* MarkersN bound to slot.poiIndex */
+	void DrawSelectedPoiEditor(DraftPoi& p); /* MarkersN Settings + legacy raw */
 	void DrawXmlProjectStrip(); /* Content — OverlayData path + New/Load/Save */
 	void DrawXmlEditorBody();
 	void DrawXmlEditorPane(float height);

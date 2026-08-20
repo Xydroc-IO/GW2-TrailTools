@@ -1,14 +1,14 @@
 #include "TrailToolsInternal.h"
 #include "TrailToolsPad.h"
 #include "TrailToolsShared.h"
-#include "TrailToolsXml.h"
 #include "TrailToolsBinds.h"
 #include "TrailToolsEditUndo.h"
+#include "TrailToolsUberTool.h"
 
+#include "Gw2Ui.h"
 #include "HelperTheme.h"
 #include "PadNav.h"
 #include "PathingTrails.h"
-#include "Settings.h"
 
 #include "imgui/imgui.h"
 
@@ -19,95 +19,109 @@
 
 namespace
 {
-	void DrawSelectedPoiEditor(TrailToolsDetail::DraftPoi& p)
+	bool RowBtn(const char* label, bool first)
+	{
+		if (!first)
+			PadNav::WrapSameLine(PadNav::ButtonWidth(label));
+		return ImGui::SmallButton(label);
+	}
+
+	void SyncSlotToActivePoi(TrailToolsDetail::MarkerEditorSlot& ed)
 	{
 		using namespace TrailToolsDetail;
-		ImGui::Separator();
-		ImGui::TextUnformatted("Edit selected");
-		char type[160]{};
-		char guid[96]{};
-		std::snprintf(type, sizeof(type), "%s", p.type.c_str());
-		std::snprintf(guid, sizeof(guid), "%s", p.guid.c_str());
-		PadNav::PushWidthForLabel("type###gw2tt_tt_ptype");
-		if (ImGui::InputText("type###gw2tt_tt_ptype", type, sizeof(type)))
-			p.type = type;
-		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("GUID###gw2tt_tt_pguid");
-		if (ImGui::InputText("GUID###gw2tt_tt_pguid", guid, sizeof(guid)))
-			p.guid = guid;
-		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("XYZ###gw2tt_tt_mnudge");
-		ImGui::DragFloat3("XYZ###gw2tt_tt_mnudge", &p.x, 0.05f);
-		PadNav::PopWidthForLabel();
-		if (ImGui::SmallButton("+X")) p.x += 0.5f;
-		PadNav::WrapSameLine(PadNav::ButtonWidth("-X"));
-		if (ImGui::SmallButton("-X")) p.x -= 0.5f;
-		PadNav::WrapSameLine(PadNav::ButtonWidth("+Z"));
-		if (ImGui::SmallButton("+Z")) p.z += 0.5f;
-		PadNav::WrapSameLine(PadNav::ButtonWidth("-Z"));
-		if (ImGui::SmallButton("-Z")) p.z -= 0.5f;
-		PadNav::WrapSameLine(PadNav::ButtonWidth("+Y"));
-		if (ImGui::SmallButton("+Y")) p.y += 0.25f;
-		PadNav::WrapSameLine(PadNav::ButtonWidth("-Y"));
-		if (ImGui::SmallButton("-Y")) p.y -= 0.25f;
+		const int poi = TrailToolsUberTool::ActivePoiIndex();
+		if (poi < 0)
+			return;
+		ed.poiIndex = poi;
+		gDraft.selectedPoi = poi;
+	}
 
-		DrawPoiBehaviorAndFilters(p);
-
-		char tip[96]{}, tipd[384]{}, info[384]{}, copy[256]{}, cmsg[128]{};
-		char sched[96]{}, icon[256]{};
-		std::snprintf(tip, sizeof(tip), "%s", p.tipName.c_str());
-		std::snprintf(tipd, sizeof(tipd), "%s", p.tipDescription.c_str());
-		std::snprintf(info, sizeof(info), "%s", p.info.c_str());
-		std::snprintf(copy, sizeof(copy), "%s", p.copy.c_str());
-		std::snprintf(cmsg, sizeof(cmsg), "%s", p.copyMessage.c_str());
-		std::snprintf(sched, sizeof(sched), "%s", p.schedule.c_str());
-		std::snprintf(icon, sizeof(icon), "%s", p.iconFile.c_str());
-		PadNav::PushWidthForLabel("tip-name###gw2tt_tt_ptn");
-		if (ImGui::InputText("tip-name###gw2tt_tt_ptn", tip, sizeof(tip)))
-			p.tipName = tip;
-		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("tip-description###gw2tt_tt_ptd");
-		if (ImGui::InputText("tip-description###gw2tt_tt_ptd", tipd, sizeof(tipd)))
-			p.tipDescription = tipd;
-		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("info###gw2tt_tt_pinfo");
-		if (ImGui::InputText("info###gw2tt_tt_pinfo", info, sizeof(info)))
-			p.info = info;
-		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("copy###gw2tt_tt_pcopy");
-		if (ImGui::InputText("copy###gw2tt_tt_pcopy", copy, sizeof(copy)))
-			p.copy = copy;
-		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("copy-message###gw2tt_tt_pcmsg");
-		if (ImGui::InputText("copy-message###gw2tt_tt_pcmsg", cmsg, sizeof(cmsg)))
-			p.copyMessage = cmsg;
-		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("schedule###gw2tt_tt_psched");
-		if (ImGui::InputText("schedule###gw2tt_tt_psched", sched, sizeof(sched)))
-			p.schedule = sched;
-		PadNav::PopWidthForLabel();
-		PadNav::PrepLabeled("schedule-duration###gw2tt_tt_psd", 120.f, true);
-		ImGui::DragFloat("schedule-duration###gw2tt_tt_psd", &p.scheduleDuration,
-			1.f, 0.f, 10080.f);
-		PadNav::PushWidthForLabel("iconFile###gw2tt_tt_picon");
-		if (ImGui::InputText("iconFile###gw2tt_tt_picon", icon, sizeof(icon)))
-			p.iconFile = icon;
-		PadNav::PopWidthForLabel();
-
-		DrawPoiScriptAttrs(p);
-
-		ImGui::TextUnformatted("POI XML");
+	void DrawMarkerToolbar(TrailToolsDetail::MarkerEditorSlot& ed)
+	{
+		using namespace TrailToolsDetail;
+		PadNav::PushWrap();
+		if (RowBtn("Insert Marker###gw2tt_tt_mk_ins", true))
 		{
-			const std::string line = TrailToolsXml::EmitPoiElement(p);
-			PadNav::PushWrap();
-			ImGui::TextColored(HelperTheme::Muted, "%s", line.c_str());
-			PadNav::PopWrap();
-			if (ImGui::Button("Copy POI XML###gw2tt_tt_mcopy"))
-			{
-				CopyClipboard(line.c_str());
-				SetStatus("Copied POI XML.");
-			}
+			TrailToolsBinds::ActionPlaceMarker(-1);
+			ed.poiIndex = gDraft.selectedPoi;
+			if (gDraft.selectedPoi >= 0)
+				TrailToolsUberTool::SelectPoi(gDraft.selectedPoi);
 		}
+		if (RowBtn("Select Nearest###gw2tt_tt_mk_near", false))
+		{
+			TrailToolsBinds::ActionMarkerSelectNearest();
+			if (gDraft.selectedPoi >= 0)
+				ed.poiIndex = gDraft.selectedPoi;
+		}
+		if (RowBtn("Delete Marker###gw2tt_tt_mk_del", false))
+		{
+			SyncSlotToActivePoi(ed);
+			TrailToolsBinds::ActionDeleteMarker();
+			ed.poiIndex = gDraft.selectedPoi;
+		}
+		if (RowBtn("Move to Feet###gw2tt_tt_mk_feet", false))
+		{
+			SyncSlotToActivePoi(ed);
+			TrailToolsBinds::ActionMarkerMoveToFeet();
+		}
+		if (RowBtn("Undo###gw2tt_tt_mk_undo2", false))
+			TrailToolsEditUndo::UndoPois();
+		PadNav::PopWrap();
+	}
+
+	void SelectMarkerRow(TrailToolsDetail::MarkerEditorSlot& ed, int i)
+	{
+		using namespace TrailToolsDetail;
+		if (i < 0 || i >= static_cast<int>(gDraft.pois.size()))
+			return;
+		ed.poiIndex = i;
+		gDraft.selectedPoi = i;
+		TrailToolsUberTool::SelectPoi(i);
+	}
+
+	void DrawMarkerRawList(TrailToolsDetail::MarkerEditorSlot& ed)
+	{
+		using namespace TrailToolsDetail;
+		ImGui::TextDisabled("Raw marker data  ·  %zu in project", gDraft.pois.size());
+		ImGui::Dummy(ImVec2(0.f, 4.f));
+		for (int i = 0; i < static_cast<int>(gDraft.pois.size()); ++i)
+		{
+			DraftPoi& p = gDraft.pois[static_cast<size_t>(i)];
+			ImGui::PushID(i);
+			const bool sel = ed.poiIndex == i;
+			char idx[16]{};
+			std::snprintf(idx, sizeof(idx), "%d", i);
+			if (ImGui::Selectable(idx, sel, ImGuiSelectableFlags_AllowItemOverlap,
+					ImVec2(28.f, 0.f)))
+				SelectMarkerRow(ed, i);
+			ImGui::SameLine();
+			float v[3] = { p.x, p.y, p.z };
+			const float xyzW = ImGui::GetContentRegionAvail().x * 0.58f;
+			ImGui::SetNextItemWidth(xyzW < 168.f ? 168.f : xyzW);
+			if (ImGui::InputFloat3("###xyz", v, "%.4f"))
+			{
+				p.x = v[0];
+				p.y = v[1];
+				p.z = v[2];
+				SelectMarkerRow(ed, i);
+			}
+			if (ImGui::IsItemClicked() || ImGui::IsItemActivated())
+				SelectMarkerRow(ed, i);
+			ImGui::SameLine();
+			{
+				const char* typ = p.type.empty() ? "(no type)" : p.type.c_str();
+				if (sel)
+					ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::GoldMuted);
+				else
+					ImGui::PushStyleColor(ImGuiCol_Text, HelperTheme::Muted);
+				if (ImGui::Selectable(typ, sel, ImGuiSelectableFlags_AllowItemOverlap))
+					SelectMarkerRow(ed, i);
+				ImGui::PopStyleColor();
+			}
+			ImGui::PopID();
+		}
+		if (gDraft.pois.empty())
+			ImGui::TextDisabled("Insert Marker or Drop here on Content.");
 	}
 
 	void DrawCopyFromLoaded()
@@ -314,52 +328,49 @@ void TrailToolsDetail::DrawMarkerRawEditorForSlot(int slot)
 	}
 	MarkerEditorSlot& ed = gMarkerEditors[slot];
 
-	if (ImGui::SmallButton("Insert Marker###gw2tt_tt_mk_ins"))
-	{
-		TrailToolsBinds::ActionPlaceMarker(-1);
-		ed.poiIndex = gDraft.selectedPoi;
-	}
-	ImGui::SameLine(0.f, 4.f);
-	if (ImGui::SmallButton("Select Nearest###gw2tt_tt_mk_near"))
-	{
-		TrailToolsBinds::ActionMarkerSelectNearest();
-		if (gDraft.selectedPoi >= 0)
-			ed.poiIndex = gDraft.selectedPoi;
-	}
-	ImGui::SameLine(0.f, 4.f);
-	if (ImGui::SmallButton("Delete Marker###gw2tt_tt_mk_del"))
-	{
-		if (ed.poiIndex >= 0)
-			gDraft.selectedPoi = ed.poiIndex;
-		TrailToolsBinds::ActionDeleteMarker();
-		ed.poiIndex = gDraft.selectedPoi;
-	}
-	ImGui::SameLine(0.f, 4.f);
-	if (ImGui::SmallButton("Move to Feet###gw2tt_tt_mk_feet"))
-	{
-		if (ed.poiIndex >= 0)
-			gDraft.selectedPoi = ed.poiIndex;
-		TrailToolsBinds::ActionMarkerMoveToFeet();
-	}
-	ImGui::SameLine(0.f, 4.f);
-	if (ImGui::SmallButton("Undo###gw2tt_tt_mk_undo2"))
-		TrailToolsEditUndo::UndoPois();
+	static const char* kTabs[] = { "Data", "Settings" };
+	static const int kIcons[] = {
+		static_cast<int>(Gw2Ui::Icon::Achievement),
+		static_cast<int>(Gw2Ui::Icon::SettingsGear),
+	};
+	if (ed.tab < 0 || ed.tab > 1)
+		ed.tab = 0;
+	ed.tab = PadNav::DrawSideRail("###gw2tt_tt_mknav", kTabs, 2, ed.tab, 0.f, kIcons);
 
-	if (ed.poiIndex < 0 || ed.poiIndex >= static_cast<int>(gDraft.pois.size()))
-	{
-		ImGui::TextDisabled("No marker bound — Insert Marker or pick one on Content.");
-		return;
-	}
+	const float bodyH = -HelperTheme::ResizeGripClearance();
+	ImGui::BeginChild("###gw2tt_tt_mkbody", ImVec2(0.f, bodyH), false,
+		ImGuiWindowFlags_AlwaysVerticalScrollbar);
+	PadNav::PushWrap();
 
-	gDraft.selectedPoi = ed.poiIndex;
-	DraftPoi& p = gDraft.pois[static_cast<size_t>(ed.poiIndex)];
-	ImGui::TextDisabled("Markers%d — POI %d", slot + 1, ed.poiIndex);
-	if (ImGui::BeginChild("###gw2tt_tt_mk_raw", ImVec2(0.f, 0.f), true))
-		DrawSelectedPoiEditor(p);
-	ImGui::EndChild();
+	if (ed.tab == 0)
+	{
+		/* Keep slot index aligned with gizmo/list lock before toolbar actions. */
+		SyncSlotToActivePoi(ed);
+		DrawMarkerToolbar(ed);
+		ImGui::Dummy(ImVec2(0.f, 6.f));
+		SyncSlotToActivePoi(ed);
+		if (ImGui::BeginChild("###gw2tt_tt_mk_raw", ImVec2(0.f, 0.f), true,
+				PadNav::kNestedList))
+			DrawMarkerRawList(ed);
+		ImGui::EndChild();
+	}
+	else
+	{
+		SyncSlotToActivePoi(ed);
+		if (ed.poiIndex < 0 || ed.poiIndex >= static_cast<int>(gDraft.pois.size()))
+			ImGui::TextDisabled("No marker bound — Insert Marker or pick one on Content.");
+		else
+		{
+			DraftPoi& p = gDraft.pois[static_cast<size_t>(ed.poiIndex)];
+			ImGui::TextDisabled("Markers%d — POI %d", slot + 1, ed.poiIndex);
+			DrawSelectedPoiEditor(p);
+		}
+	}
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);
+	PadNav::PopWrap();
+	ImGui::EndChild();
 }
 
 void TrailToolsDetail::DrawMarkersTab()

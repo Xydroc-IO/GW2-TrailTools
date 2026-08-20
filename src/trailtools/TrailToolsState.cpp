@@ -34,6 +34,7 @@ namespace TrailToolsDetail
 	bool  gGroundSnap = true;
 	bool  gPopoutTrails = false;
 	bool  gPopoutMarkers = false;
+	bool  gPadPointerOver = false;
 
 	DraftTrail& RecordingTrail()
 	{

@@ -104,6 +104,8 @@ void Gw2Ui::WarmCommon()
 	Request(Icon::Bag);
 	Request(Icon::Options);
 	Request(Icon::TrailAnvil);
+	Request(Icon::Achievement);
+	Request(Icon::SettingsGear);
 	Request(Icon::Close);
 }
 

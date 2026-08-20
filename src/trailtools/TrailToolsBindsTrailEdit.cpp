@@ -91,6 +91,7 @@ void TrailToolsBinds::ActionTrailSelectNearest()
 	}
 	RecordingSelectedPoint() = best;
 	gDraft.selectedPoi = -1;
+	TrailToolsUberTool::Unlock();
 	TrailToolsUberTool::FollowSelection();
 	SetStatus("Selected #%d — Move to Feet, Delete Nearest, or drag with UberTool.", best);
 }
@@ -189,7 +190,7 @@ void TrailToolsBinds::ActionMarkerSelectNearest()
 	}
 	gDraft.selectedPoi = best;
 	RecordingSelectedPoint() = -1;
-	TrailToolsUberTool::FollowSelection();
+	TrailToolsUberTool::SelectPoi(best);
 	SetStatus("Selected marker #%d.", best);
 }
 
@@ -203,17 +204,21 @@ void TrailToolsBinds::ActionMarkerMoveToFeet()
 		SetStatus("No Mumble pose.");
 		return;
 	}
-	if (gDraft.selectedPoi < 0 || gDraft.selectedPoi >= static_cast<int>(gDraft.pois.size()))
+	int sel = TrailToolsUberTool::ActivePoiIndex();
+	if (sel < 0)
+		sel = gDraft.selectedPoi;
+	if (sel < 0 || sel >= static_cast<int>(gDraft.pois.size()))
 	{
 		SetStatus("Select a marker first.");
 		return;
 	}
 	TrailToolsEditUndo::PushPois();
-	DraftPoi& p = gDraft.pois[static_cast<size_t>(gDraft.selectedPoi)];
+	DraftPoi& p = gDraft.pois[static_cast<size_t>(sel)];
 	p.mapId = mapId;
 	p.x = x;
 	p.y = y;
 	p.z = z;
-	TrailToolsUberTool::FollowSelection();
-	SetStatus("Moved marker #%d to feet.", gDraft.selectedPoi);
+	gDraft.selectedPoi = sel;
+	TrailToolsUberTool::SelectPoi(sel);
+	SetStatus("Moved marker #%d to feet.", sel);
 }
