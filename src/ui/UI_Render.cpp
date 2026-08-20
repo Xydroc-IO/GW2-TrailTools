@@ -100,6 +100,10 @@ void UI_Render()
 	WorldClick::TickImGui();
 	TrailToolsGround::TickSample();
 	TrailToolsPad::Render();
+	/* Drop WndProc world-clicks that landed on pad chrome before PackEdit/UberTool. */
+	WorldClick::TickImGui();
+	if (ImGui::GetIO().WantCaptureMouse || TrailToolsDetail::gPadPointerOver)
+		WorldClick::DiscardPending();
 	TrailToolsBinds::PollRecording();
 	CrashTrail::HeartbeatIfHot();
 	PackEdit::Tick();

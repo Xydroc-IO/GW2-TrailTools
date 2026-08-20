@@ -21,7 +21,7 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 	if (a > 1.f)
 		a = 1.f;
 
-	auto paintY = [&](ImGuiWindow* window) {
+	auto paintY = [&](ImGuiWindow* window, bool isRoot) {
 		if (!window || window->Collapsed || !window->ScrollbarY)
 			return;
 		if (!(window->Active || window->WasActive))
@@ -32,23 +32,26 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 
 		const ImRect outer = window->Rect();
 		ImRect bb = ImGui::GetWindowScrollbarRect(window, ImGuiAxis_Y);
-		const bool col = window->StateStorage.GetBool(
-			window->GetID("##gw2tt_pad_collapsed"), false);
-		const float titleH = PadDock::TitleBarH(col);
-		/* Title wash covers gutter under min/close; paint body gutter below. */
-		const float top = window->Pos.y + titleH;
+		/* Only the pad root has a title strip — nested lists must not add TitleBarH
+		   or PushClipRect(intersect=false), or thumbs bleed into min/close. */
+		float top = bb.Min.y;
+		if (isRoot)
+		{
+			const bool col = window->StateStorage.GetBool(
+				window->GetID("##gw2tt_pad_collapsed"), false);
+			top = ImMax(top, window->Pos.y + PadDock::TitleBarH(col));
+		}
 		bb.Min.y = ImMax(bb.Min.y, top);
 		if (bb.GetHeight() < 2.f)
 			return;
 
-		/* Opaque column content→outer (NoBackground otherwise shows through). */
 		const float sealL = ImMin(window->InnerRect.Max.x, bb.Min.x) - 3.f;
 		const ImU32 sealU = IM_COL32(
 			(int)(HelperTheme::Bg.x * 255.f + 0.5f),
 			(int)(HelperTheme::Bg.y * 255.f + 0.5f),
 			(int)(HelperTheme::Bg.z * 255.f + 0.5f),
 			(int)(ImClamp(a, 0.95f, 1.f) * 255.f + 0.5f));
-		dl->PushClipRect(ImVec2(sealL, top), ImVec2(outer.Max.x, outer.Max.y), false);
+		dl->PushClipRect(ImVec2(sealL, top), ImVec2(outer.Max.x, outer.Max.y), true);
 		dl->AddRectFilled(ImVec2(sealL, top), ImVec2(outer.Max.x, bb.Max.y), sealU, 0.f);
 
 		const float trackH = bb.Max.y - top;
@@ -66,8 +69,6 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 			? (window->Scroll.y / window->ScrollMax.y)
 			: 0.f;
 		const float gy0 = top + travel * t;
-		/* Match track presence on Win/Linux — 3px reads as a hairline on many
-		   Windows DPI setups while Linux/Wine still looks fine at ~6. */
 		const float trackW = ImMax(bb.GetWidth(), ImGui::GetStyle().ScrollbarSize);
 		const float thumbW = ImClamp(trackW * 0.45f, 5.f, 8.f);
 		const float gx1 = outer.Max.x - 2.f;
@@ -79,7 +80,7 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 		dl->PopClipRect();
 	};
 
-	paintY(root);
+	paintY(root, true);
 	ImGuiContext& g = *GImGui;
 	for (int i = 0; i < g.Windows.Size; ++i)
 	{
@@ -96,6 +97,6 @@ void Gw2Ui::PaintNativeScrollbars(float opacity, ImGuiWindow* root)
 			}
 		}
 		if (under)
-			paintY(w);
+			paintY(w, false);
 	}
 }

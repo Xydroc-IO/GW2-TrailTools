@@ -25,7 +25,7 @@ void PackEdit::Tick()
 
 	float mx = 0.f, my = 0.f;
 	const bool click = WorldClick::TakeLeftDown(mx, my);
-	if (click && !ImGui::GetIO().WantCaptureMouse)
+	if (click && !ImGui::GetIO().WantCaptureMouse && !TrailToolsDetail::gPadPointerOver)
 	{
 		uint32_t mapId = 0;
 		if (G::Mumble)

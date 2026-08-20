@@ -61,6 +61,11 @@ bool WorldClick::TakeLeftDown(float& mx, float& my)
 	return true;
 }
 
+void WorldClick::DiscardPending()
+{
+	gPending = false;
+}
+
 bool WorldClick::LeftHeld()
 {
 	return gHeld && !gWantUi;
