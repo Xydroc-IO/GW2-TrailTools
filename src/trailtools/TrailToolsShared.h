@@ -105,6 +105,7 @@ namespace TrailToolsDetail
 		bool          xmlDirty = false;
 		char          status[384] = {};
 		bool          previewEnabled = true;
+		bool          previewAllTrails = false; /* false = active TrailsN only; true = all open TrailsN */
 		bool          trailDirty = false;
 		bool          trailWorldShown = false; /* GPS after Start / explicit place, not on load */
 		int           xmlLayout = 0; /* unused: always one OverlayData file */
@@ -175,8 +176,11 @@ namespace TrailToolsDetail
 	extern float gXmlEditX, gXmlEditY, gXmlEditW, gXmlEditH;
 	extern std::string gXmlEdit; /* raw OverlayData text (may include attrs we do not model) */
 	extern bool  gXmlEditDirty;
-	/* Last-focused TrailsN for keybind recording (−1 = gDraft.active). */
+	extern int   gXmlEditCursor; /* byte caret in gXmlEdit (Content pane + XML editor) */
+	/* TrailsN that is actively recording (−1 = none). Not updated by mere focus. */
 	extern int gTrailRecordSlot;
+	/* Last-focused TrailsN for keybinds / tools when not recording. */
+	extern int gTrailFocusSlot;
 	extern int gTrailEditorDrawSlot; /* slot index while Push/Pop draw is active; −1 else */
 	/* Hub: ignore Pop out / New window for one frame after a side-rail tab click. */
 	extern bool gHubSkipOpenClicks;
@@ -189,6 +193,8 @@ namespace TrailToolsDetail
 	bool& RecordingWorldShown(); /* in-world GPS/verts after Start recording */
 	bool DraftWorldVisible();
 	void ClearWorldDraftTrails(); /* wipe hub + TrailsN drafts and stop recording */
+	/* After TrailsN focus changes: show that trail; retarget recorder if recording. */
+	void SyncTrailWindowFocus();
 
 	/* Legacy single-flag aliases used by unload; prefer desks + editor slots. */
 	extern bool gPopoutTrails;
@@ -223,6 +229,8 @@ namespace TrailToolsDetail
 	bool WriteDefaultAssets(); /* ExampleMarker.png + Trail.png if missing */
 	bool OpenAuthoringFolder();
 	void CopyClipboard(const char* text);
+	/* Insert into gXmlEdit at gXmlEditCursor; advances caret; copies clipboard as fallback. */
+	void InsertAtXmlCaret(const char* text);
 	bool ReadMumblePose(uint32_t& mapId, float& x, float& y, float& z);
 	std::string MakeGuidBase64();
 	bool HasDraftPreview(); /* trail pts or POIs on current map */

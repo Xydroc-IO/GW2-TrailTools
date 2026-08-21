@@ -186,6 +186,17 @@ namespace
 	}
 }
 
+void TrailToolsBinds::ResetSampleAnchor()
+{
+	MarkSampleNow();
+	uint32_t mapId = 0;
+	float x = 0.f, y = 0.f, z = 0.f;
+	if (TrailToolsDetail::ReadMumblePose(mapId, x, y, z))
+		RememberSample(x, y, z);
+	else
+		gHaveSample = false;
+}
+
 void TrailToolsBinds::ActionTrailStart()
 {
 	using namespace TrailToolsDetail;
@@ -205,52 +216,75 @@ void TrailToolsBinds::ActionTrailStart()
 		SetStatus("Open a Trails window before recording.");
 		return;
 	}
-	if (gTrailEditorDrawActive && gTrailEditorDrawSlot >= 0)
-		gTrailRecordSlot = gTrailEditorDrawSlot;
-	DraftTrail& tr = RecordingTrail();
-	if (!gBinds.trailRecording)
+
+	const int wantSlot = (gTrailEditorDrawActive && gTrailEditorDrawSlot >= 0)
+		? gTrailEditorDrawSlot : gTrailFocusSlot;
+
+	if (gBinds.trailRecording)
 	{
-		gBinds.trailRecording = true;
-		gBinds.trailPaused = false;
-		RecordingWorldShown() = true;
-		if (tr.type.empty() && gDraft.trailType[0])
-			tr.type = gDraft.trailType;
-		uint32_t mapId = 0;
-		float x = 0.f, y = 0.f, z = 0.f;
-		if (ReadMumblePose(mapId, x, y, z))
+		if (wantSlot >= 0 && wantSlot != gTrailRecordSlot)
 		{
-			if (tr.mapId == 0 && mapId != 0)
-				tr.mapId = mapId;
-			const bool mapChange = tr.mapId != 0 && mapId != 0 && tr.mapId != mapId;
-			if (mapChange)
-			{
-				int& sel = RecordingSelectedPoint();
-				TrailToolsEditUndo::PushTrail();
-				if (!tr.points.empty())
-					tr.points.push_back({ 0.f, 0.f, 0.f });
-				tr.mapId = mapId;
-				tr.points.push_back({ x, y, z });
-				sel = static_cast<int>(tr.points.size()) - 1;
-				RecordingTrailDirty() = true;
-				RememberSample(x, y, z);
-			}
-			else if (tr.points.empty())
-				AppendPointAtFeet(false);
-			else
-				RememberSample(x, y, z);
+			gTrailRecordSlot = wantSlot;
+			gBinds.trailPaused = false;
+			RecordingWorldShown() = true;
+			DraftTrail& tr = RecordingTrail();
+			if (tr.type.empty() && gDraft.trailType[0])
+				tr.type = gDraft.trailType;
+			ResetSampleAnchor();
+			SetStatus("Recording switched to Trails%d (%zu pts).",
+				gTrailRecordSlot + 1, tr.points.size());
+			return;
 		}
-		MarkSampleNow();
-		SetStatus("Recording trail... (%zu pts).", tr.points.size());
+		if (gBinds.trailPaused)
+		{
+			gBinds.trailPaused = false;
+			ResetSampleAnchor();
+			SetStatus("Trail recording resumed.");
+			return;
+		}
+		SetStatus("Already recording — Pause or Stop.");
 		return;
 	}
-	if (gBinds.trailPaused)
+
+	if (wantSlot < 0 || wantSlot >= kMaxTrailEditors || !gTrailEditors[wantSlot].open)
 	{
-		gBinds.trailPaused = false;
-		MarkSampleNow();
-		SetStatus("Trail recording resumed.");
+		SetStatus("Focus a Trails window before recording.");
 		return;
 	}
-	SetStatus("Already recording — Pause or Stop.");
+	gTrailRecordSlot = wantSlot;
+
+	DraftTrail& tr = RecordingTrail();
+	gBinds.trailRecording = true;
+	gBinds.trailPaused = false;
+	RecordingWorldShown() = true;
+	if (tr.type.empty() && gDraft.trailType[0])
+		tr.type = gDraft.trailType;
+	uint32_t mapId = 0;
+	float x = 0.f, y = 0.f, z = 0.f;
+	if (ReadMumblePose(mapId, x, y, z))
+	{
+		if (tr.mapId == 0 && mapId != 0)
+			tr.mapId = mapId;
+		const bool mapChange = tr.mapId != 0 && mapId != 0 && tr.mapId != mapId;
+		if (mapChange)
+		{
+			int& sel = RecordingSelectedPoint();
+			TrailToolsEditUndo::PushTrail();
+			if (!tr.points.empty())
+				tr.points.push_back({ 0.f, 0.f, 0.f });
+			tr.mapId = mapId;
+			tr.points.push_back({ x, y, z });
+			sel = static_cast<int>(tr.points.size()) - 1;
+			RecordingTrailDirty() = true;
+			RememberSample(x, y, z);
+		}
+		else if (tr.points.empty())
+			AppendPointAtFeet(false);
+		else
+			RememberSample(x, y, z);
+	}
+	ResetSampleAnchor();
+	SetStatus("Recording on Trails%d (%zu pts).", gTrailRecordSlot + 1, tr.points.size());
 }
 
 void TrailToolsBinds::ActionTrailPause()
@@ -260,6 +294,13 @@ void TrailToolsBinds::ActionTrailPause()
 	if (!gBinds.trailRecording)
 	{
 		SetStatus("Not recording.");
+		return;
+	}
+	if (gTrailEditorDrawActive && gTrailEditorDrawSlot >= 0 &&
+		gTrailRecordSlot != gTrailEditorDrawSlot)
+	{
+		SetStatus("Trails%d is recording — Start here to switch, or Pause there.",
+			gTrailRecordSlot + 1);
 		return;
 	}
 	gBinds.trailPaused = !gBinds.trailPaused;

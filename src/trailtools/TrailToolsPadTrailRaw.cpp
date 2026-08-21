@@ -146,31 +146,43 @@ namespace
 		using namespace TrailToolsDetail;
 		auto& kb = TrailToolsBinds::Get();
 		ClampSampleSpacing(kb.trailSampleSpacing);
+		const int slot = gTrailEditorDrawSlot;
+		const bool mine = kb.trailRecording && slot >= 0 && slot == gTrailRecordSlot;
+		const bool otherRec = kb.trailRecording && !mine;
+
 		ImGui::TextUnformatted("Recording");
 		ImGui::Dummy(ImVec2(0.f, 6.f));
-		if (kb.trailRecording)
+		char stopId[48]{};
+		char startId[48]{};
+		char pauseId[48]{};
+		std::snprintf(stopId, sizeof(stopId), "Stop###gw2tt_tt_recstop%d", slot);
+		std::snprintf(startId, sizeof(startId), "Start###gw2tt_tt_recstart%d", slot);
+		std::snprintf(pauseId, sizeof(pauseId), "%s###gw2tt_tt_recpause%d",
+			(mine && kb.trailPaused) ? "Resume" : "Pause", slot);
+		if (mine)
 		{
-			if (ImGui::Button("Stop###gw2tt_tt_recstop", ImVec2(-1.f, 0.f)))
+			if (ImGui::Button(stopId, ImVec2(-1.f, 0.f)))
 				TrailToolsBinds::ActionTrailStop();
+			if (ImGui::Button(pauseId, ImVec2(-1.f, 0.f)))
+				TrailToolsBinds::ActionTrailPause();
 		}
-		else if (ImGui::Button("Start###gw2tt_tt_recstart", ImVec2(-1.f, 0.f)))
+		else if (ImGui::Button(startId, ImVec2(-1.f, 0.f)))
 			TrailToolsBinds::ActionTrailStart();
-		const char* pauseLab = (kb.trailRecording && kb.trailPaused)
-			? "Resume###gw2tt_tt_recpause"
-			: "Pause###gw2tt_tt_recpause";
-		if (ImGui::Button(pauseLab, ImVec2(-1.f, 0.f)))
-			TrailToolsBinds::ActionTrailPause();
 		ImGui::Dummy(ImVec2(0.f, 10.f));
 		ImGui::TextUnformatted("Spacing");
 		ImGui::SetNextItemWidth(-1.f);
-		if (ImGui::InputFloat("###gw2tt_tt_vspace", &kb.trailSampleSpacing, 0.f, 0.f, "%.2f"))
+		char spId[40]{};
+		std::snprintf(spId, sizeof(spId), "###gw2tt_tt_vspace%d", slot);
+		if (ImGui::InputFloat(spId, &kb.trailSampleSpacing, 0.f, 0.f, "%.2f"))
 			ClampSampleSpacing(kb.trailSampleSpacing);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Seconds between samples while moving (0.3 = 1/3 s).\n"
 				"Standing still does not add duplicate vectors.");
-		if (kb.trailRecording)
+		if (mine)
 			ImGui::TextColored(kb.trailPaused ? HelperTheme::Muted : HelperTheme::Ok,
 				kb.trailPaused ? "Paused" : "Recording");
+		else if (otherRec)
+			ImGui::TextDisabled("Idle — Trails%d is recording", gTrailRecordSlot + 1);
 		else
 			ImGui::TextDisabled("Idle");
 	}
@@ -251,7 +263,8 @@ void TrailToolsDetail::DrawTrailRawEditor()
 			listH = 64.f;
 		DrawRawPointList(listH);
 	}
-	if (ImGui::CollapsingHeader("Attrs / geometry###gw2tt_tt_more"))
+	if (ImGui::CollapsingHeader("Attrs / geometry###gw2tt_tt_more",
+			ImGuiTreeNodeFlags_DefaultOpen))
 	{
 		DrawTrailAttrsSection();
 		DrawTrailGeomSection();

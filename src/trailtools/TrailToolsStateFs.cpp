@@ -96,6 +96,15 @@ namespace TrailToolsDetail
 	{
 		if (DraftWorldVisible())
 		{
+			if (gDraft.previewAllTrails)
+			{
+				for (int i = 0; i < kMaxTrailEditors; ++i)
+				{
+					const TrailEditorSlot& s = gTrailEditors[i];
+					if (s.open && s.trail.points.size() >= 2 && s.trail.mapId != 0)
+						return true;
+				}
+			}
 			if (RecordingTrail().points.size() >= 2 && RecordingTrail().mapId != 0)
 				return true;
 			if (gDraft.active.points.size() >= 2 && gDraft.active.mapId != 0)

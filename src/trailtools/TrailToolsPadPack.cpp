@@ -1,8 +1,6 @@
 #include "TrailToolsInternal.h"
 #include "TrailToolsShared.h"
-#include "TrailToolsAssets.h"
 #include "TrailToolsBuild.h"
-#include "TrailToolsXml.h"
 
 #include "AddonPaths.h"
 #include "Globals.h"
@@ -18,183 +16,104 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
-#include <vector>
 
-namespace
+void TrailToolsDetail::DrawLooksDefaultsUi()
 {
-	void DrawLooksSection()
+	ImGui::TextDisabled("Presets and paths for the active trail / marker category (TacO defaults).");
+
+	int trailN = 0, markN = 0;
+	const char* const* trailNames = TrailLookPresetNames(&trailN);
+	const char* const* markNames = MarkerLookPresetNames(&markN);
+	static int sTrailPreset = 0;
+	static int sMarkPreset = 0;
+
+	ImGui::SetNextItemWidth(200.f);
+	if (ImGui::Combo("Trail look###gw2tt_tt_tlook", &sTrailPreset, trailNames, trailN))
+		ApplyTrailLookPreset(sTrailPreset);
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Apply trail"));
+	if (ImGui::Button("Apply trail###gw2tt_tt_tlook_go"))
+		ApplyTrailLookPreset(sTrailPreset);
+
+	ImGui::SetNextItemWidth(200.f);
+	if (ImGui::Combo("Marker look###gw2tt_tt_mlook", &sMarkPreset, markNames, markN))
+		ApplyMarkerLookPreset(sMarkPreset);
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Apply marker"));
+	if (ImGui::Button("Apply marker###gw2tt_tt_mlook_go"))
+		ApplyMarkerLookPreset(sMarkPreset);
+
+	CategoryNode* trailLeaf = FindCategoryByPath(gDraft.root,
+		gDraft.trailType[0] ? std::string(gDraft.trailType) : RootCategoryName() + ".example");
+	CategoryNode* markLeaf = FindCategoryByPath(gDraft.root,
+		gDraft.markerType[0] ? std::string(gDraft.markerType) : RootCategoryName() + ".circle");
+
+	if (trailLeaf)
 	{
-		using namespace TrailToolsDetail;
-		ImGui::TextDisabled("Presets write texture/icon PNGs; Custom uses Markers/ PNGs.");
-
-		int trailN = 0, markN = 0;
-		const char* const* trailNames = TrailLookPresetNames(&trailN);
-		const char* const* markNames = MarkerLookPresetNames(&markN);
-		static int sTrailPreset = 0;
-		static int sMarkPreset = 0;
-
-		ImGui::SetNextItemWidth(200.f);
-		if (ImGui::Combo("Trail look###gw2tt_tt_tlook", &sTrailPreset, trailNames, trailN))
-			ApplyTrailLookPreset(sTrailPreset);
-		PadNav::WrapSameLine(PadNav::ButtonWidth("Apply trail"));
-		if (ImGui::Button("Apply trail###gw2tt_tt_tlook_go"))
-			ApplyTrailLookPreset(sTrailPreset);
-
-		ImGui::SetNextItemWidth(200.f);
-		if (ImGui::Combo("Marker look###gw2tt_tt_mlook", &sMarkPreset, markNames, markN))
-			ApplyMarkerLookPreset(sMarkPreset);
-		PadNav::WrapSameLine(PadNav::ButtonWidth("Apply marker"));
-		if (ImGui::Button("Apply marker###gw2tt_tt_mlook_go"))
-			ApplyMarkerLookPreset(sMarkPreset);
-
-		/* Fine-tune active leaf categories. */
-		CategoryNode* trailLeaf = FindCategoryByPath(gDraft.root,
-			gDraft.trailType[0] ? std::string(gDraft.trailType) : RootCategoryName() + ".example");
-		CategoryNode* markLeaf = FindCategoryByPath(gDraft.root,
-			gDraft.markerType[0] ? std::string(gDraft.markerType) : RootCategoryName() + ".circle");
-
-		if (trailLeaf)
+		ImGui::Separator();
+		ImGui::TextDisabled("Trail category: %s", gDraft.trailType);
+		char tex[256]{};
+		std::snprintf(tex, sizeof(tex), "%s", trailLeaf->texture.c_str());
+		PadNav::PushWidthForLabel("Default trail texture###gw2tt_tt_ttex");
+		if (ImGui::InputText("Default trail texture###gw2tt_tt_ttex", tex, sizeof(tex)))
+			trailLeaf->texture = tex;
+		PadNav::PopWidthForLabel();
+		PadNav::PrepLabeled("trailScale###gw2tt_tt_tscale", 120.f, true);
+		ImGui::DragFloat("trailScale###gw2tt_tt_tscale", &trailLeaf->trailScale, 0.05f, 0.25f, 4.f);
+		PadNav::PrepLabeled("fadeNear###gw2tt_tt_tfn", 100.f);
+		ImGui::DragFloat("fadeNear###gw2tt_tt_tfn", &trailLeaf->fadeNear, 10.f, -1.f, 20000.f);
+		PadNav::PrepLabeled("fadeFar###gw2tt_tt_tff", 100.f);
+		ImGui::DragFloat("fadeFar###gw2tt_tt_tff", &trailLeaf->fadeFar, 10.f, -1.f, 20000.f);
+		float rgba[4] = {
+			((trailLeaf->color >> 16) & 0xFFu) / 255.f,
+			((trailLeaf->color >> 8) & 0xFFu) / 255.f,
+			(trailLeaf->color & 0xFFu) / 255.f,
+			((trailLeaf->color >> 24) & 0xFFu) / 255.f,
+		};
+		if (trailLeaf->color == 0)
 		{
-			ImGui::Separator();
-			ImGui::TextDisabled("Trail category: %s", gDraft.trailType);
-			char tex[256]{};
-			std::snprintf(tex, sizeof(tex), "%s", trailLeaf->texture.c_str());
-			PadNav::PushWidthForLabel("Trail texture###gw2tt_tt_ttex");
-			if (ImGui::InputText("Trail texture###gw2tt_tt_ttex", tex, sizeof(tex)))
-				trailLeaf->texture = tex;
-			PadNav::PopWidthForLabel();
-			PadNav::PrepLabeled("trailScale###gw2tt_tt_tscale", 120.f, true);
-			ImGui::DragFloat("trailScale###gw2tt_tt_tscale", &trailLeaf->trailScale, 0.05f, 0.25f, 4.f);
-			PadNav::PrepLabeled("fadeNear###gw2tt_tt_tfn", 100.f);
-			ImGui::DragFloat("fadeNear###gw2tt_tt_tfn", &trailLeaf->fadeNear, 10.f, -1.f, 20000.f);
-			PadNav::PrepLabeled("fadeFar###gw2tt_tt_tff", 100.f);
-			ImGui::DragFloat("fadeFar###gw2tt_tt_tff", &trailLeaf->fadeFar, 10.f, -1.f, 20000.f);
-			float rgba[4] = {
-				((trailLeaf->color >> 16) & 0xFFu) / 255.f,
-				((trailLeaf->color >> 8) & 0xFFu) / 255.f,
-				(trailLeaf->color & 0xFFu) / 255.f,
-				((trailLeaf->color >> 24) & 0xFFu) / 255.f,
-			};
-			if (trailLeaf->color == 0)
-			{
-				rgba[0] = rgba[1] = rgba[2] = rgba[3] = 1.f;
-			}
-			if (ImGui::ColorEdit4("Trail tint###gw2tt_tt_tcol", rgba,
-				ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayHex))
-			{
-				const auto ch = [](float f) -> uint32_t {
-					return static_cast<uint32_t>(std::clamp(f, 0.f, 1.f) * 255.f + 0.5f);
-				};
-				trailLeaf->color = (ch(rgba[3]) << 24) | (ch(rgba[0]) << 16) |
-					(ch(rgba[1]) << 8) | ch(rgba[2]);
-			}
+			rgba[0] = rgba[1] = rgba[2] = rgba[3] = 1.f;
 		}
-
-		if (markLeaf)
+		if (ImGui::ColorEdit4("Trail tint###gw2tt_tt_tcol", rgba,
+			ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayHex))
 		{
-			ImGui::Separator();
-			ImGui::TextDisabled("Marker category: %s", gDraft.markerType);
-			char icon[256]{};
-			std::snprintf(icon, sizeof(icon), "%s", markLeaf->iconFile.c_str());
-			PadNav::PushWidthForLabel("Marker icon###gw2tt_tt_micon");
-			if (ImGui::InputText("Marker icon###gw2tt_tt_micon", icon, sizeof(icon)))
-				markLeaf->iconFile = icon;
-			PadNav::PopWidthForLabel();
-			PadNav::PrepLabeled("iconSize###gw2tt_tt_misz", 120.f, true);
-			ImGui::DragFloat("iconSize###gw2tt_tt_misz", &markLeaf->iconSize, 0.05f, 0.25f, 4.f);
-			float rgba[4] = {
-				((markLeaf->color >> 16) & 0xFFu) / 255.f,
-				((markLeaf->color >> 8) & 0xFFu) / 255.f,
-				(markLeaf->color & 0xFFu) / 255.f,
-				((markLeaf->color >> 24) & 0xFFu) / 255.f,
+			const auto ch = [](float f) -> uint32_t {
+				return static_cast<uint32_t>(std::clamp(f, 0.f, 1.f) * 255.f + 0.5f);
 			};
-			if (markLeaf->color == 0)
-			{
-				rgba[0] = 1.f; rgba[1] = 0.8f; rgba[2] = 0.16f; rgba[3] = 1.f;
-			}
-			if (ImGui::ColorEdit4("Marker tint###gw2tt_tt_mcol", rgba,
-				ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayHex))
-			{
-				const auto ch = [](float f) -> uint32_t {
-					return static_cast<uint32_t>(std::clamp(f, 0.f, 1.f) * 255.f + 0.5f);
-				};
-				markLeaf->color = (ch(rgba[3]) << 24) | (ch(rgba[0]) << 16) |
-					(ch(rgba[1]) << 8) | ch(rgba[2]);
-			}
+			trailLeaf->color = (ch(rgba[3]) << 24) | (ch(rgba[0]) << 16) |
+				(ch(rgba[1]) << 8) | ch(rgba[2]);
 		}
 	}
 
-	void DrawCategoryNode(TrailToolsDetail::CategoryNode& n, int depth)
+	if (markLeaf)
 	{
-		ImGui::PushID(&n);
-		const float indent = static_cast<float>(depth) * 12.f;
-		ImGui::Indent(indent);
-		char nameBuf[64]{};
-		char dispBuf[96]{};
-		std::snprintf(nameBuf, sizeof(nameBuf), "%s", n.name.c_str());
-		std::snprintf(dispBuf, sizeof(dispBuf), "%s", n.displayName.c_str());
-		PadNav::PrepLabeled("name", 100.f, true);
-		if (ImGui::InputText("name", nameBuf, sizeof(nameBuf)))
-			n.name = nameBuf;
-		PadNav::PrepLabeled("label", 160.f);
-		if (ImGui::InputText("label", dispBuf, sizeof(dispBuf)))
-			n.displayName = dispBuf;
-
+		ImGui::Separator();
+		ImGui::TextDisabled("Marker category: %s", gDraft.markerType);
 		char icon[256]{};
-		char tex[256]{};
-		std::snprintf(icon, sizeof(icon), "%s", n.iconFile.c_str());
-		std::snprintf(tex, sizeof(tex), "%s", n.texture.c_str());
-		PadNav::PushWidthForLabel("iconFile");
-		if (ImGui::InputText("iconFile", icon, sizeof(icon)))
-			n.iconFile = icon;
+		std::snprintf(icon, sizeof(icon), "%s", markLeaf->iconFile.c_str());
+		PadNav::PushWidthForLabel("Default marker icon###gw2tt_tt_micon");
+		if (ImGui::InputText("Default marker icon###gw2tt_tt_micon", icon, sizeof(icon)))
+			markLeaf->iconFile = icon;
 		PadNav::PopWidthForLabel();
-		PadNav::PushWidthForLabel("texture");
-		if (ImGui::InputText("texture", tex, sizeof(tex)))
-			n.texture = tex;
-		PadNav::PopWidthForLabel();
-
-		PadNav::PrepLabeled("fadeNear", 80.f, true);
-		ImGui::DragFloat("fadeNear", &n.fadeNear, 10.f, -1.f, 20000.f);
-		PadNav::PrepLabeled("fadeFar", 80.f);
-		ImGui::DragFloat("fadeFar", &n.fadeFar, 10.f, -1.f, 20000.f);
-		PadNav::PrepLabeled("scale", 70.f);
-		ImGui::DragFloat("scale", &n.trailScale, 0.05f, 0.25f, 4.f);
-		PadNav::PrepLabeled("iconSize", 70.f, true);
-		ImGui::DragFloat("iconSize", &n.iconSize, 0.05f, 0.25f, 4.f);
-		PadNav::PrepLabeled("alpha", 70.f);
-		ImGui::DragFloat("alpha", &n.alpha, 0.05f, 0.f, 1.f);
-
-		char sched[96]{};
-		std::snprintf(sched, sizeof(sched), "%s", n.schedule.c_str());
-		PadNav::PushWidthForLabel("schedule");
-		if (ImGui::InputText("schedule", sched, sizeof(sched)))
-			n.schedule = sched;
-		PadNav::PopWidthForLabel();
-		PadNav::PrepLabeled("schedDur", 90.f);
-		ImGui::DragFloat("schedDur", &n.scheduleDuration, 1.f, 0.f, 10080.f);
-
-		if (ImGui::SmallButton("Add child"))
+		PadNav::PrepLabeled("iconSize###gw2tt_tt_misz", 120.f, true);
+		ImGui::DragFloat("iconSize###gw2tt_tt_misz", &markLeaf->iconSize, 0.05f, 0.25f, 4.f);
+		float rgba[4] = {
+			((markLeaf->color >> 16) & 0xFFu) / 255.f,
+			((markLeaf->color >> 8) & 0xFFu) / 255.f,
+			(markLeaf->color & 0xFFu) / 255.f,
+			((markLeaf->color >> 24) & 0xFFu) / 255.f,
+		};
+		if (markLeaf->color == 0)
 		{
-			TrailToolsDetail::CategoryNode ch;
-			ch.name = "new";
-			ch.displayName = "New Category";
-			n.children.push_back(ch);
+			rgba[0] = 1.f; rgba[1] = 0.8f; rgba[2] = 0.16f; rgba[3] = 1.f;
 		}
-		ImGui::Unindent(indent);
-
-		for (size_t i = 0; i < n.children.size(); ++i)
+		if (ImGui::ColorEdit4("Marker tint###gw2tt_tt_mcol", rgba,
+			ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_DisplayHex))
 		{
-			ImGui::PushID(static_cast<int>(i));
-			DrawCategoryNode(n.children[i], depth + 1);
-			if (ImGui::SmallButton("Remove child"))
-			{
-				n.children.erase(n.children.begin() + static_cast<std::ptrdiff_t>(i));
-				ImGui::PopID();
-				break;
-			}
-			ImGui::PopID();
+			const auto ch = [](float f) -> uint32_t {
+				return static_cast<uint32_t>(std::clamp(f, 0.f, 1.f) * 255.f + 0.5f);
+			};
+			markLeaf->color = (ch(rgba[3]) << 24) | (ch(rgba[0]) << 16) |
+				(ch(rgba[1]) << 8) | ch(rgba[2]);
 		}
-		ImGui::PopID();
 	}
 }
 
@@ -202,7 +121,7 @@ void TrailToolsDetail::DrawPackTab()
 {
 	PadNav::SectionTitle("Pack");
 	PadNav::BeginSection("pack_id");
-	ImGui::TextDisabled("OverlayData New / Load / Save and the XML editor are on Content.");
+	ImGui::TextDisabled("Identity + build. OverlayData New/Load/Save stays under Project above.");
 	PadNav::PushWrap();
 	ImGui::TextDisabled("pathing/authoring/%s/", gDraft.packName);
 	PadNav::PopWrap();
@@ -305,21 +224,9 @@ void TrailToolsDetail::DrawPackTab()
 	}
 	PadNav::EndSection();
 
-	if (ImGui::CollapsingHeader("Looks###gw2tt_tt_looks", ImGuiTreeNodeFlags_DefaultOpen))
-		DrawLooksSection();
-
-	if (ImGui::CollapsingHeader("Assets###gw2tt_tt_assets"))
-		TrailToolsAssets::DrawBrowserUi();
-
-	if (ImGui::CollapsingHeader("Lua###gw2tt_tt_lua"))
+	/* Parked: list-only until Lua authoring workflow is defined. */
+	if (ImGui::CollapsingHeader("Lua (pack scripts)###gw2tt_tt_lua"))
 		DrawLuaFilesUi();
-
-	if (ImGui::CollapsingHeader("Categories###gw2tt_tt_cats_hdr"))
-	{
-		if (ImGui::BeginChild("###gw2tt_tt_cats", ImVec2(0.f, 180.f), true, PadNav::kNestedList))
-			DrawCategoryNode(gDraft.root, 0);
-		ImGui::EndChild();
-	}
 
 	ImGui::TextDisabled("%zu trails · %zu markers", gDraft.trails.size() +
 		(gDraft.active.points.size() >= 2 ? 1u : 0u), gDraft.pois.size());

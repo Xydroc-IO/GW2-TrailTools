@@ -9,6 +9,8 @@
 #include "TrailToolsPad.h"
 #include "TrailToolsPreview.h"
 #include "TrailToolsShared.h"
+#include "TrailToolsAssets.h"
+#include "TrailToolsInternal.h"
 #include "TrailToolsUberTool.h"
 #include "TrailToolsWorldPick.h"
 #include "TrailToolsGround.h"
@@ -146,6 +148,10 @@ void UI_DrawSettingsControls()
 	}
 	if (ImGui::CollapsingHeader("Pack editor###gw2tt_opt_pe"))
 		PackEdit::DrawTab();
+	if (ImGui::CollapsingHeader("Default trail / marker looks###gw2tt_opt_looks"))
+		TrailToolsDetail::DrawLooksDefaultsUi();
+	if (ImGui::CollapsingHeader("Default textures###gw2tt_opt_tex"))
+		TrailToolsAssets::DrawBrowserUi();
 	ImGui::TextDisabled("Keybinds work while GW2 is focused (pad can be closed).");
 	ImGui::Separator();
 	ImGui::Checkbox("Show Trail Tools", &G::ShowTrailTools);

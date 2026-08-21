@@ -377,7 +377,11 @@ bool Gw2Ui::RailToggle(const char* label, bool on, int assetId, float iconSize, 
 	Texture_t* t = TexFor(assetId);
 	if (t && t->Resource)
 	{
-		dl->AddImage(reinterpret_cast<ImTextureID>(t->Resource), i0, i1);
+		/* Selected tab: full-bright icon; idle: slightly dimmer for contrast. */
+		const ImU32 tint = on ? IM_COL32(255, 255, 255, 255)
+			: IM_COL32(180, 190, 200, 210);
+		dl->AddImage(reinterpret_cast<ImTextureID>(t->Resource), i0, i1,
+			ImVec2(0, 0), ImVec2(1, 1), tint);
 	}
 	else if (showLabel && label && label[0])
 	{

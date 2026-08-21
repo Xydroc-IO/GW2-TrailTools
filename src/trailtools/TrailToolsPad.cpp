@@ -428,20 +428,23 @@ bool TrailToolsPad::Render()
 		if (i == 0)
 			G::PadTrailEditor = geom;
 		if (focused)
-			gTrailRecordSlot = i;
+			gTrailFocusSlot = i;
 		if (!slot.open && gTrailRecordSlot == i)
 			gTrailRecordSlot = -1;
+		if (!slot.open && gTrailFocusSlot == i)
+			gTrailFocusSlot = -1;
 	}
-	if (gTrailRecordSlot < 0 || gTrailRecordSlot >= kMaxTrailEditors ||
-		!gTrailEditors[gTrailRecordSlot].open)
-	{
+	auto slotOpen = [](int s) {
+		return s >= 0 && s < kMaxTrailEditors && gTrailEditors[s].open;
+	};
+	if (!slotOpen(gTrailRecordSlot))
 		gTrailRecordSlot = -1;
+	if (!slotOpen(gTrailFocusSlot))
+	{
+		gTrailFocusSlot = -1;
 		for (int i = 0; i < kMaxTrailEditors; ++i)
 		{
-			if (!gTrailEditors[i].open)
-				continue;
-			gTrailRecordSlot = i;
-			break;
+			if (gTrailEditors[i].open) { gTrailFocusSlot = i; break; }
 		}
 	}
 	if (gTrailRecordSlot < 0 && TrailToolsBinds::Get().trailRecording)
@@ -449,6 +452,7 @@ bool TrailToolsPad::Render()
 		TrailToolsBinds::Get().trailRecording = false;
 		TrailToolsBinds::Get().trailPaused = false;
 	}
+	SyncTrailWindowFocus();
 
 	/* Markers1 … MarkersN */
 	for (int i = 0; i < kMaxMarkerEditors; ++i)

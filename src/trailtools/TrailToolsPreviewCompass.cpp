@@ -1,5 +1,6 @@
 #include "TrailToolsPreviewCompass.h"
 
+#include "TrailToolsBinds.h"
 #include "TrailToolsDraftStyle.h"
 #include "TrailToolsShared.h"
 #include "Globals.h"
@@ -7,25 +8,18 @@
 #include <algorithm>
 #include <cmath>
 
-void TrailToolsPreviewCompass::Draw(
-	uint32_t mapId,
-	ImDrawList* dl,
-	const std::function<bool(float wx, float wz, float& cx, float& cy)>& worldToCont,
-	const std::function<ImVec2(float cx, float cy)>& toScreen,
-	const std::function<bool(ImVec2)>& inCompass,
-	float mapScale)
+namespace
 {
-	using namespace TrailToolsDetail;
-	if (!TrailToolsDetail::AnyAuthoringPadOpen() || !gDraft.previewEnabled || !dl)
-		return;
-	if (!DraftWorldVisible())
-		return;
-
-	TrailToolsDraftStyle::BeginFrame();
-
-	if (gDraft.active.points.size() >= 2 && gDraft.active.mapId == mapId)
+	void DrawTrailOnCompass(
+		const TrailToolsDetail::DraftTrail& trail,
+		ImDrawList* dl,
+		const std::function<bool(float wx, float wz, float& cx, float& cy)>& worldToCont,
+		const std::function<ImVec2(float cx, float cy)>& toScreen,
+		const std::function<bool(ImVec2)>& inCompass)
 	{
-		const auto sty = TrailToolsDraftStyle::ResolveTrail();
+		if (trail.points.size() < 2)
+			return;
+		const auto sty = TrailToolsDraftStyle::ResolveTrailFor(trail);
 		const uint32_t argb = sty.color ? sty.color : 0xFFFF40DCu;
 		int a = static_cast<int>((argb >> 24) & 0xFFu);
 		a = std::clamp(static_cast<int>(a * sty.alpha), 80, 240);
@@ -34,7 +28,7 @@ void TrailToolsPreviewCompass::Draw(
 
 		bool prevOk = false;
 		ImVec2 prev{};
-		for (const auto& w : gDraft.active.points)
+		for (const auto& w : trail.points)
 		{
 			if (w.x == 0.f && w.y == 0.f && w.z == 0.f)
 			{
@@ -53,6 +47,43 @@ void TrailToolsPreviewCompass::Draw(
 			prev = cur;
 			prevOk = true;
 		}
+	}
+}
+
+void TrailToolsPreviewCompass::Draw(
+	uint32_t mapId,
+	ImDrawList* dl,
+	const std::function<bool(float wx, float wz, float& cx, float& cy)>& worldToCont,
+	const std::function<ImVec2(float cx, float cy)>& toScreen,
+	const std::function<bool(ImVec2)>& inCompass,
+	float mapScale)
+{
+	using namespace TrailToolsDetail;
+	if (!TrailToolsDetail::AnyAuthoringPadOpen() || !gDraft.previewEnabled || !dl)
+		return;
+	if (!DraftWorldVisible())
+		return;
+
+	TrailToolsDraftStyle::BeginFrame();
+
+	if (gDraft.previewAllTrails)
+	{
+		for (int i = 0; i < kMaxTrailEditors; ++i)
+		{
+			const TrailEditorSlot& s = gTrailEditors[i];
+			if (!s.open || s.trail.mapId != mapId || s.trail.points.size() < 2)
+				continue;
+			if (!s.worldShown &&
+				!(TrailToolsBinds::Get().trailRecording && gTrailRecordSlot == i))
+				continue;
+			DrawTrailOnCompass(s.trail, dl, worldToCont, toScreen, inCompass);
+		}
+	}
+	else
+	{
+		const DraftTrail& rec = RecordingTrail();
+		if (rec.points.size() >= 2 && rec.mapId == mapId)
+			DrawTrailOnCompass(rec, dl, worldToCont, toScreen, inCompass);
 	}
 
 	float scale = mapScale * 0.897f;

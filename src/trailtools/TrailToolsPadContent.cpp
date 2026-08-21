@@ -3,7 +3,6 @@
 #include "TrailToolsEditUndo.h"
 
 #include "HelperTheme.h"
-#include "PackEdit.h"
 #include "PadNav.h"
 #include "TrailToolsXml.h"
 
@@ -19,10 +18,10 @@ namespace
 	{
 		char bid[64]{};
 		std::snprintf(bid, sizeof(bid), "COPY###%s", id);
-		if (ImGui::SmallButton(bid))
+		if (PadNav::ActionSmallButton(bid))
 		{
-			TrailToolsDetail::CopyClipboard(clip);
-			TrailToolsDetail::SetStatus("Copied.");
+			TrailToolsDetail::InsertAtXmlCaret(clip);
+			TrailToolsDetail::SetStatus("Inserted into OverlayData at caret.");
 		}
 		ImGui::SameLine();
 		ImGui::TextUnformatted(label);
@@ -77,7 +76,6 @@ void TrailToolsDetail::DrawContentTab()
 	if (gDraft.active.fileRel.empty())
 		SyncActiveFileRelFromStem();
 
-	PackEdit::DrawWorldToggles("_pad");
 	DrawLiveTab();
 
 	PadNav::SectionTitle("Project");
@@ -114,7 +112,7 @@ void TrailToolsDetail::DrawContentTab()
 			ImGui::TableNextColumn();
 			CopyRow("cxyz", vecLine, xyzLab);
 			ImGui::TableNextColumn();
-			if (ImGui::SmallButton("COPY###cpoi"))
+			if (PadNav::ActionSmallButton("COPY###cpoi"))
 			{
 				TrailToolsEditUndo::PushPois();
 				DraftPoi p;
@@ -127,16 +125,16 @@ void TrailToolsDetail::DrawContentTab()
 				gDraft.pois.push_back(std::move(p));
 				gDraft.selectedPoi = static_cast<int>(gDraft.pois.size()) - 1;
 				gDraft.xmlDirty = true;
-				CopyClipboard(poiLine);
-				SetStatus("Created POI and copied tag.");
+				InsertAtXmlCaret(poiLine);
+				SetStatus("Created POI and inserted tag at caret.");
 			}
 			ImGui::SameLine();
 			ImGui::TextUnformatted("Create POI (MapID, XYZ, GUID)");
 			ImGui::TableNextColumn();
-			if (ImGui::SmallButton("COPY###cguid"))
+			if (PadNav::ActionSmallButton("COPY###cguid"))
 			{
-				CopyClipboard(guid.c_str());
-				SetStatus("Copied GUID.");
+				InsertAtXmlCaret(guid.c_str());
+				SetStatus("Inserted into OverlayData at caret.");
 			}
 			ImGui::SameLine();
 			ImGui::TextUnformatted("Create Random GUID (Base64)");
@@ -147,15 +145,8 @@ void TrailToolsDetail::DrawContentTab()
 
 	PadNav::SectionTitle("OverlayData");
 	PadNav::BeginSection("content_xmlbuf");
-	if (ImGui::Button("XML editor###gw2tt_tt_xmledit_c") && !gHubSkipOpenClicks)
+	if (PadNav::ActionButton("XML editor###gw2tt_tt_xmledit_c") && !gHubSkipOpenClicks)
 		OpenXmlEditor();
-	PadNav::WrapSameLine(PadNav::ButtonWidth("Fill from draft"));
-	if (ImGui::Button("Fill from draft###gw2tt_tt_xmlfill_c"))
-	{
-		gXmlEdit = TrailToolsXml::EmitOverlayData(gDraft);
-		gXmlEditDirty = false;
-		SetStatus("XML filled from draft.");
-	}
 	if (ImGui::BeginChild("###gw2tt_tt_xmlpane", ImVec2(0.f, 200.f), true, PadNav::kNestedList))
 		DrawXmlEditorPane(ImGui::GetContentRegionAvail().y);
 	ImGui::EndChild();
@@ -165,10 +156,12 @@ void TrailToolsDetail::DrawContentTab()
 	PadNav::BeginSection("content_trl_cat");
 	TypeCombo("###gw2tt_tt_trltype", "gw2tt_tt_trltype_edit",
 		gDraft.trailType, sizeof(gDraft.trailType), true);
-	if (ImGui::Button("New trail window###gw2tt_tt_open_trn") && !gHubSkipOpenClicks)
+	ImGui::TextColored(HelperTheme::Muted,
+		"Write into OverlayData adds the active TrailsN / hub trail to the draft (then Save or Fill regenerates XML).");
+	if (PadNav::ActionButton("New trail window###gw2tt_tt_open_trn") && !gHubSkipOpenClicks)
 		OpenNewTrailEditor();
-	PadNav::WrapSameLine(PadNav::ButtonWidth("Add to project"));
-	if (PadNav::PrimaryButton("Add to project###gw2tt_tt_ins_trxml"))
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Write into OverlayData"));
+	if (PadNav::PrimaryButton("Write into OverlayData###gw2tt_tt_ins_trxml"))
 		UpsertActiveTrailInPack();
 	ImGui::Dummy(ImVec2(0.f, 2.f));
 	for (int i = 0; i < kMaxTrailEditors; ++i)
@@ -178,7 +171,7 @@ void TrailToolsDetail::DrawContentTab()
 			gTrailEditors[i].open ? "*" : "", i + 1, i);
 		if (i > 0)
 			PadNav::WrapSameLine(PadNav::ButtonWidth(lab));
-		if (ImGui::SmallButton(lab) && !gHubSkipOpenClicks)
+		if (PadNav::ActionSmallButton(lab) && !gHubSkipOpenClicks)
 			OpenTrailEditorSlot(i);
 	}
 	PadNav::EndSection();
@@ -187,10 +180,12 @@ void TrailToolsDetail::DrawContentTab()
 	PadNav::BeginSection("content_mk_cat");
 	TypeCombo("###gw2tt_tt_mtype", "gw2tt_tt_mtype_edit",
 		gDraft.markerType, sizeof(gDraft.markerType), false);
-	if (ImGui::Button("New marker window###gw2tt_tt_open_mkn") && !gHubSkipOpenClicks)
+	ImGui::TextColored(HelperTheme::Muted,
+		"Write into OverlayData marks the selected POI dirty in the draft (POIs already live in OverlayData).");
+	if (PadNav::ActionButton("New marker window###gw2tt_tt_open_mkn") && !gHubSkipOpenClicks)
 		OpenNewMarkerEditor();
-	PadNav::WrapSameLine(PadNav::ButtonWidth("Add to project"));
-	if (PadNav::PrimaryButton("Add to project###gw2tt_tt_ins_mkxml"))
+	PadNav::WrapSameLine(PadNav::ButtonWidth("Write into OverlayData"));
+	if (PadNav::PrimaryButton("Write into OverlayData###gw2tt_tt_ins_mkxml"))
 		UpsertSelectedPoiInPack();
 	ImGui::Dummy(ImVec2(0.f, 2.f));
 	for (int i = 0; i < kMaxMarkerEditors; ++i)
@@ -200,7 +195,7 @@ void TrailToolsDetail::DrawContentTab()
 			gMarkerEditors[i].open ? "*" : "", i + 1, i);
 		if (i > 0)
 			PadNav::WrapSameLine(PadNav::ButtonWidth(lab));
-		if (ImGui::SmallButton(lab) && !gHubSkipOpenClicks)
+		if (PadNav::ActionSmallButton(lab) && !gHubSkipOpenClicks)
 		{
 			if (gMarkerEditors[i].open)
 				gMarkerEditors[i].focus = true;
@@ -211,53 +206,6 @@ void TrailToolsDetail::DrawContentTab()
 		}
 	}
 	PadNav::EndSection();
-
-	if (ImGui::CollapsingHeader("Trails in project###gw2tt_tt_tlist_hdr"))
-	{
-		if (ImGui::BeginChild("###gw2tt_tt_tlist", ImVec2(0.f, 110.f), true, PadNav::kNestedList))
-		{
-			for (int i = 0; i < static_cast<int>(gDraft.trails.size()); ++i)
-			{
-				const DraftTrail& t = gDraft.trails[static_cast<size_t>(i)];
-				ImGui::PushID(i);
-				char lab[200]{};
-				std::snprintf(lab, sizeof(lab), "%s  map %u  %zu pts",
-					t.fileRel.c_str(), t.mapId, t.points.size());
-				if (ImGui::Selectable(lab, gDraft.selectedTrail == i))
-				{
-					gDraft.selectedTrail = i;
-					gDraft.active = t;
-					std::snprintf(gDraft.trailType, sizeof(gDraft.trailType), "%s", t.type.c_str());
-					ApplyStemFromFileRel();
-					gDraft.selectedPoint = -1;
-					gDraft.trailDirty = false;
-				}
-				ImGui::PopID();
-			}
-			if (gDraft.trails.empty())
-				ImGui::TextDisabled("No trails in XML yet.");
-		}
-		ImGui::EndChild();
-	}
-	if (ImGui::CollapsingHeader("Markers in project###gw2tt_tt_mlist_hdr"))
-	{
-		if (ImGui::BeginChild("###gw2tt_tt_mlist", ImVec2(0.f, 110.f), true, PadNav::kNestedList))
-		{
-			for (int i = 0; i < static_cast<int>(gDraft.pois.size()); ++i)
-			{
-				const DraftPoi& p = gDraft.pois[static_cast<size_t>(i)];
-				ImGui::PushID(1000 + i);
-				char label[256]{};
-				std::snprintf(label, sizeof(label), "%d  map %u  %s", i, p.mapId, p.type.c_str());
-				if (ImGui::Selectable(label, gDraft.selectedPoi == i))
-					gDraft.selectedPoi = i;
-				ImGui::PopID();
-			}
-			if (gDraft.pois.empty())
-				ImGui::TextDisabled("No markers in XML yet.");
-		}
-		ImGui::EndChild();
-	}
 
 	if (gDraft.status[0])
 		ImGui::TextColored(HelperTheme::Ok, "%s", gDraft.status);

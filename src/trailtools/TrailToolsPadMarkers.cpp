@@ -9,6 +9,7 @@
 #include "HelperTheme.h"
 #include "PadNav.h"
 #include "PathingTrails.h"
+#include "TrailToolsXml.h"
 
 #include "imgui/imgui.h"
 
@@ -26,14 +27,13 @@ namespace
 		return ImGui::SmallButton(label);
 	}
 
-	void SyncSlotToActivePoi(TrailToolsDetail::MarkerEditorSlot& ed)
+	void BindSlotPoi(TrailToolsDetail::MarkerEditorSlot& ed)
 	{
 		using namespace TrailToolsDetail;
-		const int poi = TrailToolsUberTool::ActivePoiIndex();
-		if (poi < 0)
+		if (ed.poiIndex < 0 || ed.poiIndex >= static_cast<int>(gDraft.pois.size()))
 			return;
-		ed.poiIndex = poi;
-		gDraft.selectedPoi = poi;
+		gDraft.selectedPoi = ed.poiIndex;
+		TrailToolsUberTool::SelectPoi(ed.poiIndex);
 	}
 
 	void DrawMarkerToolbar(TrailToolsDetail::MarkerEditorSlot& ed)
@@ -55,17 +55,43 @@ namespace
 		}
 		if (RowBtn("Delete Marker###gw2tt_tt_mk_del", false))
 		{
-			SyncSlotToActivePoi(ed);
-			TrailToolsBinds::ActionDeleteMarker();
-			ed.poiIndex = gDraft.selectedPoi;
+			BindSlotPoi(ed);
+			if (ed.poiIndex < 0)
+				SetStatus("Select a marker in this window first.");
+			else
+			{
+				TrailToolsBinds::ActionDeleteMarker();
+				ed.poiIndex = gDraft.selectedPoi;
+			}
 		}
 		if (RowBtn("Move to Feet###gw2tt_tt_mk_feet", false))
 		{
-			SyncSlotToActivePoi(ed);
-			TrailToolsBinds::ActionMarkerMoveToFeet();
+			BindSlotPoi(ed);
+			if (ed.poiIndex < 0)
+				SetStatus("Select a marker in this window first.");
+			else
+				TrailToolsBinds::ActionMarkerMoveToFeet();
 		}
 		if (RowBtn("Undo###gw2tt_tt_mk_undo2", false))
 			TrailToolsEditUndo::UndoPois();
+		if (RowBtn("Copy XML###gw2tt_tt_mk_copyxml", false))
+		{
+			if (ed.poiIndex < 0 ||
+				ed.poiIndex >= static_cast<int>(gDraft.pois.size()))
+				SetStatus("Select a marker in this window first.");
+			else
+			{
+				const std::string line = TrailToolsXml::EmitPoiElement(
+					gDraft.pois[static_cast<size_t>(ed.poiIndex)]);
+				if (line.empty())
+					SetStatus("Nothing to copy.");
+				else
+				{
+					CopyClipboard(line.c_str());
+					SetStatus("Copied %s", line.c_str());
+				}
+			}
+		}
 		PadNav::PopWrap();
 	}
 
@@ -331,7 +357,7 @@ void TrailToolsDetail::DrawMarkerRawEditorForSlot(int slot)
 	static const char* kTabs[] = { "Data", "Settings" };
 	static const int kIcons[] = {
 		static_cast<int>(Gw2Ui::Icon::Achievement),
-		static_cast<int>(Gw2Ui::Icon::SettingsGear),
+		static_cast<int>(Gw2Ui::Icon::Options),
 	};
 	if (ed.tab < 0 || ed.tab > 1)
 		ed.tab = 0;
@@ -344,11 +370,8 @@ void TrailToolsDetail::DrawMarkerRawEditorForSlot(int slot)
 
 	if (ed.tab == 0)
 	{
-		/* Keep slot index aligned with gizmo/list lock before toolbar actions. */
-		SyncSlotToActivePoi(ed);
 		DrawMarkerToolbar(ed);
 		ImGui::Dummy(ImVec2(0.f, 6.f));
-		SyncSlotToActivePoi(ed);
 		if (ImGui::BeginChild("###gw2tt_tt_mk_raw", ImVec2(0.f, 0.f), true,
 				PadNav::kNestedList))
 			DrawMarkerRawList(ed);
@@ -356,13 +379,12 @@ void TrailToolsDetail::DrawMarkerRawEditorForSlot(int slot)
 	}
 	else
 	{
-		SyncSlotToActivePoi(ed);
 		if (ed.poiIndex < 0 || ed.poiIndex >= static_cast<int>(gDraft.pois.size()))
-			ImGui::TextDisabled("No marker bound — Insert Marker or pick one on Content.");
+			ImGui::TextDisabled("No marker bound — Insert Marker or pick a row on Data.");
 		else
 		{
 			DraftPoi& p = gDraft.pois[static_cast<size_t>(ed.poiIndex)];
-			ImGui::TextDisabled("Markers%d — POI %d", slot + 1, ed.poiIndex);
+			ImGui::TextDisabled("Markers%d — POI %d (this window only)", slot + 1, ed.poiIndex);
 			DrawSelectedPoiEditor(p);
 		}
 	}

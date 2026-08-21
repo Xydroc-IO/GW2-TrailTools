@@ -78,6 +78,8 @@ namespace
 			TrailToolsDetail::gUberToolEnabled = AsBool(val);
 		else if (std::strcmp(key, "DraftPreview") == 0)
 			TrailToolsDetail::gDraft.previewEnabled = AsBool(val);
+		else if (std::strcmp(key, "DraftPreviewAllTrails") == 0)
+			TrailToolsDetail::gDraft.previewAllTrails = AsBool(val);
 		else if (std::strcmp(key, "TrailToolsLastTrlDir") == 0)
 		{
 			std::snprintf(TrailToolsDetail::gDraft.lastTrlDir,
@@ -154,6 +156,8 @@ void Settings::Save(bool force)
 	std::fprintf(f, "ShowTrailTools=%d\n", G::ShowTrailTools ? 1 : 0);
 	std::fprintf(f, "UberTool=%d\n", TrailToolsDetail::gUberToolEnabled ? 1 : 0);
 	std::fprintf(f, "DraftPreview=%d\n", TrailToolsDetail::gDraft.previewEnabled ? 1 : 0);
+	std::fprintf(f, "DraftPreviewAllTrails=%d\n",
+		TrailToolsDetail::gDraft.previewAllTrails ? 1 : 0);
 	std::fprintf(f, "TrailToolsLastTrlDir=%s\n", TrailToolsDetail::gDraft.lastTrlDir);
 	std::fprintf(f, "TrailToolsXmlLayout=0\n");
 	std::fprintf(f, "TrailToolsBinds=%s\n", TrailToolsBinds::Serialize().c_str());

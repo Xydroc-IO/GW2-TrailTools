@@ -25,10 +25,12 @@ namespace TrailToolsDraftStyle
 
 	void BeginFrame(); /* upload pending draft textures */
 	Resolved ResolveTrail();
+	Resolved ResolveTrailFor(const TrailToolsDetail::DraftTrail& trail);
 	Resolved ResolveMarkerType(const std::string& typePath);
 
 	/* Build a WorldSnippet from the active draft trail (empty if <2 pts). */
 	PathingTrails::WorldSnippet BuildActiveSnippet();
+	PathingTrails::WorldSnippet BuildSnippetFor(const TrailToolsDetail::DraftTrail& trail);
 	/* Build a Marker-like draw helper for one draft POI. */
 	PathingTrails::Marker BuildDraftMarker(const TrailToolsDetail::DraftPoi& poi);
 }

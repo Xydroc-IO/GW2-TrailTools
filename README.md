@@ -4,7 +4,7 @@
   <img src="assets/trailtools-logo.png" alt="Trail Tools" width="420"/>
 </p>
 
-<p align="center"><strong>v1.0.0</strong></p>
+<p align="center"><strong>v1.0.0.1</strong></p>
 
 Standalone **Raidcore Nexus** addon for Guild Wars 2 — TacO/Blish **trail & marker pack authoring**, split out from [GW2-InGame-Helper](https://github.com/Xydroc-IO/GW2-InGame-Helper) Trail Tools.
 
@@ -12,13 +12,14 @@ Official Nexus APIs + MumbleLink (read-only). **No** game memory R/W, **no** Pre
 
 ## Features
 
-- **Content** / Keybinds authoring hub (anvil icon on Content)
-- In-place `.taco` pack editor under Nexus Options (tree, 2D map); pack-in-world / gizmo / pop-out toggles on Options, Pack editor, and Content
+- **Content** / Keybinds authoring hub (anvil icon on Content); Pose COPY inserts at OverlayData caret; **Write into OverlayData**
+- Collapsed Pack on Content: pack name, Import / Build .taco (Lua list parked); Looks + default textures in Nexus Options
+- In-place `.taco` pack editor under Nexus Options (tree, 2D map); pack-in-world / gizmo / pop-out toggles on Options and Pack editor
 - Ground snap from walked Mumble + pack/draft points (plane fit, not a collision mesh)
 - One OverlayData XML (TacO layout: nested categories, `trailData="Data/….trl"`, `Data/Images/`) + up to five TrailsN / four MarkersN editors
-- Editable OverlayData window for custom TacO/Blish attributes and layouts
+- Editable OverlayData window for custom TacO/Blish attributes and layouts (Tab = 3 spaces; Fill from draft on the XML editor)
 - Live 3D UberTool + draft preview **on by default** (saved in `settings.ini`): click-select + RGB move gizmo on draft markers and trail vertices
-- MarkersN: **Data** / **Settings** side rail; list shows every draft marker; Move to Feet follows the selected gizmo POI
+- MarkersN: **Data** / **Settings** side rail; list shows every draft marker; Data **Copy XML**; Move to Feet follows the selected gizmo POI
 - TrailsN recording: no world GPS until **Start**; Start requires an open Trails window; Stop stays stopped; New Segment for TacO `0,0,0` breaks
 - Closing a pad (X) does not click through into Start / New Trails
 - **Clear world trail** (Content and Nexus Options) drops a GPS that is not in any Trails window
@@ -83,7 +84,7 @@ make -j"$(nproc)"
 
 ## Version
 
-Shipping revision is **1.0.0** (`src/app/AddonVersion.h` / CMake `VERSION 1.0.0`). See [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) and [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
+Shipping revision is **1.0.0.1** (`src/app/AddonVersion.h` / CMake `VERSION 1.0.0.1`). See [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) and [`docs/CHANGELOG.md`](docs/CHANGELOG.md).
 
 ## Source layout (domain-based, ≤500 lines / `.cpp`)
 

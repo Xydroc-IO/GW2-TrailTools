@@ -45,6 +45,8 @@ namespace TrailToolsBinds
 	void SetDefaults();
 	void Poll(); /* edge-trigger chords */
 	void PollRecording(); /* auto-sample after TrailsN swap is committed */
+	/* Re-anchor spacing / move checks at current feet (after switching TrailsN). */
+	void ResetSampleAnchor();
 
 	/* Actions (also used by Trails / Markers tabs). */
 	void ActionTrailStart();

@@ -3,6 +3,7 @@
 #include "TrailToolsDraftStyle.h"
 #include "TrailToolsShared.h"
 #include "TrailToolsTrailGeom.h"
+#include "TrailToolsBinds.h"
 #include "Globals.h"
 #include "WorldGpsD3d.h"
 #include "WorldGpsImgui.h"
@@ -13,6 +14,64 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+
+namespace
+{
+	bool SlotPreviewVisible(const TrailToolsDetail::TrailEditorSlot& s, int slot)
+	{
+		if (!s.open || s.trail.points.size() < 2)
+			return false;
+		if (s.worldShown)
+			return true;
+		return TrailToolsBinds::Get().trailRecording &&
+			TrailToolsDetail::gTrailRecordSlot == slot;
+	}
+
+	void CollectPreviewSnippets(uint32_t mapId,
+		std::vector<PathingTrails::WorldSnippet>& out)
+	{
+		using namespace TrailToolsDetail;
+		out.clear();
+		if (gDraft.previewAllTrails)
+		{
+			for (int i = 0; i < kMaxTrailEditors; ++i)
+			{
+				const TrailEditorSlot& s = gTrailEditors[i];
+				if (!SlotPreviewVisible(s, i) || s.trail.mapId != mapId)
+					continue;
+				PathingTrails::WorldSnippet snip =
+					TrailToolsDraftStyle::BuildSnippetFor(s.trail);
+				if (snip.points.size() >= 2)
+					out.push_back(std::move(snip));
+			}
+			return;
+		}
+		if (!DraftWorldVisible())
+			return;
+		/* Prefer focused TrailsN so window switches update GPS without waiting to walk. */
+		int slot = gTrailFocusSlot;
+		if (slot < 0 || slot >= kMaxTrailEditors || !gTrailEditors[slot].open)
+			slot = gTrailRecordSlot;
+		if (slot >= 0 && slot < kMaxTrailEditors && gTrailEditors[slot].open)
+		{
+			const DraftTrail& tr = gTrailEditors[slot].trail;
+			if (tr.points.size() >= 2 && tr.mapId == mapId)
+			{
+				PathingTrails::WorldSnippet snip =
+					TrailToolsDraftStyle::BuildSnippetFor(tr);
+				if (snip.points.size() >= 2)
+					out.push_back(std::move(snip));
+				return;
+			}
+		}
+		const DraftTrail& rec = RecordingTrail();
+		if (rec.points.size() < 2 || rec.mapId != mapId)
+			return;
+		PathingTrails::WorldSnippet snip = TrailToolsDraftStyle::BuildActiveSnippet();
+		if (snip.points.size() >= 2)
+			out.push_back(std::move(snip));
+	}
+}
 
 void TrailToolsPreview::RenderWorld()
 {
@@ -49,23 +108,20 @@ void TrailToolsPreview::RenderWorld()
 	const float thickness = std::clamp(G::WorldTrailWidth, 0.15f, 4.f);
 	const float maxDist = std::max(80.f, G::WorldTrailMaxDist);
 
-	const DraftTrail& rec = RecordingTrail();
-	if (DraftWorldVisible() && rec.points.size() >= 2 && rec.mapId == ctx->mapId)
+	std::vector<PathingTrails::WorldSnippet> snips;
+	CollectPreviewSnippets(ctx->mapId, snips);
+	if (!snips.empty())
 	{
-		PathingTrails::WorldSnippet snip = TrailToolsDraftStyle::BuildActiveSnippet();
-		if (snip.points.size() >= 2)
+		bool drewD3d = false;
+		if (WorldGpsD3d::Available())
+			drewD3d = WorldGpsD3d::DrawTrails(
+				viewProj, cam, avatar, maxDist, thickness, snips, nullptr);
+		if (!drewD3d)
 		{
-			bool drewD3d = false;
-			if (WorldGpsD3d::Available())
+			ImDrawList* dl = ImGui::GetBackgroundDrawList();
+			if (dl)
 			{
-				std::vector<PathingTrails::WorldSnippet> one{ snip };
-				drewD3d = WorldGpsD3d::DrawTrails(
-					viewProj, cam, avatar, maxDist, thickness, one, nullptr);
-			}
-			if (!drewD3d)
-			{
-				ImDrawList* dl = ImGui::GetBackgroundDrawList();
-				if (dl)
+				for (const auto& snip : snips)
 				{
 					WorldGpsImgui::DrawTrailBillboards(
 						dl, viewProj, screenW, screenH, avatar, snip,
@@ -89,9 +145,13 @@ void TrailToolsPreview::RenderWorld()
 	if (!marks.empty())
 		WorldGpsImgui::DrawMarkers(dl, viewProj, screenW, screenH, avatar, marks);
 
-	if (!DraftWorldVisible())
+	/* Vertex pick handles stay on the active / recording trail only. */
+	if (!DraftWorldVisible() && snips.empty())
 		return;
+	const DraftTrail& rec = RecordingTrail();
 	if (rec.mapId != 0 && rec.mapId != ctx->mapId)
+		return;
+	if (rec.points.size() < 2)
 		return;
 
 	int& sel = RecordingSelectedPoint();

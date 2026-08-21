@@ -96,7 +96,7 @@ namespace TrailToolsDetail
 			gDraft.trails.push_back(gDraft.active);
 		gDraft.xmlDirty = true;
 		gDraft.trailDirty = false;
-		SetStatus("Inserted trail into project (%s).", gDraft.active.fileRel.c_str());
+		SetStatus("Wrote trail into OverlayData (%s).", gDraft.active.fileRel.c_str());
 	}
 
 	void UpsertSelectedPoiInPack()

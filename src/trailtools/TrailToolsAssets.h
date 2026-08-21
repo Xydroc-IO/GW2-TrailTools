@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-/* Pack-tab texture browser: authoring Markers/ + import from installed .taco. */
+/* Texture browser for default trail texture / marker icon (Nexus Options). */
 namespace TrailToolsAssets
 {
 	struct Entry
@@ -20,5 +20,5 @@ namespace TrailToolsAssets
 	/* Copy zipEntry from taco into authoring Markers/; returns new relative path. */
 	bool ImportFromTaco(const std::wstring& tacoPath, const std::string& zipEntry,
 		std::string& outRelPath, std::string& err);
-	void DrawBrowserUi(); /* ImGui section for Pack tab */
+	void DrawBrowserUi(); /* ImGui — default trail texture / marker icon picker */
 }

@@ -47,6 +47,7 @@ namespace TrailToolsDetail
 		gPopoutTrails = false;
 		gPopoutMarkers = false;
 		gTrailRecordSlot = -1;
+		gTrailFocusSlot = -1;
 		for (int i = 0; i < kMaxTrailEditors; ++i)
 			gTrailEditors[i].open = false;
 		for (int i = 0; i < kMaxMarkerEditors; ++i)
@@ -167,12 +168,12 @@ namespace TrailToolsDetail
 		if (s.open)
 		{
 			s.focus = true;
-			gTrailRecordSlot = slot;
+			gTrailFocusSlot = slot;
 			SetStatus("Focused Trails%d.", slot + 1);
 			return slot;
 		}
 		InitTrailEditorSlot(s, slot);
-		gTrailRecordSlot = slot;
+		gTrailFocusSlot = slot;
 		SetStatus("Opened Trails%d (others stay open).", slot + 1);
 		return slot;
 	}
@@ -229,9 +230,21 @@ namespace TrailToolsDetail
 	int OpenNewMarkerEditor()
 	{
 		int poi = gDraft.selectedPoi;
-		if (poi < 0 || poi >= static_cast<int>(gDraft.pois.size()))
+		bool owned = false;
+		if (poi >= 0 && poi < static_cast<int>(gDraft.pois.size()))
 		{
-			/* Drop one so there is something to edit. */
+			for (int i = 0; i < kMaxMarkerEditors; ++i)
+			{
+				if (gMarkerEditors[i].open && gMarkerEditors[i].poiIndex == poi)
+				{
+					owned = true;
+					break;
+				}
+			}
+		}
+		/* Each MarkersN binds its own POI — place a new one if none or already owned. */
+		if (poi < 0 || poi >= static_cast<int>(gDraft.pois.size()) || owned)
+		{
 			TrailToolsBinds::ActionPlaceMarker(-1);
 			poi = gDraft.selectedPoi;
 		}

@@ -416,6 +416,27 @@ namespace PadNav
 		return c;
 	}
 
+	/* Secondary actions (COPY, open editor chips) — brighter than default Button. */
+	inline bool ActionButton(const char* label)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::Header);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.18f, 0.30f, 0.34f, 0.95f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
+		const bool c = ImGui::Button(label);
+		ImGui::PopStyleColor(3);
+		return c;
+	}
+
+	inline bool ActionSmallButton(const char* label)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Button, HelperTheme::Header);
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.18f, 0.30f, 0.34f, 0.95f));
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, HelperTheme::TabActive);
+		const bool c = ImGui::SmallButton(label);
+		ImGui::PopStyleColor(3);
+		return c;
+	}
+
 	inline void Blurb(const char* text)
 	{
 		if (!text || !text[0])

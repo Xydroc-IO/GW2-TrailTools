@@ -159,16 +159,27 @@ void TrailToolsDraftStyle::BeginFrame()
 	}
 }
 
-TrailToolsDraftStyle::Resolved TrailToolsDraftStyle::ResolveTrail()
+TrailToolsDraftStyle::Resolved TrailToolsDraftStyle::ResolveTrailFor(
+	const TrailToolsDetail::DraftTrail& rec)
 {
 	using namespace TrailToolsDetail;
 	Resolved r;
-	const std::string want = gDraft.trailType[0]
-		? std::string(gDraft.trailType) : (RootCategoryName() + ".example");
+	const std::string want = !rec.type.empty()
+		? rec.type
+		: (gDraft.trailType[0] ? std::string(gDraft.trailType)
+			: RootCategoryName() + ".example");
 	FillFromNode(FindCategoryByPath(gDraft.root, want), r);
+	if (!rec.texture.empty())
+		r.textureRel = rec.texture;
 	if (!r.textureRel.empty())
 		QueueRel(r.textureRel, r.textureId, sizeof(r.textureId));
 	return r;
+}
+
+TrailToolsDraftStyle::Resolved TrailToolsDraftStyle::ResolveTrail()
+{
+	using namespace TrailToolsDetail;
+	return ResolveTrailFor(RecordingTrail());
 }
 
 TrailToolsDraftStyle::Resolved TrailToolsDraftStyle::ResolveMarkerType(
@@ -185,16 +196,15 @@ TrailToolsDraftStyle::Resolved TrailToolsDraftStyle::ResolveMarkerType(
 	return r;
 }
 
-PathingTrails::WorldSnippet TrailToolsDraftStyle::BuildActiveSnippet()
+PathingTrails::WorldSnippet TrailToolsDraftStyle::BuildSnippetFor(
+	const TrailToolsDetail::DraftTrail& rec)
 {
 	using namespace TrailToolsDetail;
 	PathingTrails::WorldSnippet snip;
-	const DraftTrail& rec = RecordingTrail();
 	if (rec.points.size() < 2)
 		return snip;
-	const Resolved sty = ResolveTrail();
+	const Resolved sty = ResolveTrailFor(rec);
 	snip.color = sty.color ? sty.color : 0xFFFFFFFFu;
-	/* Per-trail overrides win over category Looks. */
 	snip.alpha = (rec.alpha > 0.f && rec.alpha < 0.999f)
 		? rec.alpha
 		: (sty.alpha > 0.f ? sty.alpha : 1.f);
@@ -207,9 +217,16 @@ PathingTrails::WorldSnippet TrailToolsDraftStyle::BuildActiveSnippet()
 	if (sty.textureId[0])
 		std::snprintf(snip.textureId, sizeof(snip.textureId), "%s", sty.textureId);
 	std::snprintf(snip.label, sizeof(snip.label), "draft:%s",
-		gDraft.trailType[0] ? gDraft.trailType : "trail");
+		!rec.type.empty() ? rec.type.c_str()
+			: (gDraft.trailType[0] ? gDraft.trailType : "trail"));
 	snip.points = rec.points;
 	return snip;
+}
+
+PathingTrails::WorldSnippet TrailToolsDraftStyle::BuildActiveSnippet()
+{
+	using namespace TrailToolsDetail;
+	return BuildSnippetFor(RecordingTrail());
 }
 
 PathingTrails::Marker TrailToolsDraftStyle::BuildDraftMarker(

@@ -38,6 +38,13 @@ void TrailToolsBinds::ActionTrailStop()
 		SetStatus("Not recording.");
 		return;
 	}
+	if (gTrailEditorDrawActive && gTrailEditorDrawSlot >= 0 &&
+		gTrailRecordSlot != gTrailEditorDrawSlot)
+	{
+		SetStatus("Trails%d is recording — Stop there, or Start here to switch.",
+			gTrailRecordSlot + 1);
+		return;
+	}
 	gBinds.trailRecording = false;
 	gBinds.trailPaused = false;
 	SetStatus("Recording stopped (%zu pts).", RecordingTrail().points.size());

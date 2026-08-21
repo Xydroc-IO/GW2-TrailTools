@@ -36,6 +36,16 @@ void TrailToolsDetail::DrawLiveTab()
 	ImGui::SameLine();
 	if (ImGui::Checkbox("Draft preview###gw2tt_tt_prev", &gDraft.previewEnabled))
 		Settings::SetDirty();
+	if (gDraft.previewEnabled)
+	{
+		ImGui::SameLine();
+		if (ImGui::Checkbox("All TrailsN###gw2tt_tt_prevall", &gDraft.previewAllTrails))
+			Settings::SetDirty();
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Off: only the active / recording Trails window.\n"
+				"On: every open TrailsN with a drawable trail.");
+	}
 	if (ImGui::Checkbox("Hide trail near me###gw2tt_tt_pclear", &G::WorldTrailPlayerClearOn))
 	{
 		if (G::WorldTrailPlayerClearOn && G::WorldTrailPlayerClear < 0.05f)

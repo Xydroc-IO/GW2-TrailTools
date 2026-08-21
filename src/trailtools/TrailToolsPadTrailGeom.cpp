@@ -56,8 +56,15 @@ void TrailToolsDetail::DrawTrailGeomSection()
 	std::vector<int>* sel = nullptr;
 	static std::vector<int> sActiveSel;
 	sel = &sActiveSel;
-	if (gTrailRecordSlot >= 0 && gTrailRecordSlot < kMaxTrailEditors)
-		sel = &gTrailEditors[gTrailRecordSlot].selectedPoints;
+	int geomSlot = -1;
+	if (gTrailEditorDrawActive)
+		geomSlot = gTrailEditorDrawSlot;
+	else if (gTrailFocusSlot >= 0)
+		geomSlot = gTrailFocusSlot;
+	else
+		geomSlot = gTrailRecordSlot;
+	if (geomSlot >= 0 && geomSlot < kMaxTrailEditors)
+		sel = &gTrailEditors[geomSlot].selectedPoints;
 
 	if (ImGui::Button("Delete selected###gw2tt_tt_gdelsel"))
 	{

@@ -8,7 +8,7 @@
 namespace TrailToolsDetail
 {
 	void DrawLiveTab(); /* pose / UberTool / world click — drawn on Content */
-	void DrawContentTab(); /* Live + Trails/Markers project lists */
+	void DrawContentTab(); /* Live + OverlayData authoring hub */
 	void DrawTrailTab(); /* full tab when docked: desk + raw (legacy entry) */
 	void DrawTrailDesk(bool asPopout = false); /* category + list + TrailsN (no XML chrome) */
 	void DrawTrailRawEditor(); /* uses gDraft.active (after PushTrailEditorToActive) */
@@ -22,6 +22,7 @@ namespace TrailToolsDetail
 	void DrawXmlEditorPane(float height);
 	bool RenderXmlEditorPad(); /* pop-out OverlayData text editor */
 	void DrawPackTab();
+	void DrawLooksDefaultsUi(); /* Nexus Options — trail texture / marker icon defaults */
 	void DrawKeybindsTab();
 	void DrawPoiScriptAttrs(DraftPoi& p);
 	void DrawPoiBehaviorAndFilters(DraftPoi& p);

@@ -1,6 +1,6 @@
 # Contributing — GW2-TrailTools
 
-Raidcore **Nexus** ImGui DLL. Current shipping version: **1.0.0**. Normative allow/deny: [`COMPLIANCE.md`](COMPLIANCE.md).
+Raidcore **Nexus** ImGui DLL. Current shipping version: **1.0.0.1**. Normative allow/deny: [`COMPLIANCE.md`](COMPLIANCE.md).
 
 ## Prerequisites
 

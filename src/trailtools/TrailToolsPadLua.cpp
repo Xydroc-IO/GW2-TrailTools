@@ -12,22 +12,25 @@
 
 #include <windows.h>
 
-/* List / note .lua files under authoring workspace for pack build inclusion. */
+/* List / note .lua files under authoring workspace for pack build inclusion.
+   Parked workflow: list-only until Lua authoring is defined. */
 namespace TrailToolsDetail
 {
 	void DrawLuaFilesUi()
 	{
 		EnsureWorkspace();
-		ImGui::TextUnformatted("Lua scripts");
+		PadNav::SectionTitle("Lua");
+		PadNav::BeginSection("lua_parked");
+		ImGui::TextUnformatted("Pack scripts (parked)");
 		PadNav::PushWrap();
 		ImGui::TextColored(HelperTheme::Muted,
 			"Drop .lua into the authoring folder (e.g. Scripts/). Build .taco packs them. "
-			"Trail Tools does not run Lua — use a Pathing host that supports scripts.");
+			"Trail Tools does not run Lua — use a Pathing host that supports scripts. "
+			"Come back here to define the full authoring workflow (edit / run / bind).");
 		PadNav::PopWrap();
 
 		std::vector<std::string> luas;
 		const std::wstring root = PackDir();
-		/* Shallow scan of root + Scripts/ + Data/ */
 		auto scan = [&](const std::wstring& dir, const std::string& prefix) {
 			const std::wstring glob = dir + L"\\*.lua";
 			WIN32_FIND_DATAW fd{};
@@ -48,13 +51,14 @@ namespace TrailToolsDetail
 		scan(root + L"\\Scripts", "Scripts/");
 		CreateDirectoryW((root + L"\\Scripts").c_str(), nullptr);
 
-		if (ImGui::BeginChild("###gw2tt_tt_luas", ImVec2(0.f, 70.f), true, PadNav::kNestedList))
+		if (ImGui::BeginChild("###gw2tt_tt_luas", ImVec2(0.f, 140.f), true, PadNav::kNestedList))
 		{
 			if (luas.empty())
-				ImGui::TextDisabled("No .lua files yet - Open folder and add Scripts/foo.lua");
+				ImGui::TextDisabled("No .lua files yet — Open folder (Settings → Pack build) and add Scripts/foo.lua");
 			for (const std::string& f : luas)
 				ImGui::BulletText("%s", f.c_str());
 		}
 		ImGui::EndChild();
+		PadNav::EndSection();
 	}
 }

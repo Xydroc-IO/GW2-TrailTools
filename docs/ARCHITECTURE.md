@@ -6,7 +6,7 @@ Standalone Raidcore Nexus addon extracted from GW2-InGame-Helper **Trail Tools**
 |-------|-------|
 | Addon name | `GW2-TrailTools` |
 | Signature | `0x54524C53` (`TRLS`) |
-| Version | **1.0.0** (`AddonVersion.h`) |
+| Version | **1.0.0.1** (`AddonVersion.h`) |
 | Module size rule | **≤500 lines** per `src/**/*.cpp` |
 
 ## One-line summary
@@ -45,9 +45,9 @@ Prefer **≤500 lines** per `.cpp`. Split pad vs state vs binds vs parse. Genera
 
 ## Authoring model
 
-Hub tabs: **Content** → Keybinds. **Content** is project lists plus Live pose / UberTool / world click. Pack name / import / **Build .taco** sit in a collapsed Pack section on Content. In-place `.taco` file tools are under Nexus Options → Pack editor.
+Hub tabs: **Content** → Keybinds. **Content** is Live pose / UberTool / world click, OverlayData New/Load/Save + inline buffer, Pose COPY (inserts at XML caret), and trail/marker defaults that open TrailsN / MarkersN. Collapsed **Pack** on Content is pack identity + Import / **Build .taco** (Lua list parked at the bottom). Default trail/marker looks and texture browser live under Nexus Options. In-place `.taco` file tools are under Nexus Options → Pack editor.
 
-**Pack editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder from Nexus Options → Pack editor, then Save. World-draw / gizmo / pop-out / ground-snap checkboxes appear in Nexus Options, the Pack editor header, and Content (same flags, distinct ImGui IDs). **Draw pack in world** starts **off** on open/load so a pack is not painted until that box is checked; overlay still runs if the hub pad is closed. Save **patches POI/Trail tags in the original XML files**. New packs still emit one OverlayData.xml.
+**Pack editor** (`src/packedit/`) is a separate document from the Pack/Content draft. Open a `.taco` or folder from Nexus Options → Pack editor, then Save. World-draw / gizmo / pop-out / ground-snap checkboxes appear in Nexus Options and the Pack editor header (same flags, distinct ImGui IDs). **Draw pack in world** starts **off** on open/load so a pack is not painted until that box is checked; overlay still runs if the hub pad is closed. Save **patches POI/Trail tags in the original XML files**. New packs still emit one OverlayData.xml.
 
 Editor lists sit inside the scrolling hub: the mouse wheel moves the **pad**; drag a list scrollbar to move inside it; **Ctrl+wheel** zooms the 2D map. Resource rows are selectable (copy path, jump to a user).
 

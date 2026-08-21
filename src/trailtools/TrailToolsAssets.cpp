@@ -205,10 +205,12 @@ void TrailToolsAssets::DrawBrowserUi()
 		sLoaded = true;
 	}
 
-	ImGui::TextUnformatted("Texture browser");
+	ImGui::TextUnformatted("Default trail texture / marker icon");
 	PadNav::PushWrap();
 	ImGui::TextColored(HelperTheme::Muted,
-		"Pick a PNG from your pack or import one from an installed .taco.");
+		"Click a PNG to set the default trail texture or marker icon for the active "
+		"Content category (trailType / markerType). Import copies from an installed .taco "
+		"into Data/Images/.");
 	PadNav::PopWrap();
 
 	if (ImGui::Button("Refresh lists###gw2tt_tt_texref"))
